@@ -1,0 +1,44 @@
+@media print {
+  .topbar,
+  .sidebar,
+  .no-print,
+  .scrim,
+  .toast {
+    display: none !important;
+  }
+  body {
+    background: #fff;
+  }
+  .main {
+    padding: 0;
+  }
+  .card,
+  .stat,
+  .acc {
+    break-inside: avoid;
+    box-shadow: none;
+    border-color: #ccc;
+  }
+  .hero-result {
+    background: #fff !important;
+    color: #000 !important;
+    border: 2px solid #000;
+  }
+  .hero-result .h-label,
+  .hero-result .h-caption {
+    color: #333 !important;
+  }
+  table.data {
+    min-width: 0;
+    font-size: 10px;
+  }
+  .acc .acc-body {
+    display: block !important;
+  }
+  a[href]::after {
+    content: '';
+  }
+  @page {
+    margin: 14mm;
+  }
+}

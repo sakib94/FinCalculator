@@ -1,0 +1,247 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  position: relative;
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  transition: background-color var(--dur-2) var(--ease), color var(--dur-2) var(--ease);
+}
+
+h1,
+h2,
+h3,
+h4 {
+  margin: 0;
+  line-height: 1.22;
+  letter-spacing: -0.015em;
+  font-weight: 650;
+}
+
+h1 {
+  font-size: clamp(1.45rem, 1.15rem + 1.2vw, 2rem);
+}
+h2 {
+  font-size: clamp(1.15rem, 1rem + 0.6vw, 1.4rem);
+}
+h3 {
+  font-size: 1.02rem;
+}
+
+p {
+  margin: 0 0 0.75em;
+}
+
+a {
+  color: var(--brand-600);
+  text-decoration: none;
+}
+a:hover {
+  text-decoration: underline;
+}
+
+img,
+svg {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-600);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+::selection {
+  background: var(--brand-100);
+  color: var(--text);
+}
+
+.num {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 200;
+  background: var(--brand-600);
+  color: var(--brand-ink);
+  padding: 10px 16px;
+  border-radius: 0 0 var(--r-sm) 0;
+}
+.skip-link:focus {
+  left: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbars */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 99px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+/* ------------------------------------------------------------------
+   Motion utilities.
+
+   One keyframe, three entrances. `.stagger` walks its children with a
+   --i custom property so a grid of cards arrives in sequence instead of
+   all at once. Everything here is disabled wholesale by the
+   prefers-reduced-motion block above.
+   ------------------------------------------------------------------ */
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes rise-sm {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+}
+@keyframes zoom-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+.anim-rise {
+  animation: rise var(--dur-3) var(--ease) both;
+}
+.anim-zoom {
+  animation: zoom-in var(--dur-2) var(--ease-spring) both;
+}
+
+.stagger > * {
+  animation: rise-sm 440ms var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+/* Numeric values that change in place get a short lift rather than a
+   jump, so a recalculated figure is noticed without being distracting. */
+@keyframes value-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(3px);
+  }
+}
+.value-in {
+  animation: value-in 420ms var(--ease) both;
+}
+
+/* ------------------------------------------------------------------
+   Ambient background.
+
+   Two fixed layers behind everything: a faint grid that gives the page
+   texture, and three large colour blobs that drift on a very slow loop.
+   Both are pointer-events:none and sit at z-index -1, so they never
+   interfere with the app. Motion stops under prefers-reduced-motion.
+   ------------------------------------------------------------------ */
+body::before,
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* Grid texture. */
+body::before {
+  background-image: linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 35%, transparent 78%);
+  -webkit-mask-image: radial-gradient(ellipse 120% 80% at 50% 0%, #000 35%, transparent 78%);
+}
+
+/* Drifting colour blobs. */
+body::after {
+  background-image: radial-gradient(38vw 38vw at 82% -6%, var(--blob-1), transparent 62%),
+    radial-gradient(34vw 34vw at 8% 12%, var(--blob-2), transparent 62%),
+    radial-gradient(30vw 30vw at 62% 92%, var(--blob-3), transparent 64%);
+  animation: drift 34s var(--ease) infinite alternate;
+  will-change: transform;
+}
+
+@keyframes drift {
+  0% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(-2.5%, 2%, 0) scale(1.06);
+  }
+  100% {
+    transform: translate3d(2%, -2.5%, 0) scale(1.02);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::after {
+    animation: none;
+  }
+}

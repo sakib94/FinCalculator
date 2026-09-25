@@ -1,0 +1,531 @@
+/* ------------------------------------------------------------------
+   Design tokens — the single source of truth for the visual system.
+
+   Five original palettes, each in a light and a dark surface:
+
+     Harbor     deep slate + teal        calm, infrastructural
+     Meridian   indigo + cyan            crisp, technical
+     Evergreen  forest + lime            natural, growth
+     Ember      graphite + amber         warm, confident
+     Iris       violet-blue + periwinkle considered, editorial
+
+   Two independent axes drive them:
+     [data-palette]  which hue family
+     [data-mode]     light or dark surface
+
+   Both attributes are always written by usePreferences.ts — "system"
+   is resolved to a concrete mode in JS rather than by a media query, so
+   every palette needs exactly one light block and one dark block
+   instead of being duplicated across @media and [data-mode].
+
+   Anything derivable is derived. Status backgrounds, the focus ring,
+   chart gridlines and the ambient blobs are all computed with
+   color-mix() on the shared :root, so a palette only declares the ~28
+   values that genuinely differ.
+   ------------------------------------------------------------------ */
+
+:root {
+  /* ---- Shape ---- */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+
+  /* ---- Motion ---- */
+  --dur: 160ms;
+  --dur-2: 320ms;
+  --dur-3: 620ms;
+  --ease: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring: cubic-bezier(0.34, 1.32, 0.52, 1);
+
+  /* ---- Type ---- */
+  /* 'Noto Sans Devanagari' and 'Nirmala UI' carry the Hindi interface;
+     both ship with Android and Windows respectively. */
+  --font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+    'Helvetica Neue', Arial, 'Noto Sans', 'Noto Sans Devanagari', 'Nirmala UI', sans-serif;
+  --font-num: 'Inter var', 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* ---- Layout ---- */
+  --sidebar-w: 288px;
+  --topbar-h: 60px;
+  --maxw: 1180px;
+  --main-gutter: 44px;
+  --safe-t: env(safe-area-inset-top, 0px);
+  --safe-b: env(safe-area-inset-bottom, 0px);
+
+  /* ---- Derived from whichever palette is active ---- */
+  /* The two halves of a calculator each get their own light ground so they
+     read as two labelled steps rather than a form and some loose tiles.
+     Brand and accent sit too close in most palettes for the two grounds to
+     separate, and the page itself is already a faint brand tint — so the
+     inputs panel leans on the brand hue and the results panel borrows
+     --progress-rail-glow, which every palette already picks to contrast
+     with its own brand. Controls inside both panels stay plain --surface
+     so they lift off the tint. */
+  --panel-input: color-mix(in srgb, var(--brand-500) 13%, var(--surface));
+  --panel-result: color-mix(in srgb, var(--progress-rail-glow) 11%, var(--surface));
+  --input-bg: var(--surface);
+  --input-bg-focus: var(--surface);
+  --info-bg: color-mix(in srgb, var(--brand-500) 9%, var(--surface));
+  --positive-bg: color-mix(in srgb, var(--positive) 13%, var(--surface));
+  --negative-bg: color-mix(in srgb, var(--negative) 13%, var(--surface));
+  --warning-bg: color-mix(in srgb, var(--warning) 15%, var(--surface));
+  --grid: color-mix(in srgb, var(--border) 78%, var(--surface));
+  --ring: 0 0 0 3px color-mix(in srgb, var(--brand-500) 30%, transparent);
+  --shadow-brand: 0 10px 24px -10px color-mix(in srgb, var(--brand-600) 55%, transparent);
+
+  /* Scroll progress: the page bar follows the theme, the rail's bar uses
+     the per-palette contrast pair declared with each palette. */
+
+  /* Ambient background wash, tinted by the active palette. */
+  --blob-1: color-mix(in srgb, var(--brand-500) 22%, transparent);
+  --blob-2: color-mix(in srgb, var(--accent-500) 20%, transparent);
+  --blob-3: color-mix(in srgb, var(--series-2) 13%, transparent);
+  --grid-line: color-mix(in srgb, var(--brand-600) 5%, transparent);
+
+  /* ---- Light-surface shadows, tinted by --shadow-color ---- */
+  --shadow-1: 0 1px 2px rgb(var(--shadow-color) / 0.06), 0 1px 3px rgb(var(--shadow-color) / 0.07);
+  --shadow-2: 0 4px 16px rgb(var(--shadow-color) / 0.1);
+  --shadow-3: 0 18px 44px rgb(var(--shadow-color) / 0.2);
+  --overlay: rgb(var(--shadow-color) / 0.45);
+}
+
+/* Dark surfaces share their shadow treatment: near-black, never tinted,
+   because a coloured shadow on a dark ground reads as a glow. */
+:root[data-mode='dark'] {
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.46);
+  --shadow-3: 0 20px 48px rgba(0, 0, 0, 0.62);
+  --overlay: rgba(0, 0, 0, 0.66);
+}
+
+/* ==================================================================
+   HARBOR — deep slate + teal
+   ================================================================== */
+:root,
+:root[data-palette='harbor'] {
+  --progress-page: linear-gradient(90deg, #ea580c, #db2777, #7c3aed);
+  --progress-page-glow: #db2777;
+  --progress-rail: linear-gradient(90deg, #7c3aed, #c026d3, #e11d48);
+  --progress-rail-glow: #c026d3;
+  color-scheme: light;
+  --shadow-color: 10 40 50;
+
+  --brand-50: #e9f5f7;
+  --brand-100: #d0eaef;
+  --brand-200: #a4d6e0;
+  --brand-500: #0e8ba1;
+  --brand-600: #096f84;
+  --brand-700: #075868;
+  --brand-ink: #ffffff;
+  --accent-500: #3b7fa8;
+  --accent-600: #2a638a;
+  --hero-from: #0a2b37;
+  --hero-to: #0d8295;
+
+  --bg: #f3f8f9;
+  --bg-subtle: #e9f1f3;
+  --surface: #ffffff;
+  --surface-2: #f9fcfd;
+  --surface-3: #edf4f6;
+  --border: #dbe8eb;
+  --border-strong: #b7cdd3;
+  --text: #0c1e25;
+  --text-2: #3a565f;
+  --text-3: #5f7d87;
+
+  --positive: #0a7a52;
+  --negative: #c0342a;
+  --warning: #8a6100;
+
+  --series-1: #096f84;
+  --series-2: #d9722c;
+  --series-3: #5457bd;
+  --series-4: #12996b;
+  --series-5: #b23d86;
+}
+
+:root[data-palette='harbor'][data-mode='dark'] {
+  --progress-page: linear-gradient(90deg, #fb923c, #f472b6, #a78bfa);
+  --progress-page-glow: #f472b6;
+  --progress-rail: linear-gradient(90deg, #a78bfa, #e879f9, #fb7185);
+  --progress-rail-glow: #e879f9;
+  color-scheme: dark;
+
+  --brand-50: #0b2129;
+  --brand-100: #0f2f38;
+  --brand-200: #16434f;
+  --brand-500: #2fc3da;
+  --brand-600: #1fb0c8;
+  --brand-700: #5ed5e8;
+  --brand-ink: #041b21;
+  --accent-500: #66a8d8;
+  --accent-600: #4a90c2;
+  --hero-from: #06242e;
+  --hero-to: #0c7a90;
+
+  --bg: #071317;
+  --bg-subtle: #0b1a1f;
+  --surface: #0e1f26;
+  --surface-2: #13282f;
+  --surface-3: #18323b;
+  --border: #1e3b45;
+  --border-strong: #2d5463;
+  --text: #e5f1f4;
+  --text-2: #a7c1c9;
+  --text-3: #7f9da7;
+
+  --positive: #35c98a;
+  --negative: #ff7d72;
+  --warning: #e5a944;
+
+  --series-1: #1fb0c8;
+  --series-2: #f0954e;
+  --series-3: #8b8ef0;
+  --series-4: #21c48c;
+  --series-5: #e56ab5;
+}
+
+/* ==================================================================
+   MERIDIAN — indigo + cyan
+   ================================================================== */
+:root[data-palette='meridian'] {
+  --progress-page: linear-gradient(90deg, #ea580c, #db2777, #7c3aed);
+  --progress-page-glow: #db2777;
+  --progress-rail: linear-gradient(90deg, #0d9488, #16a34a, #65a30d);
+  --progress-rail-glow: #16a34a;
+  color-scheme: light;
+  --shadow-color: 25 28 70;
+
+  --brand-50: #eef1fe;
+  --brand-100: #dde3fd;
+  --brand-200: #bcc7fb;
+  --brand-500: #4a5ad4;
+  --brand-600: #3a47bd;
+  --brand-700: #2e3896;
+  --brand-ink: #ffffff;
+  --accent-500: #0e9fb2;
+  --accent-600: #0b8092;
+  --hero-from: #1e1f5c;
+  --hero-to: #4a5ad4;
+
+  --bg: #f5f6fb;
+  --bg-subtle: #eceef8;
+  --surface: #ffffff;
+  --surface-2: #fafbff;
+  --surface-3: #f0f2fa;
+  --border: #e2e5f2;
+  --border-strong: #c3c8e0;
+  --text: #14162e;
+  --text-2: #464a68;
+  --text-3: #6d7295;
+
+  --positive: #0d7a52;
+  --negative: #c0342a;
+  --warning: #8a6100;
+
+  --series-1: #3a47bd;
+  --series-2: #d9722c;
+  --series-3: #0e9fb2;
+  --series-4: #12996b;
+  --series-5: #b23d86;
+}
+
+:root[data-palette='meridian'][data-mode='dark'] {
+  --progress-page: linear-gradient(90deg, #fb923c, #f472b6, #a78bfa);
+  --progress-page-glow: #f472b6;
+  --progress-rail: linear-gradient(90deg, #2dd4bf, #4ade80, #a3e635);
+  --progress-rail-glow: #4ade80;
+  color-scheme: dark;
+
+  --brand-50: #171a33;
+  --brand-100: #1e2344;
+  --brand-200: #2a3160;
+  --brand-500: #8b96f5;
+  --brand-600: #7782f0;
+  --brand-700: #a5aef8;
+  --brand-ink: #0d0f24;
+  --accent-500: #3dd0e0;
+  --accent-600: #26b8c8;
+  --hero-from: #1a1c4a;
+  --hero-to: #4551c9;
+
+  --bg: #0b0c1a;
+  --bg-subtle: #101226;
+  --surface: #14162e;
+  --surface-2: #1a1d38;
+  --surface-3: #212545;
+  --border: #282d52;
+  --border-strong: #3c4270;
+  --text: #e9ebf8;
+  --text-2: #b2b7d6;
+  --text-3: #8a90b4;
+
+  --positive: #35c98a;
+  --negative: #ff7d72;
+  --warning: #e5a944;
+
+  --series-1: #7782f0;
+  --series-2: #f0954e;
+  --series-3: #3dd0e0;
+  --series-4: #21c48c;
+  --series-5: #e56ab5;
+}
+
+/* ==================================================================
+   EVERGREEN — forest + lime
+   ================================================================== */
+:root[data-palette='evergreen'] {
+  --progress-page: linear-gradient(90deg, #0891b2, #2563eb, #6d28d9);
+  --progress-page-glow: #2563eb;
+  --progress-rail: linear-gradient(90deg, #ea580c, #db2777, #7c3aed);
+  --progress-rail-glow: #db2777;
+  color-scheme: light;
+  --shadow-color: 15 45 32;
+
+  --brand-50: #e8f5ec;
+  --brand-100: #d2ecd9;
+  --brand-200: #a8d9b7;
+  --brand-500: #157a53;
+  --brand-600: #0f6342;
+  --brand-700: #0b4d33;
+  --brand-ink: #ffffff;
+  --accent-500: #4b8f42;
+  --accent-600: #3a7433;
+  --hero-from: #0a3527;
+  --hero-to: #157a53;
+
+  --bg: #f5f8f4;
+  --bg-subtle: #ecf2ea;
+  --surface: #ffffff;
+  --surface-2: #fafcf9;
+  --surface-3: #eff5ee;
+  --border: #dfe8dd;
+  --border-strong: #bccfba;
+  --text: #12211a;
+  --text-2: #3f574a;
+  --text-3: #667f70;
+
+  --positive: #0f6342;
+  --negative: #c0342a;
+  --warning: #8a6100;
+
+  --series-1: #0f6342;
+  --series-2: #d9722c;
+  --series-3: #3a6fc4;
+  --series-4: #7ba428;
+  --series-5: #9552b8;
+}
+
+:root[data-palette='evergreen'][data-mode='dark'] {
+  --progress-page: linear-gradient(90deg, #22d3ee, #60a5fa, #a78bfa);
+  --progress-page-glow: #60a5fa;
+  --progress-rail: linear-gradient(90deg, #fb923c, #f472b6, #a78bfa);
+  --progress-rail-glow: #f472b6;
+  color-scheme: dark;
+
+  --brand-50: #0c2118;
+  --brand-100: #103022;
+  --brand-200: #174432;
+  --brand-500: #35c98a;
+  --brand-600: #22b676;
+  --brand-700: #5edaa4;
+  --brand-ink: #04180f;
+  --accent-500: #8ecf6a;
+  --accent-600: #73b551;
+  --hero-from: #06241a;
+  --hero-to: #107951;
+
+  --bg: #071310;
+  --bg-subtle: #0b1a15;
+  --surface: #0e1f19;
+  --surface-2: #132821;
+  --surface-3: #193229;
+  --border: #1f3b30;
+  --border-strong: #2e5645;
+  --text: #e6f2eb;
+  --text-2: #a8c4b3;
+  --text-3: #7f9d8c;
+
+  --positive: #35c98a;
+  --negative: #ff7d72;
+  --warning: #e5a944;
+
+  --series-1: #22b676;
+  --series-2: #f0954e;
+  --series-3: #6d9bf0;
+  --series-4: #b3d949;
+  --series-5: #c489ee;
+}
+
+/* ==================================================================
+   EMBER — graphite + amber
+   ================================================================== */
+:root[data-palette='ember'] {
+  --progress-page: linear-gradient(90deg, #7c3aed, #c026d3, #e11d48);
+  --progress-page-glow: #c026d3;
+  --progress-rail: linear-gradient(90deg, #0891b2, #2563eb, #6d28d9);
+  --progress-rail-glow: #2563eb;
+  color-scheme: light;
+  --shadow-color: 60 40 25;
+
+  --brand-50: #fdf1e7;
+  --brand-100: #fbe3ce;
+  --brand-200: #f6c79d;
+  --brand-500: #b35708;
+  --brand-600: #964706;
+  --brand-700: #783804;
+  --brand-ink: #ffffff;
+  --accent-500: #b23f2c;
+  --accent-600: #94301f;
+  --hero-from: #3a1f0e;
+  --hero-to: #b35708;
+
+  --bg: #faf7f4;
+  --bg-subtle: #f3ede7;
+  --surface: #ffffff;
+  --surface-2: #fdfbf9;
+  --surface-3: #f6f1ec;
+  --border: #eae1d8;
+  --border-strong: #d1c1b1;
+  --text: #221a13;
+  --text-2: #53463a;
+  --text-3: #7d6d5e;
+
+  --positive: #0a7a52;
+  --negative: #bf3226;
+  --warning: #8a6100;
+
+  --series-1: #964706;
+  --series-2: #3a6fc4;
+  --series-3: #12996b;
+  --series-4: #8a51c0;
+  --series-5: #b23f2c;
+}
+
+:root[data-palette='ember'][data-mode='dark'] {
+  --progress-page: linear-gradient(90deg, #a78bfa, #e879f9, #fb7185);
+  --progress-page-glow: #e879f9;
+  --progress-rail: linear-gradient(90deg, #22d3ee, #60a5fa, #a78bfa);
+  --progress-rail-glow: #60a5fa;
+  color-scheme: dark;
+
+  --brand-50: #2a1a0d;
+  --brand-100: #3a2411;
+  --brand-200: #513318;
+  --brand-500: #f59d3d;
+  --brand-600: #e88b28;
+  --brand-700: #f9b96c;
+  --brand-ink: #1c1004;
+  --accent-500: #ef7a5e;
+  --accent-600: #dd6146;
+  --hero-from: #2e1a0c;
+  --hero-to: #a95c12;
+
+  --bg: #15100b;
+  --bg-subtle: #1b1510;
+  --surface: #1f1813;
+  --surface-2: #281f18;
+  --surface-3: #32271e;
+  --border: #3a2e24;
+  --border-strong: #574538;
+  --text: #f5ece3;
+  --text-2: #cbb9a8;
+  --text-3: #a3907f;
+
+  --positive: #35c98a;
+  --negative: #ff8175;
+  --warning: #e5a944;
+
+  --series-1: #e88b28;
+  --series-2: #6d9bf0;
+  --series-3: #21c48c;
+  --series-4: #bb90ee;
+  --series-5: #ef7a5e;
+}
+
+/* ==================================================================
+   IRIS — violet-blue + periwinkle
+   ================================================================== */
+:root[data-palette='iris'] {
+  --progress-page: linear-gradient(90deg, #ea580c, #db2777, #7c3aed);
+  --progress-page-glow: #db2777;
+  --progress-rail: linear-gradient(90deg, #0d9488, #16a34a, #65a30d);
+  --progress-rail-glow: #16a34a;
+  color-scheme: light;
+  --shadow-color: 35 25 75;
+
+  --brand-50: #f0eefe;
+  --brand-100: #e2defd;
+  --brand-200: #c5befb;
+  --brand-500: #6549cf;
+  --brand-600: #5335b8;
+  --brand-700: #422a93;
+  --brand-ink: #ffffff;
+  --accent-500: #4176cc;
+  --accent-600: #305cab;
+  --hero-from: #241a52;
+  --hero-to: #6549cf;
+
+  --bg: #f7f6fc;
+  --bg-subtle: #efedf8;
+  --surface: #ffffff;
+  --surface-2: #fcfbff;
+  --surface-3: #f3f1fb;
+  --border: #e6e3f4;
+  --border-strong: #c9c4e3;
+  --text: #191430;
+  --text-2: #4a436b;
+  --text-3: #736b94;
+
+  --positive: #0d7a52;
+  --negative: #c0342a;
+  --warning: #8a6100;
+
+  --series-1: #5335b8;
+  --series-2: #d9722c;
+  --series-3: #2f8fbe;
+  --series-4: #12996b;
+  --series-5: #b23d86;
+}
+
+:root[data-palette='iris'][data-mode='dark'] {
+  --progress-page: linear-gradient(90deg, #fb923c, #f472b6, #a78bfa);
+  --progress-page-glow: #f472b6;
+  --progress-rail: linear-gradient(90deg, #2dd4bf, #4ade80, #a3e635);
+  --progress-rail-glow: #4ade80;
+  color-scheme: dark;
+
+  --brand-50: #1a1533;
+  --brand-100: #231c45;
+  --brand-200: #312762;
+  --brand-500: #a48ef7;
+  --brand-600: #9178f2;
+  --brand-700: #bdadfa;
+  --brand-ink: #0f0a24;
+  --accent-500: #6fa3f0;
+  --accent-600: #548ade;
+  --hero-from: #1e1748;
+  --hero-to: #5a42c4;
+
+  --bg: #0c0a1a;
+  --bg-subtle: #110e26;
+  --surface: #16122e;
+  --surface-2: #1c1738;
+  --surface-3: #241e46;
+  --border: #2b2452;
+  --border-strong: #403670;
+  --text: #ece9f9;
+  --text-2: #b8b1d8;
+  --text-3: #918ab3;
+
+  --positive: #35c98a;
+  --negative: #ff7d72;
+  --warning: #e5a944;
+
+  --series-1: #9178f2;
+  --series-2: #f0954e;
+  --series-3: #56b6e0;
+  --series-4: #21c48c;
+  --series-5: #e56ab5;
+}

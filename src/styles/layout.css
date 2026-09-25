@@ -1,0 +1,698 @@
+.app {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ---------- Top bar ---------- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: calc(var(--topbar-h) + var(--safe-t));
+  padding: var(--safe-t) 14px 0;
+  background: color-mix(in srgb, var(--surface) 84%, transparent);
+  backdrop-filter: saturate(180%) blur(12px);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text);
+  font-size: 1.05rem;
+}
+.brand:hover {
+  text-decoration: none;
+}
+.brand:hover .brand-mark {
+  transform: rotate(-8deg) scale(1.06);
+}
+.brand-mark {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(150deg, var(--brand-500), var(--accent-600));
+  color: #fff;
+  flex: none;
+  box-shadow: var(--shadow-brand);
+  transition: transform var(--dur-2) var(--ease-spring);
+}
+.brand-sub {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--text-3);
+  letter-spacing: 0.02em;
+  display: block;
+  margin-top: -3px;
+}
+
+.topbar-spacer {
+  flex: 1;
+}
+
+.search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 38px;
+  padding: 0 10px 0 12px;
+  min-width: 230px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+  color: var(--text-3);
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.search-trigger:hover {
+  border-color: var(--brand-500);
+  color: var(--text-2);
+  box-shadow: var(--ring);
+}
+.search-trigger .kbd {
+  margin-left: auto;
+}
+
+.kbd {
+  font-size: 0.7rem;
+  font-family: var(--font-num);
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  background: var(--surface);
+  color: var(--text-3);
+  border-radius: 6px;
+  padding: 1px 6px;
+}
+
+/* ---------- Theme menu ---------- */
+.theme-menu {
+  position: relative;
+  flex: none;
+}
+.menu-pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 90;
+  width: 214px;
+  padding: 6px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-3);
+  animation: pop 180ms var(--ease-spring);
+  transform-origin: top right;
+}
+.menu-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 7px 10px 6px;
+}
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease);
+}
+.menu-item:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.menu-item.on {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}
+.menu-item .m-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+  min-width: 0;
+}
+.menu-item .m-label {
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+.menu-item .m-hint {
+  font-size: 0.72rem;
+  color: var(--text-3);
+}
+.menu-item .m-check {
+  margin-left: auto;
+  color: var(--brand-600);
+}
+/* Three bands — page, brand, accent — so a palette is legible before
+   it is applied. */
+.palette-swatch {
+  display: flex;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  flex: none;
+}
+.palette-swatch span {
+  flex: 1;
+}
+
+.menu-pop.wide {
+  width: 248px;
+}
+
+/* Light / Dark / Auto */
+.mode-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  padding: 0 4px 8px;
+}
+.mode-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 9px 4px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+.mode-btn:hover {
+  background: var(--brand-50);
+  color: var(--brand-700);
+  border-color: var(--brand-500);
+}
+.mode-btn.on {
+  background: var(--brand-600);
+  border-color: transparent;
+  color: var(--brand-ink);
+}
+
+/* ---------- Scroll progress ---------- */
+/* Two independently scrolling regions, so two bars. The fill is a scaleX
+   transform driven by --progress, which ScrollProgress.tsx writes once per
+   animation frame — compositor-only, so it never competes with the scroll. */
+.scroll-progress {
+  height: 5px;
+  overflow: hidden;
+  pointer-events: none;
+  /* A visible neutral track, so the unfilled part reads as "not yet". */
+  background: var(--surface-3);
+  border-bottom: 1px solid var(--border);
+}
+.scroll-progress .sp-fill {
+  display: block;
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  transform-origin: left center;
+  transform: scaleX(var(--progress, 0));
+  transition: transform 80ms linear;
+  border-radius: 0 4px 4px 0;
+}
+/* The fill is scaled, which would squash the gradient into the filled
+   width. The ink counter-scales by the same factor, so the gradient stays
+   full-width and is *revealed* left to right instead of compressed — and
+   both layers are still pure transforms, so it stays compositor-only. */
+.scroll-progress .sp-ink {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  transform: scaleX(calc(1 / max(var(--progress, 1), 0.002)));
+  background-size: 200% 100%;
+  animation: progress-sheen 7s linear infinite;
+}
+
+@keyframes progress-sheen {
+  from {
+    background-position: 0% 50%;
+  }
+  to {
+    background-position: 200% 50%;
+  }
+}
+
+/* Page bar — sits on the bottom edge of the sticky topbar, above it in the
+   stack so it paints over the static hairline as it fills. */
+.scroll-progress.page {
+  position: fixed;
+  top: calc(var(--topbar-h) + var(--safe-t) - 5px);
+  left: 0;
+  right: 0;
+  z-index: 61;
+}
+.scroll-progress.page .sp-ink {
+  background-image: var(--progress-page);
+}
+
+/* Rail bar — sticky inside the nav's own scroll container. */
+.scroll-progress.panel {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  /* Full-bleed across the rail, and the bottom margin replaces the top
+     padding the container used to carry. */
+  margin: 0 -14px 14px;
+}
+.scroll-progress.panel .sp-ink {
+  background-image: var(--progress-rail);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scroll-progress .sp-fill {
+    transition: none;
+  }
+  .scroll-progress .sp-ink {
+    animation: none;
+  }
+}
+
+/* ---------- Language picker ---------- */
+.lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 38px;
+  padding: 0 9px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-size: 0.82rem;
+  font-weight: 650;
+  cursor: pointer;
+  flex: none;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+    border-color var(--dur) var(--ease);
+}
+.lang-btn:hover,
+.lang-btn.active {
+  background: var(--brand-50);
+  border-color: var(--brand-500);
+  color: var(--brand-700);
+}
+.lang-btn .lang-caret {
+  opacity: 0.6;
+}
+.lang-chip {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-2);
+  flex: none;
+}
+.menu-item.on .lang-chip {
+  background: var(--brand-600);
+  border-color: transparent;
+  color: var(--brand-ink);
+}
+
+@media (max-width: 560px) {
+  .lang-btn .lang-code,
+  .lang-btn .lang-caret {
+    display: none;
+  }
+  .lang-btn {
+    padding: 0 10px;
+  }
+}
+
+/* ---------- Shell ---------- */
+.shell {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+}
+
+/* The nav sits to the RIGHT of the content and is the last element in the
+   DOM, so reading and tab order both reach the calculator first. */
+.sidebar {
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--safe-t));
+  flex: none;
+  order: 2;
+  width: var(--sidebar-w);
+  height: calc(100dvh - var(--topbar-h) - var(--safe-t));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 14px calc(24px + var(--safe-b));
+  border-left: 1px solid var(--border);
+  background: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  padding: 4px 8px 10px;
+}
+
+.nav-group + .nav-group {
+  margin-top: 14px;
+}
+.nav-title {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  padding: 6px 10px;
+}
+/* Every nav entry is a boxed card, so the category lists read the same
+   way as the Popular list rather than as a plain text menu. */
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  min-height: 42px;
+  border-radius: var(--r-md);
+  /* Tinted with the active palette rather than a neutral grey, so the rail
+     reads as part of the theme instead of a stack of plain boxes. */
+  border: 1px solid color-mix(in srgb, var(--brand-500) 32%, var(--border));
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.875rem;
+  font-weight: 550;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+    transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.nav-item + .nav-item {
+  margin-top: 7px;
+}
+.nav-item:hover {
+  background: var(--brand-50);
+  border-color: var(--brand-500);
+  color: var(--brand-700);
+  text-decoration: none;
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-1);
+}
+.nav-item[aria-current='page'] {
+  background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
+  border-color: transparent;
+  color: #fff;
+  font-weight: 650;
+  box-shadow: var(--shadow-brand);
+}
+.nav-item .i {
+  color: var(--text-3);
+  flex: none;
+}
+.nav-item:hover .i {
+  color: var(--brand-600);
+}
+.nav-item[aria-current='page'] .i {
+  color: #fff;
+}
+.nav-star {
+  margin-left: auto;
+  color: var(--series-4);
+}
+.nav-new {
+  margin-left: auto;
+}
+.nav-item[aria-current='page'] .nav-new {
+  background: rgb(255 255 255 / 0.18);
+  border-color: rgb(255 255 255 / 0.35);
+  color: #fff;
+}
+
+/* Popular calculators — a denser pill list, as in the reference layout. */
+.nav-popular {
+  display: grid;
+  gap: 7px;
+  padding: 2px 0;
+  counter-reset: pop;
+}
+.nav-pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 14px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text-2);
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
+    color var(--dur) var(--ease), box-shadow var(--dur) var(--ease), background var(--dur) var(--ease);
+}
+.nav-pill::before {
+  counter-increment: pop;
+  content: counter(pop);
+  position: absolute;
+  left: 11px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.nav-pill[aria-current='page']::before {
+  color: rgba(255, 255, 255, 0.75);
+}
+.nav-pill:hover {
+  transform: translateY(-1px);
+  border-color: var(--brand-500);
+  color: var(--brand-700);
+  background: var(--brand-50);
+  box-shadow: var(--shadow-1);
+  text-decoration: none;
+}
+.nav-pill[aria-current='page'] {
+  background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: var(--shadow-brand);
+}
+
+.main {
+  flex: 1;
+  order: 1;
+  min-width: 0;
+  /* A deliberate left gutter so content is not flush against the edge. */
+  padding: 26px 28px calc(40px + var(--safe-b)) var(--main-gutter);
+}
+.main-inner {
+  max-width: var(--maxw);
+  margin: 0 auto;
+}
+
+/* ---------- Footer ---------- */
+.site-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  padding: 26px 20px calc(18px + var(--safe-b));
+  margin-top: auto;
+}
+.footer-inner {
+  max-width: calc(var(--maxw) + var(--sidebar-w));
+  margin: 0 auto;
+}
+.footer-brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  max-width: 560px;
+}
+.footer-brand .f-name {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  font-size: 1rem;
+}
+.footer-brand .f-tag {
+  margin: 2px 0 0;
+  font-size: 0.83rem;
+  color: var(--text-3);
+  line-height: 1.5;
+}
+.footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  margin: 18px 0 16px;
+  font-size: 0.85rem;
+}
+.footer-links a {
+  color: var(--text-2);
+  font-weight: 500;
+}
+.footer-links a:hover {
+  color: var(--brand-600);
+}
+.footer-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.footer-bar .copyright {
+  margin: 0;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+.footer-bar .disclaimer {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-3);
+}
+
+/* ---------- Buttons in chrome ---------- */
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--r-md);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-2);
+  cursor: pointer;
+  flex: none;
+  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
+    transform var(--dur) var(--ease), border-color var(--dur) var(--ease);
+}
+.icon-btn:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+.icon-btn:active {
+  transform: scale(0.94);
+}
+.icon-btn.active {
+  background: var(--brand-50);
+  color: var(--brand-700);
+}
+.icon-btn.bordered {
+  border-color: var(--border);
+  background: var(--surface-3);
+}
+
+.menu-btn {
+  display: none;
+}
+
+/* ---------- Mobile drawer ---------- */
+.scrim {
+  position: fixed;
+  inset: 0;
+  background: var(--overlay);
+  z-index: 70;
+  animation: fade var(--dur-2) var(--ease);
+  backdrop-filter: blur(2px);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+}
+
+@media (max-width: 1023px) {
+  .menu-btn {
+    display: inline-grid;
+  }
+  .search-trigger {
+    min-width: 0;
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+  .search-trigger .search-label,
+  .search-trigger .kbd {
+    display: none;
+  }
+  .sidebar {
+    position: fixed;
+    z-index: 80;
+    top: 0;
+    right: 0;
+    left: auto;
+    height: 100dvh;
+    width: min(84vw, 320px);
+    padding-top: var(--safe-t);
+    box-shadow: var(--shadow-3);
+    animation: slide-in-right 240ms var(--ease);
+  }
+  .main {
+    padding: 18px 18px calc(36px + var(--safe-b)) 22px;
+  }
+  .site-footer {
+    padding-inline: 16px;
+  }
+}
+
+@media (max-width: 560px) {
+  .brand-name {
+    font-size: 1rem;
+  }
+  .brand-sub {
+    display: none;
+  }
+  .main {
+    padding: 14px 14px calc(32px + var(--safe-b));
+  }
+  .nav-item {
+    min-height: 44px;
+  }
+  .site-footer {
+    padding-inline: 14px;
+  }
+}

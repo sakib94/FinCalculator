@@ -1,0 +1,23 @@
+<title>Finora Calculators</title>
+<link rel="stylesheet" href="assets/main.css" />
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="description" content="24 accurate financial, tax, loan, salary and everyday calculators for India — with charts, year-wise projections, CSV export and dark mode. Everything runs in your browser." />
+<style>
+  /* The published page supplies its own reset; Finora's tokens paint the ground. */
+  html,
+  body {
+    background: var(--bg, #f5f6f9);
+  }
+  #root {
+    min-height: 100%;
+  }
+</style>
+
+<div id="root"></div>
+<noscript>
+  <p style="padding: 24px; font: 15px/1.6 system-ui, sans-serif">
+    Finora needs JavaScript enabled to run its calculators.
+  </p>
+</noscript>
+
+<script type="module" src="assets/main.js"></script>
