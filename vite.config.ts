@@ -38,6 +38,9 @@ export default defineConfig({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
+  // Only scan the app's own entry; artifact/index.html is a prebuilt copy
+  // whose assets/main.js import would otherwise fail the dev-server scan.
+  optimizeDeps: { entries: ['index.html'] },
   build: {
     target: 'es2019',
     cssCodeSplit: false,
