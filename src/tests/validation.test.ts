@@ -198,7 +198,7 @@ describe('search', () => {
 
   it('matches on keywords, not just names', () => {
     expect(searchCalculators('pf').map((c) => c.id)).toContain('epf');
-    expect(searchCalculators('loan').map((c) => c.id)).toContain('emi');
+    expect(searchCalculators('loan').map((c) => c.id)).toContain('personal-loan-emi');
     expect(searchCalculators('dob').map((c) => c.id)).toContain('age');
   });
 

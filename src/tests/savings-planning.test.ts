@@ -364,7 +364,7 @@ describe('catalog additions', () => {
     expect(searchCalculators('nsc').map((c) => c.id)).toContain('post-office');
     expect(searchCalculators('scss').map((c) => c.id)).toContain('post-office');
     expect(searchCalculators('cagr').map((c) => c.id)[0]).toBe('cagr');
-    expect(searchCalculators('home loan').map((c) => c.id)).toContain('emi');
+    expect(searchCalculators('home loan').map((c) => c.id)).toContain('home-loan-emi');
     expect(searchCalculators('flat rate').map((c) => c.id)[0]).toBe('flat-vs-reducing');
   });
 });

@@ -22,7 +22,11 @@ import postOffice from './investment/postOffice';
 import simpleInterest from './investment/simpleInterest';
 
 /* Loans */
-import emi from './loans/emi';
+import homeLoan from './loans/homeLoan';
+import personalLoan from './loans/personalLoan';
+import carLoan from './loans/carLoan';
+import bikeLoan from './loans/bikeLoan';
+import educationLoan from './loans/educationLoan';
 import prepayment from './loans/prepayment';
 import eligibility from './loans/eligibility';
 import flatVsReducing from './loans/flatVsReducing';
@@ -85,7 +89,11 @@ export const REGISTRY: Record<string, AnyCalculator> = {
   rd,
   'post-office': postOffice,
   'simple-interest': simpleInterest,
-  emi,
+  'home-loan-emi': homeLoan,
+  'personal-loan-emi': personalLoan,
+  'car-loan-emi': carLoan,
+  'bike-loan-emi': bikeLoan,
+  'education-loan-emi': educationLoan,
   'loan-prepayment': prepayment,
   'loan-eligibility': eligibility,
   'flat-vs-reducing': flatVsReducing,
