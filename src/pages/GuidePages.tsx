@@ -12,10 +12,10 @@ import { NotFound } from './NotFound';
 const formatDate = (iso: string) =>
   new Date(`${iso}T00:00:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
 
-function GuideCard({ guide }: { guide: Guide }) {
+export function GuideCard({ guide, showTopic = true }: { guide: Guide; showTopic?: boolean }) {
   return (
     <Link to={`/guides/${guide.slug}`} className="guide-card">
-      <span className="guide-topic">{guide.topic}</span>
+      {showTopic && <span className="guide-topic">{guide.topic}</span>}
       <span className="guide-title">{guide.title}</span>
       <span className="guide-desc">{guide.description}</span>
       <span className="guide-meta">
@@ -58,7 +58,7 @@ export function GuidesIndex() {
             </div>
             <div className="guide-grid">
               {guides.map((g) => (
-                <GuideCard key={g.slug} guide={g} />
+                <GuideCard key={g.slug} guide={g} showTopic={false} />
               ))}
             </div>
           </section>
@@ -141,7 +141,7 @@ export function GuidePage({ slug }: { slug: string }) {
             </div>
             <div className="guide-grid">
               {more.map((g) => (
-                <GuideCard key={g.slug} guide={g} />
+                <GuideCard key={g.slug} guide={g} showTopic={false} />
               ))}
             </div>
           </section>

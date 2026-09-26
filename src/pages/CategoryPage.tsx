@@ -3,6 +3,8 @@ import { CalculatorTile } from '@/components/CalculatorTile';
 import { Icon } from '@/components/Icon';
 import { Link } from '@/lib/router';
 import { useT } from '@/hooks/PreferencesContext';
+import { GUIDES } from '@/content/guides';
+import { GuideCard } from './GuidePages';
 import { NotFound } from './NotFound';
 
 export function CategoryPage({ id }: { id: string }) {
@@ -11,6 +13,8 @@ export function CategoryPage({ id }: { id: string }) {
 
   if (!category) return <NotFound />;
   const calcs = byCategory(category.id);
+  const ids = new Set(calcs.map((c) => c.id));
+  const guides = GUIDES.filter((g) => g.calculators.some((id) => ids.has(id))).slice(0, 6);
 
   return (
     <div>
@@ -43,6 +47,22 @@ export function CategoryPage({ id }: { id: string }) {
           <CalculatorTile key={c.id} calc={c} />
         ))}
       </div>
+
+      {guides.length > 0 && (
+        <section className="section" aria-labelledby="cat-guides">
+          <div className="section-head">
+            <h2 id="cat-guides">{t('Guides')}</h2>
+            <Link to="/guides" className="link">
+              {t('View all')}
+            </Link>
+          </div>
+          <div className="guide-grid">
+            {guides.map((g) => (
+              <GuideCard key={g.slug} guide={g} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }

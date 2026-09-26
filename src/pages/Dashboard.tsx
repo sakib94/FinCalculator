@@ -5,6 +5,20 @@ import { CalculatorTile } from '@/components/CalculatorTile';
 import { Icon } from '@/components/Icon';
 import { useFavorites, useRecents, useT } from '@/hooks/PreferencesContext';
 import { Link } from '@/lib/router';
+import { GUIDES } from '@/content/guides';
+import { GuideCard } from './GuidePages';
+
+/** Guides featured on the dashboard: one from each topic first, then the rest. */
+const FEATURED_GUIDES = [
+  'how-emi-is-calculated',
+  'what-is-sip',
+  'old-vs-new-tax-regime',
+  'home-loan-tax-benefits',
+  'power-of-compounding',
+  'fd-interest-and-tax',
+]
+  .map((slug) => GUIDES.find((g) => g.slug === slug))
+  .filter((g): g is NonNullable<typeof g> => !!g);
 
 export function Dashboard() {
   const [query, setQuery] = useState('');
@@ -195,6 +209,22 @@ export function Dashboard() {
               </div>
             </section>
           )}
+
+          <section className="section" aria-labelledby="dash-guides">
+            <div className="section-head">
+              <h2 id="dash-guides">
+                <Icon name="book" size={16} /> {t('Financial guides')}
+              </h2>
+              <Link to="/guides" className="link">
+                {t('View all')}
+              </Link>
+            </div>
+            <div className="guide-grid">
+              {FEATURED_GUIDES.map((g) => (
+                <GuideCard key={g.slug} guide={g} />
+              ))}
+            </div>
+          </section>
 
           {CATEGORIES.map((cat) => (
             <section className="section" key={cat.id}>
