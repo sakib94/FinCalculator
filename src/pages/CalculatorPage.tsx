@@ -13,7 +13,7 @@ export function CalculatorPage({ id }: { id: string }) {
   const def = REGISTRY[id];
   const { push } = useRecents();
 
-  // A retired id (e.g. /c/sip) replaces itself with its successor, so the
+  // A retired id (e.g. /c/emi) replaces itself with its successor, so the
   // back button does not bounce the reader between the two.
   useEffect(() => {
     if (alias) navigate(`/c/${alias}`, { replace: true });
@@ -21,7 +21,6 @@ export function CalculatorPage({ id }: { id: string }) {
 
   useEffect(() => {
     if (meta) push(meta.id);
-    window.scrollTo({ top: 0 });
   }, [meta, push]);
 
   if (alias) return null;

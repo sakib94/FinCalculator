@@ -1,8 +1,6 @@
-import { useEffect } from 'react';
 import { CATEGORIES, byCategory, type CategoryId } from '@/data/catalog';
 import { CalculatorTile } from '@/components/CalculatorTile';
 import { Icon } from '@/components/Icon';
-import { setPageMeta } from '@/lib/seo';
 import { Link } from '@/lib/router';
 import { useT } from '@/hooks/PreferencesContext';
 import { NotFound } from './NotFound';
@@ -10,16 +8,6 @@ import { NotFound } from './NotFound';
 export function CategoryPage({ id }: { id: string }) {
   const t = useT();
   const category = CATEGORIES.find((c) => c.id === (id as CategoryId));
-
-  useEffect(() => {
-    if (!category) return;
-    setPageMeta({
-      title: `${category.title} Calculators`,
-      description: `Free ${category.title.toLowerCase()} calculators — accurate, instant and private.`,
-      path: `/category/${category.id}`,
-    });
-    window.scrollTo({ top: 0 });
-  }, [category]);
 
   if (!category) return <NotFound />;
   const calcs = byCategory(category.id);
@@ -43,6 +31,12 @@ export function CategoryPage({ id }: { id: string }) {
           </p>
         </div>
       </header>
+
+      <div className="category-intro prose">
+        {category.intro.map((p, i) => (
+          <p key={i}>{p}</p>
+        ))}
+      </div>
 
       <div className="tile-grid">
         {calcs.map((c) => (

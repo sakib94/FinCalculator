@@ -1,15 +1,16 @@
 @echo off
 REM ---------------------------------------------------------------
-REM  Finora - local test server (for testing only, not production)
+REM  Finora - production preview (for testing only)
 REM
-REM  Starts the Vite dev server on port 5173, reachable from this PC
-REM  and from any phone/tablet on the same Wi-Fi network.
-REM  Double-click this file, then open one of the URLs it prints.
-REM  Press Ctrl+C in this window to stop the server.
+REM  Builds the site exactly as it will be deployed (one pre-rendered
+REM  HTML page per calculator, guide and legal page, plus sitemap.xml)
+REM  and serves it on port 4173 for this PC and phones on the same Wi-Fi.
+REM  Use this to check the final site before uploading dist\ to a host.
+REM  Code changes need a restart of this file to show up.
 REM ---------------------------------------------------------------
 setlocal
-cd /d "%~dp0"
-title Finora local server
+cd /d "%~dp0.."
+title Finora production preview
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -29,24 +30,31 @@ if not exist "node_modules\" (
   )
 )
 
+echo Building the site...
+call npm run build
+if errorlevel 1 (
+  echo [ERROR] Build failed - see the messages above.
+  pause
+  exit /b 1
+)
+
 echo.
 echo ===============================================================
-echo  On this PC open:     http://localhost:5173
+echo  On this PC open:     http://localhost:4173
 echo.
 echo  On your phone ^(same Wi-Fi^) open one of these:
 for /f "tokens=2 delims=:" %%a in ('ipconfig ^| findstr /c:"IPv4"') do (
-  for /f "tokens=* delims= " %%b in ("%%a") do echo                        http://%%b:5173
+  for /f "tokens=* delims= " %%b in ("%%a") do echo                        http://%%b:4173
 )
 echo.
 echo  If the phone cannot connect, allow Node.js through Windows
-echo  Firewall on "Private" networks and make sure your Wi-Fi is
-echo  set to a Private network ^(not Public^).
+echo  Firewall on "Private" networks.
 echo.
 echo  Press Ctrl+C to stop the server.
 echo ===============================================================
 echo.
 
-call npm run dev -- --host 0.0.0.0 --port 5173 --strictPort
+call npm run preview -- --host 0.0.0.0 --port 4173 --strictPort
 
 pause
 endlocal

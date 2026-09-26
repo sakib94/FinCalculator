@@ -1,16 +1,35 @@
-const BASE_TITLE = 'Finora';
+import type { PageMeta } from './pageMeta';
+import { canonicalUrlFor } from './router';
 
-/** Keeps document title / meta description / canonical in sync with the route. */
-export function setPageMeta(opts: { title: string; description: string; path?: string }): void {
-  document.title = opts.title.includes(BASE_TITLE) ? opts.title : `${opts.title} | ${BASE_TITLE}`;
-  setMeta('name', 'description', opts.description);
-  setMeta('property', 'og:title', document.title);
-  setMeta('property', 'og:description', opts.description);
+/**
+ * Keeps the document head in sync with the route as the reader navigates:
+ * title, description, canonical, Open Graph and JSON-LD. The pre-rendered
+ * HTML already carries the same values for the page that was loaded.
+ */
+export function applyPageMeta(meta: PageMeta, path: string): void {
+  document.title = meta.title;
+  setMeta('name', 'description', meta.description);
+  setMeta('property', 'og:title', meta.title);
+  setMeta('property', 'og:description', meta.description);
+  setMeta('name', 'robots', meta.notFound ? 'noindex' : 'index, follow');
 
-  const canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
-  if (canonical && opts.path) {
-    const origin = canonical.href.split('#')[0].replace(/\/$/, '');
-    canonical.href = opts.path === '/' ? `${origin}/` : `${origin}/#${opts.path}`;
+  const url = canonicalUrlFor(path);
+  setMeta('property', 'og:url', url);
+  let canonical = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement('link');
+    canonical.rel = 'canonical';
+    document.head.appendChild(canonical);
+  }
+  canonical.href = url;
+
+  document.head.querySelectorAll('script[data-page-jsonld]').forEach((el) => el.remove());
+  for (const data of meta.jsonLd) {
+    const script = document.createElement('script');
+    script.type = 'application/ld+json';
+    script.setAttribute('data-page-jsonld', '');
+    script.textContent = JSON.stringify(data);
+    document.head.appendChild(script);
   }
 }
 
@@ -22,24 +41,4 @@ function setMeta(attr: 'name' | 'property', key: string, content: string): void 
     document.head.appendChild(el);
   }
   el.setAttribute('content', content);
-}
-
-/** FAQPage structured data for calculators that ship an FAQ block. */
-export function setFaqJsonLd(faqs: { q: string; a: string }[]): void {
-  const id = 'faq-jsonld';
-  document.getElementById(id)?.remove();
-  if (!faqs.length) return;
-  const script = document.createElement('script');
-  script.type = 'application/ld+json';
-  script.id = id;
-  script.textContent = JSON.stringify({
-    '@context': 'https://schema.org',
-    '@type': 'FAQPage',
-    mainEntity: faqs.map((f) => ({
-      '@type': 'Question',
-      name: f.q,
-      acceptedAnswer: { '@type': 'Answer', text: f.a },
-    })),
-  });
-  document.head.appendChild(script);
 }

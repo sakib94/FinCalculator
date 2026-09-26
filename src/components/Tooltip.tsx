@@ -1,4 +1,8 @@
 import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
+
+// useLayoutEffect warns when pages are pre-rendered in Node; there is no
+// layout to measure there anyway.
+const useIsomorphicLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect;
 import { createPortal } from 'react-dom';
 
 interface Position {
@@ -50,7 +54,7 @@ export function Tooltip({ text }: { text: string }) {
   }, []);
 
   // Measure before paint so the bubble never appears in the wrong place first.
-  useLayoutEffect(() => {
+  useIsomorphicLayoutEffect(() => {
     if (!open) {
       setPos(null);
       return;

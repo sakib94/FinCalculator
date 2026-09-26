@@ -10,11 +10,25 @@ import { ThemeMenu } from './ThemeMenu';
 import { LanguageMenu } from './LanguageMenu';
 import { ScrollProgress } from './ScrollProgress';
 
+const FOOTER_POPULAR = [
+  'home-loan-emi',
+  'personal-loan-emi',
+  'car-loan-emi',
+  'mutual-fund',
+  'income-tax',
+  'fd',
+  'ppf',
+  'gst',
+];
+
 export function AppShell({ children }: { children: ReactNode }) {
   const { path } = useRouter();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 1024px)');
+  // Pre-rendered HTML always carries the navigation so crawlers can follow
+  // it; CSS hides that copy on small screens until the app takes over.
+  const prerendering = typeof window === 'undefined';
   const { cyclePalette, toggleMode } = useTheme();
   const { favorites } = useFavorites();
   const t = useT();
@@ -108,15 +122,19 @@ export function AppShell({ children }: { children: ReactNode }) {
           <div className="main-inner">{children}</div>
         </main>
 
-        {(isDesktop || drawerOpen) && (
+        {(isDesktop || drawerOpen || prerendering) && (
           <>
             {drawerOpen && !isDesktop && (
               <div className="scrim" onClick={() => setDrawerOpen(false)} role="presentation" />
             )}
-            <nav className="sidebar" aria-label={t('Calculators')} ref={sidebarRef}>
+            <nav
+              className={`sidebar${prerendering ? ' sidebar-static' : ''}`}
+              aria-label={t('Calculators')}
+              ref={sidebarRef}
+            >
               <ScrollProgress variant="panel" targetRef={sidebarRef} />
 
-              {!isDesktop && (
+              {!isDesktop && !prerendering && (
                 <div className="drawer-head">
                   <span className="brand" style={{ fontSize: '1rem' }}>
                     <span className="brand-mark">
@@ -140,6 +158,14 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Link to="/" className="nav-item" aria-current={path === '/' ? 'page' : undefined}>
                   <Icon name="grid" size={17} />
                   {t('Dashboard')}
+                </Link>
+                <Link
+                  to="/guides"
+                  className="nav-item"
+                  aria-current={path === '/guides' || path.startsWith('/guides/') ? 'page' : undefined}
+                >
+                  <Icon name="book" size={17} />
+                  {t('Financial guides')}
                 </Link>
               </div>
 
@@ -205,13 +231,36 @@ export function AppShell({ children }: { children: ReactNode }) {
             </div>
           </div>
 
-          <nav className="footer-links" aria-label="Categories">
-            {CATEGORIES.map((cat) => (
-              <Link key={cat.id} to={`/category/${cat.id}`}>
-                {t(cat.short)}
-              </Link>
-            ))}
-          </nav>
+          <div className="footer-cols">
+            <nav className="footer-links" aria-label={t('Calculators')}>
+              <span className="footer-head">{t('Calculators')}</span>
+              {CATEGORIES.map((cat) => (
+                <Link key={cat.id} to={`/category/${cat.id}`}>
+                  {t(cat.short)}
+                </Link>
+              ))}
+            </nav>
+            <nav className="footer-links" aria-label={t('Popular')}>
+              <span className="footer-head">{t('Popular')}</span>
+              {FOOTER_POPULAR.map((id) => {
+                const c = CALCULATORS.find((x) => x.id === id);
+                return c ? (
+                  <Link key={id} to={`/c/${id}`}>
+                    {t(displayName(c))}
+                  </Link>
+                ) : null;
+              })}
+            </nav>
+            <nav className="footer-links" aria-label={t('Company')}>
+              <span className="footer-head">{t('Company')}</span>
+              <Link to="/guides">{t('Financial guides')}</Link>
+              <Link to="/about">{t('About us')}</Link>
+              <Link to="/contact">{t('Contact us')}</Link>
+              <Link to="/privacy-policy">{t('Privacy Policy')}</Link>
+              <Link to="/terms">{t('Terms & Conditions')}</Link>
+              <Link to="/disclaimer">{t('Disclaimer')}</Link>
+            </nav>
+          </div>
 
           <div className="footer-bar">
             <p className="copyright">© {year} Finora. All rights reserved.</p>

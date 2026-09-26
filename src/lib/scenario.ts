@@ -1,10 +1,11 @@
 import type { Field, Values } from '@/calculators/types';
 import { parseNumeric } from './format';
+import { absoluteUrlFor } from './router';
 
 /**
  * A calculator's inputs, carried in the URL.
  *
- *   #/c/emi?principal=3000000&interestRate=8.5
+ *   /home-loan-emi-calculator/?principal=3000000&interestRate=8.5
  *
  * Only values that differ from the defaults are written, so an untouched
  * calculator keeps a clean link and a shared one stays short. Everything
@@ -46,6 +47,5 @@ export function searchFromValues(fields: Field[], values: Values): string {
 
 /** Absolute link to a calculator with these inputs. */
 export function scenarioHref(id: string, search: string): string {
-  const base = window.location.href.split('#')[0];
-  return `${base}#/c/${id}${search ? `?${search}` : ''}`;
+  return absoluteUrlFor(`/c/${id}${search ? `?${search}` : ''}`);
 }

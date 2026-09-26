@@ -130,8 +130,32 @@ export interface FAQ {
   a: string;
 }
 
+/**
+ * A titled block of long-form explanation — rendered as an H2 with prose,
+ * an optional bullet list and an optional table. Calculator pages, guides
+ * and the site's information pages all use the same shape.
+ */
+export interface ContentSection {
+  heading: string;
+  paragraphs?: string[];
+  bullets?: string[];
+  table?: {
+    caption?: string;
+    columns: string[];
+    rows: string[][];
+  };
+  /** Paragraphs that follow the list or table. */
+  after?: string[];
+}
+
 export interface Content {
+  /** Opening "What is …" paragraphs, shown first under their own heading. */
+  intro?: { heading: string; paragraphs: string[] };
   howItWorks: string[];
+  /** Further long-form sections: scenarios, comparisons, tips, eligibility… */
+  sections?: ContentSection[];
+  /** Guides (by slug) that go deeper on this calculator's subject. */
+  guides?: string[];
   formula?: string;
   example?: string[];
   assumptions?: string[];

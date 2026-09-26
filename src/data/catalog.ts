@@ -22,6 +22,10 @@ export interface Category {
   title: string;
   short: string;
   icon: IconName;
+  seoTitle: string;
+  seoDescription: string;
+  /** Opening paragraphs on the category page. */
+  intro: string[];
 }
 
 export interface CalculatorMeta {
@@ -48,13 +52,94 @@ export interface CalculatorMeta {
 }
 
 export const CATEGORIES: Category[] = [
-  { id: 'investment', title: 'Investment & Retirement', short: 'Investment', icon: 'trending' },
-  { id: 'savings', title: 'Savings & Deposits', short: 'Savings', icon: 'piggy' },
-  { id: 'loans', title: 'Loans', short: 'Loans', icon: 'bank' },
-  { id: 'tax', title: 'Tax & Salary', short: 'Tax & Salary', icon: 'receipt' },
-  { id: 'dates', title: 'Date & Age', short: 'Date & Age', icon: 'calendar' },
-  { id: 'business', title: 'Business & General', short: 'Business', icon: 'briefcase' },
-  { id: 'everyday', title: 'Everyday', short: 'Everyday', icon: 'sparkle' },
+  {
+    id: 'investment',
+    title: 'Investment & Retirement',
+    short: 'Investment',
+    icon: 'trending',
+    seoTitle: 'Investment & Retirement Calculators – SIP, EPF, NPS, CAGR',
+    seoDescription:
+      'Free investment and retirement calculators for India: SIP and mutual fund returns, EPF, NPS, SWP, CAGR, inflation, goal planning and retirement corpus.',
+    intro: [
+      'Estimate what your investments could grow to and whether you are saving enough for retirement. Each calculator shows a year-by-year projection, explains the formula it uses and lists the assumptions behind the result.',
+      'Returns on market-linked investments such as mutual funds and NPS are never guaranteed — try a cautious rate as well as an optimistic one to see the range of outcomes.',
+    ],
+  },
+  {
+    id: 'savings',
+    title: 'Savings & Deposits',
+    short: 'Savings',
+    icon: 'piggy',
+    seoTitle: 'Savings & Deposit Calculators – FD, RD, PPF, Post Office',
+    seoDescription:
+      'Calculate maturity values for fixed deposits, recurring deposits, PPF, Sukanya Samriddhi and Post Office schemes, with interest earned and year-wise growth.',
+    intro: [
+      'Work out the maturity value and interest earned on guaranteed-return savings: bank fixed and recurring deposits, PPF, Sukanya Samriddhi Yojana and the Post Office schemes (NSC, KVP, MIS, SCSS and time deposits).',
+      'The calculators use each scheme’s own compounding rule — quarterly for bank FDs and RDs, yearly for PPF — so the figures match what the bank or post office pays.',
+    ],
+  },
+  {
+    id: 'loans',
+    title: 'Loans',
+    short: 'Loans',
+    icon: 'bank',
+    seoTitle: 'Loan EMI Calculators – Home, Car, Bike, Personal & Education Loan',
+    seoDescription:
+      'Free loan EMI calculators for home, car, bike, personal and education loans, with amortisation schedules, prepayment savings, eligibility and flat vs reducing rates.',
+    intro: [
+      'Find the monthly EMI, total interest and full repayment schedule for any loan. Each loan type has its own calculator because each works a little differently: home loans come with a down payment and tax benefits, car and bike loans with on-road price and shorter tenures, personal loans with processing fees, and education loans with a moratorium while you study.',
+      'Once you know the EMI, use the prepayment calculator to see how much interest an early part-payment saves, and the eligibility calculator to check how much a lender is likely to sanction on your income.',
+    ],
+  },
+  {
+    id: 'tax',
+    title: 'Tax & Salary',
+    short: 'Tax & Salary',
+    icon: 'receipt',
+    seoTitle: 'Income Tax & Salary Calculators – Old vs New Regime, HRA, CTC',
+    seoDescription:
+      'Calculate income tax under the old and new regimes, in-hand salary from CTC, HRA exemption, TDS, capital gains tax, gratuity, leave encashment and increments.',
+    intro: [
+      'Compare your income tax under the old and new regimes, see how your CTC turns into take-home pay, and work out HRA exemption, TDS, capital gains tax, gratuity and leave encashment.',
+      'Tax calculators follow the slabs, rebate, surcharge and cess announced in the latest Union Budget. Always confirm your final liability with Form 16, Form 26AS or a tax professional.',
+    ],
+  },
+  {
+    id: 'dates',
+    title: 'Date & Age',
+    short: 'Date & Age',
+    icon: 'calendar',
+    seoTitle: 'Age & Date Calculators – Exact Age, Days Between Dates',
+    seoDescription:
+      'Calculate your exact age in years, months and days, and the number of days, weeks and working days between any two dates.',
+    intro: [
+      'Find an exact age in years, months and days — for forms, exams and eligibility cut-offs — or count the days, weeks and working days between two dates.',
+    ],
+  },
+  {
+    id: 'business',
+    title: 'Business & General',
+    short: 'Business',
+    icon: 'briefcase',
+    seoTitle: 'Business Calculators – GST, Profit Margin, ROI, Break-Even',
+    seoDescription:
+      'Free business calculators: GST inclusive and exclusive, profit margin, markup, ROI, break-even point, depreciation, commission, discount and percentages.',
+    intro: [
+      'Everyday business maths done properly: add or remove GST, set a price from a target margin or markup, find your break-even point, measure return on investment, and calculate depreciation, commission, discounts and percentages.',
+    ],
+  },
+  {
+    id: 'everyday',
+    title: 'Everyday',
+    short: 'Everyday',
+    icon: 'sparkle',
+    seoTitle: 'Everyday Calculators – BMI, Currency, Construction, Electricity',
+    seoDescription:
+      'Handy everyday calculators: BMI and healthy weight, currency conversion at your own rate, house construction material estimates and home electrical load.',
+    intro: [
+      'Practical calculators for home and health: body mass index with the Asian-Indian cut-offs, currency conversion at the rate your bank actually charges, materials for building a house, and the electrical load and bill for your home.',
+    ],
+  },
 ];
 
 export const CALCULATORS: CalculatorMeta[] = [

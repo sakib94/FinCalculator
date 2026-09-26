@@ -1,9 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { CALCULATORS, CATEGORIES, POPULAR, byCategory, searchCalculators } from '@/data/catalog';
 import type { CategoryId } from '@/data/catalog';
 import { CalculatorTile } from '@/components/CalculatorTile';
 import { Icon } from '@/components/Icon';
-import { setPageMeta } from '@/lib/seo';
 import { useFavorites, useRecents, useT } from '@/hooks/PreferencesContext';
 import { Link } from '@/lib/router';
 
@@ -13,15 +12,6 @@ export function Dashboard() {
   const { recents, clear } = useRecents();
   const { favorites } = useFavorites();
   const t = useT();
-
-  useEffect(() => {
-    setPageMeta({
-      title: 'Finora — All-in-One Financial Calculator',
-      description:
-        'Free, accurate Indian financial calculators: EPF, income tax, NPS, EMI, SIP, PPF, FD, salary, gratuity, GST, age and more.',
-      path: '/',
-    });
-  }, []);
 
   const matches = useMemo(() => {
     if (!query.trim()) return [];

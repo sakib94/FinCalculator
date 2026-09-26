@@ -6,14 +6,14 @@ import type { CalculatorMeta } from '@/data/catalog';
 import { CATEGORIES, relatedTo } from '@/data/catalog';
 import { hasErrors, validateFields } from '@/lib/validate';
 import { copyText, printPage, shareResult } from '@/lib/export';
-import { setFaqJsonLd, setPageMeta } from '@/lib/seo';
-import { Link, useRouter } from '@/lib/router';
+import { Link, isCurrentRoute, replaceSearch, useRouter } from '@/lib/router';
 import { scenarioHref, searchFromValues, valuesFromSearch } from '@/lib/scenario';
 import { FieldControl } from './FieldControl';
 import { Chart } from './Chart';
 import { DataTable } from './DataTable';
 import { HeroResult, StatGrid } from './Results';
 import { ContentSections } from './ContentSections';
+import { AdSlot } from './AdSlot';
 import { CalculatorTile } from './CalculatorTile';
 import { Icon } from './Icon';
 import { useToast } from './Toast';
@@ -69,28 +69,15 @@ export function CalculatorView({ meta, def }: Props) {
 
   // Mirror the inputs into the address bar without adding history entries.
   useEffect(() => {
-    const route = `#/c/${meta.id}`;
+    const route = `/c/${meta.id}`;
     const timer = window.setTimeout(() => {
       // The reader may have navigated away while the timer was pending.
-      const hash = window.location.hash;
-      if (hash !== route && !hash.startsWith(`${route}?`)) return;
-      const next = query ? `${route}?${query}` : route;
-      if (hash === next) return;
+      if (!isCurrentRoute(route)) return;
       lastSearch.current = query;
-      try {
-        window.history.replaceState(window.history.state, '', next);
-      } catch {
-        /* rate-limited or sandboxed — the link simply stays as it was */
-      }
+      replaceSearch(route, query);
     }, URL_SYNC_MS);
     return () => window.clearTimeout(timer);
   }, [query, meta.id]);
-
-  useEffect(() => {
-    setPageMeta({ title: meta.seoTitle, description: meta.seoDescription, path: `/c/${meta.id}` });
-    setFaqJsonLd(def.content.faqs ?? []);
-    return () => setFaqJsonLd([]);
-  }, [meta, def]);
 
   const visibleFields = useMemo(
     () => def.fields.filter((f) => !f.visible || f.visible(values)),
@@ -345,6 +332,8 @@ export function CalculatorView({ meta, def }: Props) {
           <DataTable spec={table} />
         </div>
       )}
+
+      <AdSlot placement="after-results" />
 
       <div style={{ marginTop: 22 }}>
         <ContentSections content={def.content} name={meta.name} />
