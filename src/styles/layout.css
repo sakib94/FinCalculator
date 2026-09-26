@@ -14,9 +14,10 @@
   gap: 10px;
   height: calc(var(--topbar-h) + var(--safe-t));
   padding: var(--safe-t) 14px 0;
-  background: color-mix(in srgb, var(--surface) 84%, transparent);
-  backdrop-filter: saturate(180%) blur(12px);
-  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--color-surface) 82%, transparent);
+  backdrop-filter: saturate(160%) blur(14px);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .brand {
@@ -31,20 +32,18 @@
 .brand:hover {
   text-decoration: none;
 }
-.brand:hover .brand-mark {
-  transform: rotate(-8deg) scale(1.06);
-}
+/* The mark: a deep ink tile — the same ground as the headline result —
+   with a fine inner highlight, so the brand reads as one object. */
 .brand-mark {
   width: 30px;
   height: 30px;
   border-radius: 9px;
   display: grid;
   place-items: center;
-  background: linear-gradient(150deg, var(--brand-500), var(--accent-600));
+  background: linear-gradient(145deg, var(--color-hero-from), var(--color-hero-to));
   color: #fff;
   flex: none;
-  box-shadow: var(--shadow-brand);
-  transition: transform var(--dur-2) var(--ease-spring);
+  box-shadow: var(--shadow-1), inset 0 1px 0 rgb(255 255 255 / 0.14);
 }
 .brand-sub {
   font-size: 0.72rem;
@@ -67,17 +66,17 @@
   padding: 0 10px 0 12px;
   min-width: 230px;
   border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: var(--surface-3);
-  color: var(--text-3);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
   cursor: pointer;
-  transition: border-color var(--dur) var(--ease), background var(--dur) var(--ease),
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease),
     box-shadow var(--dur) var(--ease);
 }
 .search-trigger:hover {
-  border-color: var(--brand-500);
-  color: var(--text-2);
-  box-shadow: var(--ring);
+  border-color: var(--color-border-strong);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
 }
 .search-trigger .kbd {
   margin-left: auto;
@@ -204,14 +203,14 @@
     border-color var(--dur) var(--ease);
 }
 .mode-btn:hover {
-  background: var(--brand-50);
-  color: var(--brand-700);
-  border-color: var(--brand-500);
+  background: var(--color-hover);
+  color: var(--color-text);
+  border-color: var(--color-border-strong);
 }
 .mode-btn.on {
-  background: var(--brand-600);
-  border-color: transparent;
-  color: var(--brand-ink);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* ---------- Scroll progress ---------- */
@@ -219,12 +218,10 @@
    transform driven by --progress, which ScrollProgress.tsx writes once per
    animation frame — compositor-only, so it never competes with the scroll. */
 .scroll-progress {
-  height: 5px;
+  height: 2px;
   overflow: hidden;
   pointer-events: none;
-  /* A visible neutral track, so the unfilled part reads as "not yet". */
-  background: var(--surface-3);
-  border-bottom: 1px solid var(--border);
+  background: transparent;
 }
 .scroll-progress .sp-fill {
   display: block;
@@ -246,24 +243,13 @@
   inset: 0;
   transform-origin: left center;
   transform: scaleX(calc(1 / max(var(--progress, 1), 0.002)));
-  background-size: 200% 100%;
-  animation: progress-sheen 7s linear infinite;
-}
-
-@keyframes progress-sheen {
-  from {
-    background-position: 0% 50%;
-  }
-  to {
-    background-position: 200% 50%;
-  }
 }
 
 /* Page bar — sits on the bottom edge of the sticky topbar, above it in the
    stack so it paints over the static hairline as it fills. */
 .scroll-progress.page {
   position: fixed;
-  top: calc(var(--topbar-h) + var(--safe-t) - 5px);
+  top: calc(var(--topbar-h) + var(--safe-t) - 2px);
   left: 0;
   right: 0;
   z-index: 61;
@@ -314,9 +300,9 @@
 }
 .lang-btn:hover,
 .lang-btn.active {
-  background: var(--brand-50);
-  border-color: var(--brand-500);
-  color: var(--brand-700);
+  background: var(--color-surface);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
 }
 .lang-btn .lang-caret {
   opacity: 0.6;
@@ -392,68 +378,66 @@
   color: var(--text-3);
   padding: 6px 10px;
 }
-/* Every nav entry is a boxed card, so the category lists read the same
-   way as the Popular list rather than as a plain text menu. */
+/* Navigation entries are quiet rows: a hover wash, and for the current
+   page a soft brand ground, brand text and a short indicator bar — so
+   "where am I" is obvious without a stack of boxes competing with the
+   content. */
 .nav-item {
   position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 9px 12px;
-  min-height: 42px;
-  border-radius: var(--r-md);
-  /* Tinted with the active palette rather than a neutral grey, so the rail
-     reads as part of the theme instead of a stack of plain boxes. */
-  border: 1px solid color-mix(in srgb, var(--brand-500) 32%, var(--border));
-  background: var(--surface-2);
-  color: var(--text-2);
+  padding: 8px 10px;
+  min-height: 38px;
+  border-radius: var(--r-sm);
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
   font-size: 0.875rem;
-  font-weight: 550;
+  font-weight: var(--weight-medium);
   cursor: pointer;
-  overflow: hidden;
-  transition: background var(--dur) var(--ease), color var(--dur) var(--ease),
-    transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
-    box-shadow var(--dur) var(--ease);
+  transition: background-color var(--dur) var(--ease), color var(--dur) var(--ease);
 }
 .nav-item + .nav-item {
-  margin-top: 7px;
+  margin-top: 1px;
 }
 .nav-item:hover {
-  background: var(--brand-50);
-  border-color: var(--brand-500);
-  color: var(--brand-700);
+  background: var(--color-hover);
+  color: var(--color-text);
   text-decoration: none;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-1);
 }
 .nav-item[aria-current='page'] {
-  background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
-  border-color: transparent;
-  color: #fff;
-  font-weight: 650;
-  box-shadow: var(--shadow-brand);
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  font-weight: var(--weight-semibold);
 }
-.nav-item .i {
-  color: var(--text-3);
+.nav-item[aria-current='page']::before {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--color-primary);
+}
+.nav-item .i,
+.nav-item > svg {
+  color: var(--color-text-muted);
   flex: none;
 }
-.nav-item:hover .i {
-  color: var(--brand-600);
+.nav-item:hover > svg {
+  color: var(--color-text-secondary);
 }
-.nav-item[aria-current='page'] .i {
-  color: #fff;
+.nav-item[aria-current='page'] > svg {
+  color: var(--color-primary);
 }
 .nav-star {
   margin-left: auto;
-  color: var(--series-4);
+  color: var(--color-warning);
 }
 .nav-new {
   margin-left: auto;
-}
-.nav-item[aria-current='page'] .nav-new {
-  background: rgb(255 255 255 / 0.18);
-  border-color: rgb(255 255 255 / 0.35);
-  color: #fff;
 }
 
 /* Popular calculators — a denser pill list, as in the reference layout. */
@@ -471,11 +455,11 @@
   gap: 8px;
   padding: 11px 14px;
   border-radius: var(--r-md);
-  border: 1px solid var(--border);
-  background: var(--surface-2);
-  color: var(--text-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
   font-size: 0.86rem;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   text-align: center;
   cursor: pointer;
   transition: transform var(--dur) var(--ease), border-color var(--dur) var(--ease),
@@ -491,22 +475,16 @@
   color: var(--text-3);
   font-variant-numeric: tabular-nums;
 }
-.nav-pill[aria-current='page']::before {
-  color: rgba(255, 255, 255, 0.75);
-}
 .nav-pill:hover {
-  transform: translateY(-1px);
-  border-color: var(--brand-500);
-  color: var(--brand-700);
-  background: var(--brand-50);
-  box-shadow: var(--shadow-1);
+  border-color: var(--color-primary-border);
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
   text-decoration: none;
 }
 .nav-pill[aria-current='page'] {
-  background: linear-gradient(135deg, var(--hero-from), var(--hero-to));
-  border-color: transparent;
-  color: #fff;
-  box-shadow: var(--shadow-brand);
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 .main {
@@ -623,8 +601,16 @@
   color: var(--brand-700);
 }
 .icon-btn.bordered {
-  border-color: var(--border);
-  background: var(--surface-3);
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-1);
+}
+.icon-btn.bordered:hover {
+  border-color: var(--color-border-strong);
+}
+.icon-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
 }
 
 .menu-btn {

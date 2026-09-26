@@ -24,7 +24,7 @@ export function DataTable({ spec }: { spec: TableSpec }) {
     <section className="card">
       <div className="card-head">
         <h3>{t(spec.title)}</h3>
-        <button type="button" className="btn ghost sm no-print" style={{ marginLeft: 'auto' }} onClick={exportCsv}>
+        <button type="button" className="btn outline sm no-print" style={{ marginLeft: 'auto' }} onClick={exportCsv}>
           <Icon name="download" size={15} />
           CSV
         </button>

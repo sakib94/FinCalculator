@@ -180,7 +180,7 @@ export function CalculatorView({ meta, def }: Props) {
               toggle(meta.id);
               notify(isFavorite(meta.id) ? t('Removed from favourites') : t('Added to favourites'));
             }}
-            style={isFavorite(meta.id) ? { color: 'var(--series-4)' } : undefined}
+            style={isFavorite(meta.id) ? { color: 'var(--color-warning)' } : undefined}
           >
             <Icon name="star" size={18} filled={isFavorite(meta.id)} />
           </button>

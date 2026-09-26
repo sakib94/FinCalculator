@@ -38,7 +38,7 @@ const contrast = (a, b) => {
   return (l1 + 0.05) / (l2 + 0.05);
 };
 
-const PALETTES = ['harbor', 'meridian', 'evergreen', 'ember', 'iris'];
+const PALETTES = ['premium', 'ocean', 'emerald', 'royal', 'graphite'];
 
 // [label, foreground token, background token, minimum ratio]
 // 4.5 is WCAG AA for body text; lower thresholds are for decorative roles.
@@ -47,14 +47,21 @@ const CHECKS = [
   ['body text on page bg', '--text', '--bg', 4.5],
   ['secondary text on surface', '--text-2', '--surface', 4.5],
   ['secondary text on surface-3', '--text-2', '--surface-3', 4.5],
-  ['muted text on surface', '--text-3', '--surface', 3.5],
+  ['muted text on surface', '--text-3', '--surface', 4.5],
+  ['muted text on page bg', '--text-3', '--bg', 4.5],
+  ['muted text on surface-3', '--text-3', '--surface-3', 4.5],
   ['brand link on surface', '--brand-600', '--surface', 4.5],
+  ['brand link on page bg', '--brand-600', '--bg', 4.5],
+  ['brand text on brand-50', '--brand-700', '--brand-50', 4.5],
   ['button label on brand', '--brand-ink', '--brand-600', 4.5],
+  ['button label on hover', '--brand-ink', '--brand-700', 4.5],
   ['hero text on hero start', '#ffffff', '--hero-from', 4.5],
   ['hero text on hero end', '#ffffff', '--hero-to', 4.5],
   ['positive on surface', '--positive', '--surface', 4.5],
   ['negative on surface', '--negative', '--surface', 4.5],
   ['warning on surface', '--warning', '--surface', 4.5],
+  ['positive on page bg', '--positive', '--bg', 4.5],
+  ['negative on page bg', '--negative', '--bg', 4.5],
   ['strong border vs surface', '--border-strong', '--surface', 1.6],
 ];
 
@@ -97,7 +104,7 @@ for (const p of PALETTES) {
       if (!c) continue;
       checked++;
       const ratio = contrast(c, t['--surface']);
-      if (ratio < 2.4) {
+      if (ratio < 3) {
         failures++;
         console.log(
           'FAIL ' + p + '/' + mode + '  ' + s.padEnd(28) + c + ' on surface = ' + ratio.toFixed(2),

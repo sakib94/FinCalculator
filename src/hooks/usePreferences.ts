@@ -5,7 +5,7 @@ import { DEFAULT_LANG, isLang, type Lang } from '@/i18n';
 /**
  * Appearance is two independent choices, not one list:
  *
- *   palette — which hue family (Harbor, Meridian, Evergreen, Ember, Iris)
+ *   palette — which hue family (Premium, Ocean, Emerald, Royal, Graphite)
  *   mode    — light or dark surface, or follow the device
  *
  * Keeping them separate means five palettes cost five pairs of CSS blocks
@@ -16,7 +16,7 @@ import { DEFAULT_LANG, isLang, type Lang } from '@/i18n';
  * data-mode, so tokens.css needs no prefers-color-scheme duplication.
  */
 
-export type PaletteId = 'harbor' | 'meridian' | 'evergreen' | 'ember' | 'iris';
+export type PaletteId = 'premium' | 'ocean' | 'emerald' | 'royal' | 'graphite';
 export type Mode = 'light' | 'dark' | 'system';
 export type ResolvedMode = 'light' | 'dark';
 
@@ -33,43 +33,52 @@ export interface Palette {
 
 export const PALETTES: Palette[] = [
   {
-    id: 'harbor',
-    label: 'Harbor',
-    hint: 'Slate & teal',
-    swatch: ['#f3f8f9', '#096f84', '#3b7fa8'],
-    themeColor: { light: '#ffffff', dark: '#0e1f26' },
+    id: 'premium',
+    label: 'Premium',
+    hint: 'Ink & sapphire',
+    swatch: ['#f4f6fa', '#2450c4', '#0c1631'],
+    themeColor: { light: '#ffffff', dark: '#0f1524' },
   },
   {
-    id: 'meridian',
-    label: 'Meridian',
-    hint: 'Indigo & cyan',
-    swatch: ['#f5f6fb', '#3a47bd', '#0e9fb2'],
-    themeColor: { light: '#ffffff', dark: '#14162e' },
+    id: 'ocean',
+    label: 'Ocean',
+    hint: 'Deep sea & cyan',
+    swatch: ['#f2f7f9', '#086a84', '#07232e'],
+    themeColor: { light: '#ffffff', dark: '#0c1c23' },
   },
   {
-    id: 'evergreen',
-    label: 'Evergreen',
-    hint: 'Forest & lime',
-    swatch: ['#f5f8f4', '#0f6342', '#4b8f42'],
-    themeColor: { light: '#ffffff', dark: '#0e1f19' },
+    id: 'emerald',
+    label: 'Emerald',
+    hint: 'Forest & gold',
+    swatch: ['#f4f7f5', '#0d6a4a', '#a6771a'],
+    themeColor: { light: '#ffffff', dark: '#0d1c17' },
   },
   {
-    id: 'ember',
-    label: 'Ember',
-    hint: 'Graphite & amber',
-    swatch: ['#faf7f4', '#964706', '#b23f2c'],
-    themeColor: { light: '#ffffff', dark: '#1f1813' },
+    id: 'royal',
+    label: 'Royal',
+    hint: 'Indigo & violet',
+    swatch: ['#f6f5fb', '#4a3fbf', '#17123f'],
+    themeColor: { light: '#ffffff', dark: '#131128' },
   },
   {
-    id: 'iris',
-    label: 'Iris',
-    hint: 'Violet & periwinkle',
-    swatch: ['#f7f6fc', '#5335b8', '#4176cc'],
-    themeColor: { light: '#ffffff', dark: '#16122e' },
+    id: 'graphite',
+    label: 'Graphite',
+    hint: 'Charcoal & amber',
+    swatch: ['#f7f6f4', '#964e07', '#1c1917'],
+    themeColor: { light: '#ffffff', dark: '#1a1816' },
   },
 ];
 
-export const DEFAULT_PALETTE: PaletteId = 'harbor';
+export const DEFAULT_PALETTE: PaletteId = 'premium';
+
+/** Palettes from earlier releases, mapped to their closest successor. */
+const RENAMED: Record<string, PaletteId> = {
+  harbor: 'ocean',
+  meridian: 'premium',
+  evergreen: 'emerald',
+  iris: 'royal',
+  ember: 'graphite',
+};
 
 export interface ModeOption {
   id: Mode;
@@ -96,9 +105,11 @@ const prefersDark = () =>
  */
 export function useThemeState() {
   const [palette, setPalette] = useState<PaletteId>(() => {
-    const stored = readLocal<PaletteId>('palette', DEFAULT_PALETTE);
-    // Anything written by an older build (blossom, meadow…) falls back.
-    return isPalette(stored) ? stored : DEFAULT_PALETTE;
+    const stored = readLocal<string>('palette', DEFAULT_PALETTE);
+    // A palette chosen in an older build carries over to its successor;
+    // anything unrecognised falls back to the default.
+    if (isPalette(stored)) return stored;
+    return RENAMED[stored] ?? DEFAULT_PALETTE;
   });
 
   const [mode, setMode] = useState<Mode>(() => {

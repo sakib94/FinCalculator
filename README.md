@@ -173,44 +173,64 @@ Rates currently configured: FY 2024-25, FY 2025-26 and FY 2026-27, with EPF at 8
 
 ## Design system
 
-Tokens live in `src/styles/tokens.css`. Five original palettes ship, each in a light and a
-dark surface:
+FinCalc's visual language is **calm, precise and trustworthy**: cool, faintly tinted neutrals
+do most of the work; one brand hue marks everything interactive; a deep "ink" ground is reserved
+for the one figure that matters (the headline result); and green, red and amber carry meaning
+only — growth, loss, attention. No gradient text, no shine effects, no animated backgrounds.
 
-| Palette | Character | Feel |
-| --- | --- | --- |
-| **Harbor** *(default)* | Slate & teal | Calm, infrastructural |
-| **Meridian** | Indigo & cyan | Crisp, technical |
-| **Evergreen** | Forest & lime | Natural, growth |
-| **Ember** | Graphite & amber | Warm, confident |
-| **Iris** | Violet & periwinkle | Considered, editorial |
+Tokens live in `src/styles/tokens.css` in two layers:
 
-Appearance is two independent axes rather than one list — `[data-palette]` picks the hue family
-and `[data-mode]` picks the surface — so five palettes cost five pairs of blocks instead of
-fifteen entries, and choosing a colour never silently flips light to dark. "Auto" is resolved to
-a concrete mode in JavaScript and written to `data-mode`, which is why there is no
-`prefers-color-scheme` duplication anywhere in the stylesheet.
+1. **Primitives**, declared per palette and per mode (`--brand-*`, `--bg`, `--surface*`,
+   `--border*`, `--text*`, `--positive`, `--negative`, `--warning`, `--hero-*`, `--series-*`).
+2. **Semantic tokens**, declared once and derived from the primitives — `--color-primary`,
+   `--color-primary-hover`, `--color-surface-elevated`, `--color-border`, `--color-text-muted`,
+   `--color-success` / `-danger` / `-warning` / `-info` (each with a `-bg`), `--color-focus`,
+   `--color-disabled-*`, `--color-input-*`, `--color-table-*`, `--color-tooltip-*`,
+   `--color-hero-*`, `--color-chart-*`. Components use these, so a palette or mode change never
+   needs a per-component override.
 
-A palette declares only the ~28 values that genuinely differ. Status backgrounds, the focus
-ring, chart gridlines and the ambient background blobs are all derived from those with
-`color-mix()` on the shared `:root`.
+Five palettes ship, each a complete, separately tuned light **and** dark system:
 
-**Every palette is contrast-audited, not eyeballed.** A script walks all ten palette/mode
-combinations and checks the pairs that carry meaning — body text, secondary and muted text,
-brand links, button labels, white-on-hero-gradient, status colours and each chart series against
-its surface. All 180 pairs clear WCAG AA: body text lands between 14.7:1 and 17.7:1, brand links
-between 5.3:1 and 8.2:1, and the weakest text role never drops below 4.3:1.
+| Palette | Character |
+| --- | --- |
+| **Premium** *(default)* | Ink & sapphire — banking-grade, neutral |
+| **Ocean** | Deep sea & cyan — cool, technical |
+| **Emerald** | Forest & gold — wealth, growth |
+| **Royal** | Indigo & violet — considered, editorial |
+| **Graphite** | Charcoal & amber — warm, understated |
+
+Dark mode is designed, not inverted: elevation comes from lighter surfaces and hairlines rather
+than shadows, sunken wells (search, segmented tracks) are darker than cards, text is off-white,
+and accents are lifted just enough to read. Palettes saved by older builds (Harbor, Meridian,
+Evergreen, Iris, Ember) map to their closest successor automatically.
+
+Component conventions:
+
+- **Buttons** — primary (solid brand), `.secondary`/`.subtle`, `.outline`, `.ghost`, `.danger`,
+  `.success`; `.sm`, `.block`, `.loading`; every state has hover, active, focus-ring and disabled.
+- **Inputs** — a visible resting border, darker on hover, brand border + ring on focus; errors
+  add a red border, a tinted fill, an icon and a message.
+- **Stats** — tone is shown by the value's colour *and* a marker shape (square, circle,
+  diamond), so meaning never rests on colour alone.
+- **Tables** — sticky sunken header, zebra rows, brand-tinted hover, tabular right-aligned
+  figures and a totals row with a strong top rule.
+- **Numbers** — tabular figures everywhere a value can change or line up.
+
+**Every palette is contrast-audited, not eyeballed.** `npm run check:contrast` walks all ten
+palette/mode combinations and checks 250 pairs — body, secondary and muted text on every ground,
+links, button labels (including hover), white on the result card, status colours and each chart
+series. Every text role meets WCAG AA (4.5:1) in all of them.
 
 Pick a theme from the topbar, cycle palettes with ⌘⇧L / Ctrl-Shift-L, or flip light/dark with
 ⌘⇧D / Ctrl-Shift-D.
 
-Chart series use a five-colour categorical palette validated for colour-vision-deficiency
-separation against both the light and dark surfaces. Charts are hand-built SVG (~250 lines) —
-they inherit theme tokens directly and add nothing to the bundle.
+Chart series use a five-colour categorical palette per theme, each colour at least 3:1 against
+its surface. Charts are hand-built SVG (~250 lines) — they inherit theme tokens directly and add
+nothing to the bundle.
 
 Navigation sits to the **right** of the content and is last in the DOM, so reading and tab
-order both reach the calculator before the menu. Every nav entry is a boxed card, and the list
-opens with the ten most-used calculators, ranked by `popularRank` in the catalog rather than by
-their position in the array. Motion is handled by a few shared utilities in
+order both reach the calculator before the menu. Entries are quiet rows; the current page gets a
+soft brand ground, brand text and an indicator bar. Motion is handled by a few shared utilities in
 `base.css` (`.anim-rise`, `.anim-zoom`, `.stagger`) rather than per-component animation, and
 all of it is switched off wholesale under `prefers-reduced-motion`.
 
