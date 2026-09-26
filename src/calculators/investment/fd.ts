@@ -142,6 +142,70 @@ const fd: CalculatorDef<FdResult> = {
   summary: (r) => `FD maturity ${formatINR(r.maturity)} — interest ${formatINR(r.interest)} at an effective ${formatPercent(r.effectiveYieldPct)} a year.`,
 
   content: {
+    intro: {
+      heading: 'What is a fixed deposit (FD)?',
+      paragraphs: [
+        'A fixed deposit is a lumpsum placed with a bank, small finance bank or NBFC for a fixed period — from 7 days to 10 years — at an interest rate that is locked in when you open it. At maturity you receive the principal plus interest. FDs are one of the most popular savings options in India because the return is guaranteed and bank deposits are insured up to ₹5 lakh per depositor per bank.',
+        'This FD calculator works out the maturity amount and interest for quarterly, monthly, half-yearly or yearly compounding (or simple interest for payout FDs), the effective yearly yield, and the post-tax return at your income tax slab.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'What tax does to FD returns',
+        table: {
+          caption: '₹5 lakh at 7% for 5 years, compounded quarterly — interest ₹2,07,389',
+          columns: [
+            'Tax slab',
+            'Tax on interest (with cess)',
+            'Post-tax maturity',
+            'Post-tax yield',
+          ],
+          rows: [
+            ['Nil', '₹0', '₹7,07,389', '7.19%'],
+            ['5%', '₹10,369', '₹6,97,020', '6.87%'],
+            ['20%', '₹41,478', '₹6,65,911', '5.90%'],
+            ['30%', '₹62,217', '₹6,45,172', '5.23%'],
+          ],
+        },
+        after: [
+          'For someone in the 30% slab, a 7% FD yields barely 5.2% after tax — close to or below inflation. Compare FDs with other fixed-income options on the post-tax figure.',
+        ],
+      },
+      {
+        heading: 'FDs and similar options',
+        table: {
+          columns: ['Option', 'Typical tenure', 'Rate type', 'Tax on interest'],
+          rows: [
+            ['Bank FD', '7 days – 10 years', 'Fixed when booked', 'Slab rate'],
+            [
+              'Post Office Time Deposit',
+              '1, 2, 3 or 5 years',
+              'Fixed when booked',
+              'Slab rate (5-year TD qualifies for 80C)',
+            ],
+            [
+              'Senior Citizens’ Savings Scheme',
+              '5 years',
+              'Fixed when booked',
+              'Slab rate; 60+ only',
+            ],
+            [
+              'National Savings Certificate',
+              '5 years',
+              'Fixed when booked',
+              'Slab rate; qualifies for 80C',
+            ],
+            [
+              'Debt mutual funds',
+              'Any',
+              'Market-linked',
+              'Slab rate on gains, only when redeemed',
+            ],
+          ],
+        },
+      },
+    ],
+    guides: ['fd-interest-and-tax', 'sip-vs-fd-rd', 'inflation-and-real-returns'],
     howItWorks: [
       'A cumulative fixed deposit reinvests the interest it earns, so the balance compounds. Indian banks compound quarterly by convention, which is why the effective yield is slightly higher than the rate printed on the receipt.',
       'A non-cumulative FD pays the interest out monthly or quarterly instead of reinvesting it. Choose “simple interest” for that case — the maturity amount is just the principal back, and the interest reaches you along the way.',
@@ -182,6 +246,14 @@ P = principal   r = annual rate   n = compounding periods per year   t = years`,
       {
         q: 'What happens if I break the FD early?',
         a: 'You earn the rate applicable for the period the deposit actually ran, usually with a penalty of 0.5% to 1%. Re-run the calculation with the lower rate and shorter tenure to see the effect.',
+      },
+      {
+        q: 'Do senior citizens get higher FD rates?',
+        a: 'Yes. Most banks pay senior citizens an extra 0.25%–0.50% a year, and some pay more on longer tenures. Senior citizens also have a higher TDS threshold of ₹1 lakh of interest a year per bank.',
+      },
+      {
+        q: 'Are small finance bank FDs safe?',
+        a: 'Small finance banks are scheduled banks, so deposits are insured by DICGC up to ₹5 lakh per depositor per bank, like any other bank. They often pay higher rates; keeping each deposit within the insured limit limits your risk.',
       },
     ],
   },

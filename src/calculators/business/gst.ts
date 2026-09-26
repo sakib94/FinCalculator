@@ -127,6 +127,41 @@ const gst: CalculatorDef<GstResult> = {
     )} = ${formatINR(r.totalAmount, 2)}.`,
 
   content: {
+    intro: {
+      heading: 'What is GST?',
+      paragraphs: [
+        'Goods and Services Tax (GST) is India’s tax on the supply of goods and services, charged at each stage of the supply chain and ultimately paid by the consumer. Since the GST 2.0 reform of 22 September 2025, most items fall in the 5% or 18% slabs, with 40% for demerit goods and 0% for essentials. Within a state the tax is split equally into CGST and SGST; between states it is charged as IGST.',
+        'This GST calculator adds GST to a price or removes it from a GST-inclusive price, at any rate, and shows the CGST/SGST or IGST split.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Adding GST to ₹10,000',
+        table: {
+          columns: ['GST rate', 'GST amount', 'Total price', 'CGST + SGST'],
+          rows: [
+            ['5%', '₹500', '₹10,500', '₹250 + ₹250'],
+            ['18%', '₹1,800', '₹11,800', '₹900 + ₹900'],
+            ['40%', '₹4,000', '₹14,000', '₹2,000 + ₹2,000'],
+          ],
+        },
+      },
+      {
+        heading: 'Removing GST from ₹10,000 (inclusive)',
+        table: {
+          columns: ['GST rate', 'Price before GST', 'GST included'],
+          rows: [
+            ['5%', '₹9,524', '₹476'],
+            ['18%', '₹8,475', '₹1,525'],
+            ['40%', '₹7,143', '₹2,857'],
+          ],
+        },
+        after: [
+          'To remove GST, divide the inclusive price by (1 + rate) — at 18%, divide by 1.18. Taking 18% of the inclusive price overstates the tax.',
+        ],
+      },
+    ],
+    guides: ['how-gst-works', 'how-to-calculate-percentage'],
     howItWorks: [
       'Adding GST is straightforward: multiply the base price by the rate. Extracting GST from a price that already includes it is where people slip up — you cannot simply take 18% of the total. The tax-inclusive amount has to be divided by 1.18 to recover the base.',
       'Within a state, GST is split equally into CGST (central) and SGST (state). For interstate supplies the whole amount is charged as IGST, which the centre later apportions.',
@@ -165,6 +200,10 @@ Within a state: CGST = SGST = GST ÷ 2`,
       {
         q: 'Which GST rate applies to my product?',
         a: 'It depends on the HSN or SAC code. Most services are at 18%, essentials at 5%, and demerit goods at 40%. Check the CBIC rate finder for a specific item.',
+      },
+      {
+        q: 'What are the GST rates after GST 2.0?',
+        a: 'The main slabs are 0%, 5% and 18%, with a 40% rate for demerit and luxury goods. A few items still carry other rates, such as 3% for gold. Check the exact rate for your product or service using its HSN or SAC code.',
       },
     ],
   },

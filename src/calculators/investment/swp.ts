@@ -157,6 +157,41 @@ const swp: CalculatorDef<SwpResult> = {
         )}.`,
 
   content: {
+    intro: {
+      heading: 'What is a systematic withdrawal plan (SWP)?',
+      paragraphs: [
+        'A systematic withdrawal plan is the reverse of a SIP: you invest a lumpsum in a mutual fund and instruct the fund to pay you a fixed amount every month by redeeming units. The balance stays invested and keeps earning returns, so a well-sized SWP can pay an income for decades. Retirees often use SWPs from hybrid or debt funds as a flexible, tax-efficient alternative to interest income.',
+        'This SWP calculator shows how long your corpus lasts at a given monthly withdrawal, how much remains at the end of the period, the total withdrawn, and a year-by-year balance, with an option to increase withdrawals each year for inflation.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'How the withdrawal rate decides how long money lasts',
+        table: {
+          caption: '₹50 lakh corpus earning an assumed 8% a year, over 30 years',
+          columns: [
+            'Monthly withdrawal',
+            'Yearly withdrawal as % of corpus',
+            'Result after 30 years',
+          ],
+          rows: [
+            ['₹25,000', '6%', 'Corpus grows to about ₹1.74 crore'],
+            ['₹35,000', '8.4%', 'About ₹25 lakh left'],
+            ['₹50,000', '12%', 'Runs out after 13 years 10 months'],
+          ],
+        },
+        after: [
+          'As long as withdrawals stay below what the corpus earns, the balance keeps growing. Withdraw more than it earns and the corpus shrinks — slowly at first, then quickly. If you plan to raise withdrawals with inflation, start lower still.',
+        ],
+      },
+      {
+        heading: 'How SWP income is taxed',
+        paragraphs: [
+          'Each SWP payment is a redemption of units, so only the gain portion of each withdrawal is taxed, not the whole amount. In the early years most of each payment is your own capital coming back, so the tax is small. Units are redeemed first-in, first-out. For equity funds, long-term gains above ₹1.25 lakh a year are taxed at 12.5%; for debt funds bought after 31 March 2023, gains are taxed at your slab rate. This usually compares well with FD interest, which is taxed in full every year.',
+        ],
+      },
+    ],
+    guides: ['how-much-money-to-retire', 'inflation-and-real-returns'],
     howItWorks: [
       'A systematic withdrawal plan is a SIP in reverse. A lumpsum stays invested and a fixed amount is redeemed every month, so the corpus keeps earning on whatever is left while it pays you an income. It is the standard way retirees draw from mutual funds instead of buying an annuity.',
       'Each month the balance first earns a month of return and the withdrawal is then deducted — the order every fund house uses. Whether the corpus outlives you comes down to the gap between the return rate and the withdrawal rate: if you withdraw less than you earn, the balance grows even while paying you.',
@@ -201,6 +236,14 @@ Safe withdrawal = corpus × r     (capital stays intact)`,
       {
         q: 'Can I change the withdrawal amount later?',
         a: 'Yes. SWPs can be stopped, paused or revised at any time without penalty, which is the main advantage over an annuity, where the rate is locked for life.',
+      },
+      {
+        q: 'Which funds are suitable for an SWP?',
+        a: 'For a steady retirement income, many investors use conservative hybrid, balanced advantage or short-duration debt funds, which fluctuate less than pure equity. For a very long horizon, a portion in equity helps the corpus keep pace with inflation.',
+      },
+      {
+        q: 'Is an SWP the same as a dividend option?',
+        a: 'No. An SWP pays a fixed amount you choose on a fixed date. Dividends (IDCW) are paid only when the fund declares them, vary in amount, and are fully taxable at your slab rate.',
       },
     ],
   },

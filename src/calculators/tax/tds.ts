@@ -152,6 +152,51 @@ const tds: CalculatorDef<TdsResult> = {
     )} — net payable ${formatINR(r.netPayable)}.`,
 
   content: {
+    intro: {
+      heading: 'What is TDS?',
+      paragraphs: [
+        'Tax deducted at source (TDS) is income tax collected at the time a payment is made. Whoever pays salary, rent, professional fees, commission, interest or contract payments above a threshold must deduct tax at the rate set for that type of payment and deposit it with the government. The person receiving the payment gets credit for it against their final tax.',
+        'This TDS calculator finds the TDS on a payment under the common sections, applies the single-payment and annual thresholds, the lower rates for individual contractors, and the higher 20% rate when the payee has no PAN.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Common TDS rates and thresholds',
+        table: {
+          columns: ['Section', 'Payment', 'Rate', 'Threshold'],
+          rows: [
+            [
+              '194C',
+              'Contractors',
+              '1% (individual/HUF), 2% (others)',
+              '₹30,000 per payment or ₹1 lakh a year',
+            ],
+            ['194J', 'Professional fees', '10%', '₹50,000 a year'],
+            ['194J', 'Technical services', '2%', '₹50,000 a year'],
+            ['194-I', 'Rent of land, building or furniture', '10%', '₹50,000 a month'],
+            ['194-I', 'Rent of plant and machinery', '2%', '₹50,000 a month'],
+            ['194H', 'Commission or brokerage', '2%', '₹20,000 a year'],
+            [
+              '194A',
+              'Interest (banks, post office)',
+              '10%',
+              '₹50,000 a year (₹1 lakh for seniors)',
+            ],
+            ['194', 'Dividends', '10%', '₹10,000 a year'],
+            [
+              '194-IA',
+              'Purchase of property',
+              '1%',
+              'Consideration of ₹50 lakh or more',
+            ],
+          ],
+        },
+        after: [
+          'Without a valid PAN, TDS is deducted at the higher of the section rate and 20%. Rates and thresholds change with Finance Acts — check the current rules before relying on them.',
+        ],
+      },
+    ],
+    guides: ['fd-interest-and-tax', 'old-vs-new-tax-regime'],
     howItWorks: [
       'Tax deducted at source shifts collection to the moment income is paid. The payer withholds a percentage, deposits it with the government against the payee’s PAN, and hands over the balance. The payee then claims that amount as credit in their return.',
       'Two things determine the deduction, and the threshold matters as much as the rate. Below the threshold nothing is deducted at all. Above it, deduction applies to the full payment — not just the excess, which is the opposite of how income tax slabs work and a frequent source of confusion.',
@@ -204,6 +249,14 @@ Net payable = payment − TDS`,
       {
         q: 'What is the difference between 194J professional and technical services?',
         a: 'Professional services — legal, medical, accountancy, engineering, architecture — attract 10%. Technical services attract 2%. The distinction is frequently litigated, so classify carefully.',
+      },
+      {
+        q: 'How can I check the TDS deducted on my income?',
+        a: 'Log in to the income tax e-filing portal and view Form 26AS or the Annual Information Statement (AIS), which list every deduction reported against your PAN. Your deductor also issues Form 16 (salary) or Form 16A (other payments).',
+      },
+      {
+        q: 'When must TDS be deposited?',
+        a: 'Generally by the 7th of the following month, and by 30 April for deductions made in March. Late deposit attracts interest.',
       },
     ],
   },

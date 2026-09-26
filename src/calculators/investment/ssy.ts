@@ -162,6 +162,45 @@ const ssy: CalculatorDef<SsyResult> = {
     )} by ${r.maturityYear}.`,
 
   content: {
+    intro: {
+      heading: 'What is Sukanya Samriddhi Yojana?',
+      paragraphs: [
+        'Sukanya Samriddhi Yojana (SSY) is a government savings scheme for the girl child, launched under the Beti Bachao Beti Padhao campaign. A parent or guardian can open the account for a daughter below 10 at a post office or authorised bank, deposit between ₹250 and ₹1.5 lakh a year for 15 years, and the account matures 21 years after it was opened. It usually pays one of the highest rates among small savings schemes — 8.2% at present — and is fully tax-free.',
+        'This calculator projects the maturity amount, the total deposited and the interest earned, year by year, from the yearly deposit, the girl’s age and the interest rate.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Maturity value for different yearly deposits',
+        table: {
+          caption: 'Deposits for 15 years, account opened when the girl is 3, at 8.2%',
+          columns: [
+            'Yearly deposit',
+            'Total deposited',
+            'Maturity amount (after 21 years)',
+          ],
+          rows: [
+            ['₹50,000', '₹7,50,000', '₹23,94,040'],
+            ['₹1,00,000', '₹15,00,000', '₹47,88,079'],
+            ['₹1,50,000', '₹22,50,000', '₹71,82,119'],
+          ],
+        },
+        after: [
+          'Deposits stop after 15 years, but the balance keeps earning interest for the remaining six years until maturity — which is why the maturity value is more than three times what you put in.',
+        ],
+      },
+      {
+        heading: 'Key rules',
+        bullets: [
+          'Up to two accounts per family — one per daughter — with a third allowed for twins or triplets.',
+          'Minimum deposit ₹250 a year; maximum ₹1.5 lakh a year; the account becomes a “default” account if the minimum is missed, and can be revived with a small penalty.',
+          'Up to 50% of the balance at the end of the previous year can be withdrawn after the girl turns 18 or passes class 10, for higher education.',
+          'The account can be closed early after 18 for the daughter’s marriage, and in certain other circumstances such as the account holder’s death.',
+          'Deposits qualify for Section 80C in the old regime; interest and maturity are tax-free.',
+        ],
+      },
+    ],
+    guides: ['ppf-explained', 'epf-vs-ppf-vs-nps'],
     howItWorks: [
       'Sukanya Samriddhi Yojana is a government small-savings scheme for a girl child, opened by a parent or guardian before she turns 10. It carries one of the highest fixed rates the government offers, and the rate is set by the Ministry of Finance each quarter.',
       `The structure has two distinct phases. You deposit for the first ${SSY_DEPOSIT_YEARS} years — anywhere between ₹250 and ₹1,50,000 a financial year. The account then stops accepting deposits but keeps compounding for another six years, maturing ${SSY_TERM_YEARS} years after opening. That silent tail is where a large share of the interest is actually earned.`,
@@ -211,6 +250,14 @@ Maturity = ${SSY_TERM_YEARS} years from the date of opening`,
       {
         q: 'What if I cannot deposit in a particular year?',
         a: 'The account goes dormant. You can revive it by paying ₹250 for each missed year plus a ₹50 penalty per year. Interest continues to accrue on the existing balance in the meantime.',
+      },
+      {
+        q: 'What is the current Sukanya Samriddhi interest rate?',
+        a: '8.2% a year, as set by the government for recent quarters. The rate is reviewed every quarter and applies to the whole balance, so it can change over the life of the account.',
+      },
+      {
+        q: 'Who operates the account once the girl grows up?',
+        a: 'The parent or guardian operates it until she turns 18. After that, she operates it herself after submitting the required documents.',
       },
     ],
   },

@@ -211,6 +211,73 @@ const capitalGains: CalculatorDef<CapitalGainsResult> = {
     )}.`,
 
   content: {
+    intro: {
+      heading: 'What is capital gains tax?',
+      paragraphs: [
+        'Capital gains tax is the tax on the profit you make when you sell an asset — shares, mutual funds, property, gold — for more than you paid. Whether a gain is short-term or long-term depends on how long you held the asset, and each type is taxed at different rates. The rules were overhauled from 23 July 2024.',
+        'This capital gains calculator classifies your gain as short- or long-term for the asset you choose, applies the ₹1.25 lakh exemption on listed equity where relevant, and calculates the tax with cess and your net proceeds.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Current capital gains tax rates',
+        table: {
+          columns: ['Asset', 'Long-term after', 'Short-term rate', 'Long-term rate'],
+          rows: [
+            [
+              'Listed shares, equity mutual funds',
+              '12 months',
+              '20%',
+              '12.5% on gains above ₹1.25 lakh a year',
+            ],
+            [
+              'Debt mutual funds bought after 31 March 2023',
+              '—',
+              'Slab rate',
+              'Slab rate (always)',
+            ],
+            [
+              'Property (land, house)',
+              '24 months',
+              'Slab rate',
+              '12.5% (option of 20% with indexation for property bought before 23 July 2024)',
+            ],
+            [
+              'Gold, jewellery, gold ETFs',
+              '24 months (12 for listed ETFs)',
+              'Slab rate',
+              '12.5%',
+            ],
+            ['Unlisted shares', '24 months', 'Slab rate', '12.5%'],
+          ],
+        },
+      },
+      {
+        heading: 'Examples',
+        table: {
+          caption: 'Tax including 4% cess, with no other gains in the year',
+          columns: ['Sale', 'Gain', 'Tax'],
+          rows: [
+            [
+              'Equity fund units held 2 years: bought ₹5 lakh, sold ₹9 lakh',
+              '₹4,00,000',
+              '₹35,750',
+            ],
+            [
+              'Flat held 5 years: bought ₹50 lakh, sold ₹80 lakh',
+              '₹30,00,000',
+              '₹3,90,000',
+            ],
+            [
+              'Gold held 3 years: bought ₹3 lakh, sold ₹5 lakh',
+              '₹2,00,000',
+              '₹26,000',
+            ],
+          ],
+        },
+      },
+    ],
+    guides: ['what-is-sip', 'old-vs-new-tax-regime'],
     howItWorks: [
       'Capital gains tax applies to the profit on selling an asset, not the sale value. The gain is sale price less transfer expenses less what you paid for it. How that gain is taxed depends on two things: what the asset is, and how long you held it.',
       'The Finance (No. 2) Act 2024 reset this regime with effect from 23 July 2024. Holding periods were simplified to 12 months for listed securities and 24 months for everything else. Indexation — which used to let you inflate your purchase cost — was withdrawn. And the long-term rate became a flat 12.5% across asset classes, up from 10% for equity and down from 20% for property.',
@@ -267,6 +334,10 @@ Plus 4% health and education cess on the tax.`,
       {
         q: 'What if I made a loss?',
         a: 'A capital loss can be set off against capital gains — long-term losses only against long-term gains, short-term against either. Anything left over carries forward for eight years, provided you file your return by the due date.',
+      },
+      {
+        q: 'How are shares bought before February 2018 taxed?',
+        a: 'They are grandfathered: the cost is taken as the higher of what you paid and the market price on 31 January 2018 (but not more than the sale price), so gains made before that date are not taxed.',
       },
     ],
   },

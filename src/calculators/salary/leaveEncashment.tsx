@@ -131,6 +131,40 @@ const leaveEncashment: CalculatorDef<LeaveResult> = {
     `Leave encashment ${formatINR(r.amount)} — exempt ${formatINR(r.exempt)}, taxable ${formatINR(r.taxable)}.`,
 
   content: {
+    intro: {
+      heading: 'What is leave encashment?',
+      paragraphs: [
+        'Leave encashment is the payment your employer makes for earned or privilege leave you did not take. Many employers allow encashment while you are working (often once a year) and pay for the accumulated balance when you resign or retire. The amount is usually your daily basic plus dearness allowance multiplied by the days encashed.',
+        'This leave encashment calculator works out the payment from your salary and leave balance, and applies the income tax rules to show how much is tax-free and how much is taxable.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'How leave encashment is taxed',
+        table: {
+          columns: ['Situation', 'Tax treatment'],
+          rows: [
+            ['Encashed while still in service', 'Fully taxable as salary'],
+            [
+              'On retirement or resignation — government employees',
+              'Fully exempt',
+            ],
+            [
+              'On retirement or resignation — other employees',
+              'Exempt up to the least of four limits, including a lifetime cap of ₹25 lakh',
+            ],
+            [
+              'Received by legal heirs after the employee’s death',
+              'Not taxable',
+            ],
+          ],
+        },
+        after: [
+          'For non-government employees, the exempt amount is the least of: the actual amount received; ₹25 lakh (lifetime, across employers); 10 months’ average salary; and cash equivalent of unused leave limited to 30 days for every year of service. The calculator applies all four.',
+        ],
+      },
+    ],
+    guides: ['ctc-vs-in-hand-salary', 'old-vs-new-tax-regime'],
     howItWorks: [
       'Leave encashment converts your unused earned leave into cash, usually when you resign or retire. The per-day rate is your monthly Basic + DA divided by 30, multiplied by the number of days being encashed.',
       'The tax treatment is where it gets interesting. For government employees the entire amount is exempt. For everyone else, section 10(10AA)(ii) allows the least of four limits — a statutory ceiling of ₹25 lakh, the actual amount received, ten months of average salary, and the cash value of 30 days of leave for each completed year of service.',
@@ -171,6 +205,10 @@ Exemption (non-government) = least of:
       {
         q: 'Do government employees pay tax on leave encashment?',
         a: 'No. Leave encashment received on retirement by central or state government employees is fully exempt from income tax.',
+      },
+      {
+        q: 'How is the per-day salary worked out?',
+        a: 'Most employers divide monthly basic plus DA by 30 (some use 26). With a basic of ₹60,000 and 45 days of leave, the payment at ₹2,000 a day is ₹90,000. Check your company’s leave policy for its divisor.',
       },
     ],
   },

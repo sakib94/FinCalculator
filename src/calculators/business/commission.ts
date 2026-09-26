@@ -117,6 +117,32 @@ const commission: CalculatorDef<CommissionResult> = {
     )} effective); net to seller ${formatINR(r.netToSeller)}.`,
 
   content: {
+    intro: {
+      heading: 'What is a commission calculator?',
+      paragraphs: [
+        'A commission is a payment for arranging a sale, usually a percentage of the sale value, sometimes plus a flat fee. Real estate brokers, insurance and mutual fund distributors, sales staff and marketplace sellers are all paid this way. When several agents share a deal, the commission is split between them.',
+        'This commission calculator works out the commission on a sale from the rate, any flat fee and your share of a split, and the effective percentage you earn.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Commission, GST and TDS on a property sale',
+        table: {
+          caption: '₹50 lakh sale at a 2% brokerage',
+          columns: ['Item', 'Amount'],
+          rows: [
+            ['Commission (2%)', '₹1,00,000'],
+            ['GST at 18% (if the broker is GST-registered)', '₹18,000'],
+            ['Total paid by the client', '₹1,18,000'],
+            ['TDS under 194H at 2% (if the payer must deduct)', '₹2,000'],
+          ],
+        },
+        after: [
+          'Commission for services is subject to 18% GST when the agent is registered. Businesses paying commission above ₹20,000 in a year generally deduct 2% TDS under Section 194H; individuals not running a business usually do not.',
+        ],
+      },
+    ],
+    guides: ['how-to-calculate-percentage', 'how-gst-works'],
     howItWorks: [
       'Commission is a percentage of the transaction value, sometimes with a fixed fee added. The effective rate shown accounts for that fixed fee, which is why it can differ from the percentage you entered.',
       'Where the commission is shared — between a brokerage and an agent, or with a referrer — the split percentage separates your share from the rest.',
@@ -146,6 +172,14 @@ Effective rate = commission ÷ sale value × 100`,
       {
         q: 'Is TDS deducted on commission?',
         a: 'Yes. Section 194H requires TDS on commission and brokerage above the annual threshold. You claim credit for it when filing your return.',
+      },
+      {
+        q: 'How are sales commissions usually structured?',
+        a: 'Common structures are a flat percentage of sales, tiered rates that rise once targets are met, a fixed fee per sale, or a base salary plus commission. For shared deals, the commission is split in agreed percentages before any deductions.',
+      },
+      {
+        q: 'Is commission income taxable?',
+        a: 'Yes. Commission paid to an employee is part of salary. Commission earned as an independent agent is business or professional income, taxed after deducting related expenses; any TDS deducted by payers is credited against the final tax.',
       },
     ],
   },

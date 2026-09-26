@@ -93,6 +93,40 @@ const roi: CalculatorDef<RoiResult> = {
     )}${r.annualisedPct ? `, annualised ${formatPercent(r.annualisedPct, 2)}` : ''}.`,
 
   content: {
+    intro: {
+      heading: 'What is ROI?',
+      paragraphs: [
+        'Return on investment (ROI) measures how much you gained or lost compared with what you put in: ROI = (current value − total cost) ÷ total cost × 100. It works for anything — shares, property, a business expansion, a marketing campaign — as long as you count all the costs.',
+        'This ROI calculator works out the total return, the net gain and the money multiple, and — because ROI ignores time — also the annualised return (CAGR) so you can compare investments held for different periods.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Why the time period matters',
+        table: {
+          caption: 'The same 70% ROI over different holding periods',
+          columns: ['Held for', 'Total ROI', 'Annualised return'],
+          rows: [
+            ['2 years', '70%', '30.4%'],
+            ['4 years', '70%', '14.2%'],
+            ['7 years', '70%', '7.9%'],
+          ],
+        },
+        after: [
+          'A 70% return is excellent over two years and mediocre over seven — below what a fixed deposit might have earned. Always look at the annualised figure alongside ROI.',
+        ],
+      },
+      {
+        heading: 'Costs people forget to include',
+        bullets: [
+          'Property: stamp duty, registration, brokerage, interiors, maintenance and property tax.',
+          'Shares and funds: brokerage, STT, exit loads and capital gains tax.',
+          'Business projects: staff time, overheads and the opportunity cost of the money.',
+          'Income received along the way — rent, dividends, interest — should be added to the current value.',
+        ],
+      },
+    ],
+    guides: ['what-is-cagr', 'how-to-calculate-percentage'],
     howItWorks: [
       'ROI measures how much you made relative to what you put in. It is deliberately simple — gain divided by cost — which makes it easy to compare across very different investments, from a property to a marketing campaign.',
       'Its weakness is that it ignores time. Doubling your money in two years and in twenty are both 100% ROI. That is why the annualised return matters: it converts the total gain into a per-year rate you can compare with a fixed deposit or an index fund.',
@@ -122,6 +156,10 @@ Annualised   = (final value ÷ total cost)^(1 ÷ years) − 1`,
       {
         q: 'What is the difference between ROI and CAGR?',
         a: 'ROI is the total percentage gain over the whole period. CAGR spreads that gain evenly across the years to give an annual rate, which is what lets you compare investments held for different lengths of time.',
+      },
+      {
+        q: 'What is a good ROI?',
+        a: 'It depends on the risk and the time taken. Compare the annualised return with a safe alternative such as a fixed deposit, and with inflation; a riskier investment should earn noticeably more to be worthwhile.',
       },
     ],
   },

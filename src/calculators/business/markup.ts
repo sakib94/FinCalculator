@@ -112,6 +112,33 @@ const markup: CalculatorDef<MarkupResult> = {
     )}, margin ${formatPercent(r.marginPct, 2)}.`,
 
   content: {
+    intro: {
+      heading: 'What is markup?',
+      paragraphs: [
+        'Markup is the amount added to a product’s cost to arrive at its selling price, expressed as a percentage of cost. A product that costs ₹1,000 and sells for ₹1,400 has a 40% markup. It is how many shops and manufacturers set prices — but it is easily confused with margin, which is profit as a percentage of the selling price.',
+        'This markup calculator finds the selling price from a markup or target margin, or the markup and margin from a cost and a selling price, and converts between the two.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Markup vs margin conversion',
+        table: {
+          columns: ['Markup on cost', 'Equivalent margin on price'],
+          rows: [
+            ['10%', '9.1%'],
+            ['20%', '16.7%'],
+            ['25%', '20%'],
+            ['33.3%', '25%'],
+            ['50%', '33.3%'],
+            ['100%', '50%'],
+          ],
+        },
+        after: [
+          'Margin = markup ÷ (100 + markup) × 100; markup = margin ÷ (100 − margin) × 100. A 100% markup — doubling the cost — gives only a 50% margin.',
+        ],
+      },
+    ],
+    guides: ['how-to-calculate-percentage', 'how-gst-works'],
     howItWorks: [
       'Markup and margin describe the same profit from two different angles, and confusing them is one of the most common pricing mistakes in small business. Markup is profit as a percentage of what you paid. Margin is profit as a percentage of what you charged.',
       'Because the denominators differ, the two numbers are never equal. A 50% markup is only a 33.3% margin. Pricing at a “50% margin” when you meant markup leaves a large hole in your numbers.',
@@ -142,6 +169,10 @@ Price from margin = cost ÷ (1 − margin ÷ 100)`,
       {
         q: 'What margin should I aim for?',
         a: 'It depends entirely on the industry — grocery retail runs on single-digit margins and turns stock fast, while software and services often exceed 70%. Compare against your own overheads, not a general benchmark.',
+      },
+      {
+        q: 'Should I use markup or margin to set prices?',
+        a: 'Margin is what matters for profitability, because costs and discounts are usually discussed as a share of sales. Work out the margin you need to cover overheads and profit, then convert it to the markup to apply on cost.',
       },
     ],
   },

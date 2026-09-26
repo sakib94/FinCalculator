@@ -129,6 +129,32 @@ const flatVsReducing: CalculatorDef<FlatRateResult> = {
     )} reducing rate. EMI ${formatINR(r.flatEmi)}; ${formatINR(r.extraCost)} more interest than a reducing-balance loan at the same rate.`,
 
   content: {
+    intro: {
+      heading: 'Flat rate vs reducing rate: what is the difference?',
+      paragraphs: [
+        'A reducing-balance rate charges interest only on the amount you still owe, so the interest falls as you repay. A flat rate charges interest on the original loan amount for the entire tenure, even though you are repaying it every month. The same headline number therefore costs far more as a flat rate — typically close to double.',
+        'This flat vs reducing rate calculator converts any flat rate into its true reducing-balance equivalent, shows the EMI and total interest at both, and the extra you would pay on a flat-rate offer.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Flat rate to effective rate',
+        table: {
+          caption: 'Effective reducing-balance rate for a flat-rate loan',
+          columns: ['Flat rate', '1 year', '2 years', '3 years', '5 years'],
+          rows: [
+            ['5%', '9.10%', '9.32%', '9.31%', '9.15%'],
+            ['7%', '12.68%', '12.91%', '12.83%', '12.50%'],
+            ['9%', '16.22%', '16.43%', '16.24%', '15.71%'],
+            ['11%', '19.72%', '19.87%', '19.57%', '18.80%'],
+          ],
+        },
+        after: [
+          'Across common tenures, a flat rate is equivalent to roughly 1.7 to 1.85 times the same number on a reducing balance.',
+        ],
+      },
+    ],
+    guides: ['flat-vs-reducing-interest-rate', 'loan-processing-fees-and-apr'],
     howItWorks: [
       'A flat rate charges interest on the full loan amount for the entire tenure, even though you pay part of it back every month. By the last year you might owe only a fraction of the original sum, but you are still paying interest on all of it.',
       'Banks quote home and most personal loans on a reducing balance: interest is charged only on what you still owe. The two rates are not comparable — a flat rate always looks much cheaper than it is.',
@@ -164,6 +190,10 @@ Effective rate  = r such that  P × r(1 + r)ⁿ ÷ [(1 + r)ⁿ − 1] = flat EMI
       {
         q: 'How do I convert a flat rate to a reducing rate quickly?',
         a: 'Multiply by about 1.75 for a rough estimate (a little more for short loans, a little less for long ones). For the exact figure, enter the loan here — the calculator solves for the rate that gives the same EMI.',
+      },
+      {
+        q: 'Are flat-rate loans allowed?',
+        a: 'Yes, but since October 2024 every regulated lender must give a Key Fact Statement that shows the annual percentage rate (APR) on a reducing-balance basis, including fees. Use that figure to compare with other loans.',
       },
     ],
   },

@@ -149,6 +149,56 @@ const ppf: CalculatorDef<PpfResult> = {
     )}.`,
 
   content: {
+    intro: {
+      heading: 'What is PPF?',
+      paragraphs: [
+        'The Public Provident Fund is a 15-year savings scheme backed by the Government of India, available at post offices and authorised banks. You can deposit between ₹500 and ₹1.5 lakh each financial year, and the balance earns a fixed interest rate set by the government every quarter — 7.1% since April 2020. Interest and maturity are completely tax-free.',
+        'This PPF calculator shows your maturity amount, total deposits and interest year by year for yearly or monthly deposits, following the actual rule that interest is earned on the lowest balance between the 5th and the end of each month.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'How a ₹1.5 lakh yearly PPF grows',
+        table: {
+          caption: '₹1,50,000 deposited before 5 April every year at 7.1%',
+          columns: ['After', 'Total deposited', 'Balance'],
+          rows: [
+            ['5 years', '₹7,50,000', '₹9,25,701'],
+            ['10 years', '₹15,00,000', '₹22,30,124'],
+            ['15 years (maturity)', '₹22,50,000', '₹40,68,209'],
+          ],
+        },
+        after: [
+          'Almost half the maturity value is interest, and the growth accelerates in the later years. That is why extending the account in 5-year blocks after maturity is often worthwhile.',
+        ],
+      },
+      {
+        heading: 'PPF vs other 80C options',
+        table: {
+          columns: ['Option', 'Lock-in', 'Return', 'Tax on returns'],
+          rows: [
+            [
+              'PPF',
+              '15 years (partial access from year 7)',
+              'Fixed, set quarterly',
+              'Tax-free',
+            ],
+            [
+              'ELSS mutual funds',
+              '3 years',
+              'Market-linked',
+              '12.5% on long-term gains above ₹1.25 lakh',
+            ],
+            ['Tax-saver FD', '5 years', 'Fixed for the term', 'Taxable at slab'],
+            ['NSC', '5 years', 'Fixed for the term', 'Taxable at slab'],
+          ],
+        },
+        after: [
+          'PPF suits the safe, long-term part of your savings; ELSS suits long-term growth with a shorter lock-in. Under the new tax regime, none of these gets the 80C deduction, but PPF interest stays tax-free.',
+        ],
+      },
+    ],
+    guides: ['ppf-explained', 'epf-vs-ppf-vs-nps', 'fd-interest-and-tax'],
     howItWorks: [
       'The Public Provident Fund is a 15-year government-backed savings scheme. Interest is calculated on the lowest balance between the 5th and the last day of each month, and credited once a year on 31 March. That rule is why depositing before the 5th of the month matters — a deposit on the 6th earns nothing for that month.',
       'This calculator follows the monthly-minimum-balance rule rather than simple annual compounding, so the yearly figures line up with a real PPF passbook.',
@@ -187,6 +237,14 @@ Year-end balance = opening + deposits + total interest for the year (credited on
       {
         q: 'Can I open PPF accounts for my children too?',
         a: 'Yes, as a guardian, but the ₹1.5 lakh annual limit applies to your own and the minor’s account combined.',
+      },
+      {
+        q: 'Can NRIs invest in PPF?',
+        a: 'NRIs cannot open a new PPF account. An account opened while resident can generally be continued until maturity, but check the latest rules with your bank or post office before extending it.',
+      },
+      {
+        q: 'Can I close my PPF account early?',
+        a: 'Only after five full financial years, and only for specified reasons such as serious illness, higher education or a change in residency status. Interest is then recalculated at 1% below the applicable rates.',
       },
     ],
   },

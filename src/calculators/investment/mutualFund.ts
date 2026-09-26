@@ -281,6 +281,44 @@ const mutualFund: CalculatorDef<MfResult> = {
         )} — CAGR ${formatPercent(r.lump.cagrPct)}.`,
 
   content: {
+    intro: {
+      heading: 'What does a mutual fund returns calculator do?',
+      paragraphs: [
+        'A mutual fund pools money from many investors and invests it in shares, bonds or both. What you end up with depends on how much you invest, for how long, and the return the fund earns. This calculator projects that outcome for the two ways people invest — a monthly SIP (systematic investment plan) or a one-time lumpsum — and shows the invested amount, estimated gain, CAGR and a year-by-year growth chart.',
+        'It is useful for setting realistic expectations, comparing SIP and lumpsum, testing the effect of a yearly step-up, and working out whether your current investments are on track for a goal.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'What different SIP amounts can grow to',
+        table: {
+          caption: 'Monthly SIP for 15 years at an assumed 12% a year',
+          columns: ['Monthly SIP', 'Total invested', 'Estimated value', 'Estimated gain'],
+          rows: [
+            ['₹5,000', '₹9,00,000', '₹25,22,880', '₹16,22,880'],
+            ['₹10,000', '₹18,00,000', '₹50,45,760', '₹32,45,760'],
+            ['₹25,000', '₹45,00,000', '₹1,26,14,400', '₹81,14,400'],
+            ['₹50,000', '₹90,00,000', '₹2,52,28,800', '₹1,62,28,800'],
+          ],
+        },
+      },
+      {
+        heading: 'What a lumpsum can grow to',
+        table: {
+          caption: 'At an assumed 12% a year',
+          columns: ['Amount invested', 'After 5 years', 'After 10 years', 'After 15 years'],
+          rows: [
+            ['₹1 lakh', '₹1,76,234', '₹3,10,585', '₹5,47,357'],
+            ['₹5 lakh', '₹8,81,171', '₹15,52,924', '₹27,36,783'],
+            ['₹10 lakh', '₹17,62,342', '₹31,05,848', '₹54,73,566'],
+          ],
+        },
+        after: [
+          'At 12% a year, money roughly doubles every six years. The same logic works in reverse for costs — a 1% higher expense ratio compounds against you for just as long, which is why direct plans with lower costs matter over long horizons.',
+        ],
+      },
+    ],
+    guides: ['what-is-sip', 'sip-vs-lumpsum', 'sip-vs-fd-rd', 'what-is-cagr'],
     howItWorks: [
       'Money goes into a mutual fund one of two ways, and this calculator covers both. A SIP puts a fixed amount to work every month; a lumpsum invests once and leaves it. Switch between them with the SIP / Lumpsum toggle — the inputs and the projection change with it.',
       'In SIP mode each instalment compounds for a different length of time — the first for the entire period, the last for barely a month — so the maturity value is the sum of many small compounding streams rather than one. Instalments are compounded from the start of every month, which is the SIP convention. The step-up option raises your instalment once a year, usually the easiest way to reach a larger corpus without feeling the pinch.',
@@ -337,6 +375,14 @@ Lumpsum FV   = P × (1 + r)ᵗ
       {
         q: 'Can I stop a SIP any time?',
         a: 'Yes, SIPs in open-ended mutual funds can be paused or stopped without penalty. Units already bought stay invested until you redeem them.',
+      },
+      {
+        q: 'Should I choose a direct or regular plan?',
+        a: 'Direct plans have a lower expense ratio because no distributor commission is paid, so they return more over time. Regular plans suit investors who want advice from a distributor and are willing to pay for it through the higher expense ratio.',
+      },
+      {
+        q: 'How are mutual fund returns taxed?',
+        a: 'For equity funds, gains on units held over 12 months are long-term and taxed at 12.5% above ₹1.25 lakh a year; shorter holdings are taxed at 20%. Gains on debt funds bought after 31 March 2023 are taxed at your slab rate. The capital gains calculator works out the tax on a redemption.',
       },
     ],
   },

@@ -93,6 +93,26 @@ const age: CalculatorDef<AgeResult> = {
   summary: (r) => `Age: ${r.years} years, ${r.months} months and ${r.days} days (${formatNumber(r.totalDays)} days).`,
 
   content: {
+    intro: {
+      heading: 'How is exact age calculated?',
+      paragraphs: [
+        'Your exact age is the number of complete years, months and days between your date of birth and a given date. Counting it by hand is fiddly because months have different lengths and leap years add a day, which is why forms that ask for age “as on” a particular date so often produce mistakes.',
+        'This age calculator gives your exact age in years, months and days on any date — today, a past date or a future cut-off — plus your age in total months, weeks and days, the day of the week you were born, and the countdown to your next birthday.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'When you need age on a specific date',
+        bullets: [
+          'School admission: many states set a minimum age for Class 1 (commonly six years) as on a cut-off date such as 31 March or 1 June of the admission year.',
+          'Government jobs and exams: eligibility is judged by your age as on a date fixed in the notification — often 1 January or 1 August — including any age relaxation for reserved categories.',
+          'Retirement: most government employees retire on the last day of the month in which they turn 60.',
+          'Tax: you are a senior citizen for income tax once you turn 60 at any time during the financial year, and a super senior citizen at 80.',
+          'Insurance: premiums usually depend on your age at your last or nearest birthday — check which one the insurer uses.',
+        ],
+      },
+    ],
+    guides: ['how-much-money-to-retire'],
     howItWorks: [
       'Age is a calendar calculation, not a division of days by 365.25. The calculator counts complete years from your date of birth, then complete months, then the days left over — which is why the answer matches what a passport or a government form expects.',
       'Because the arithmetic works on calendar dates, leap years and months of different lengths are handled naturally: someone born on 31 January turns a month older on 28 or 29 February, and a 29 February birthday falls back to 28 February in non-leap years.',
@@ -121,6 +141,10 @@ days   = as-of day − birth day          (borrow the previous month's length)`,
       {
         q: 'Can I calculate age on a future date?',
         a: 'Yes. Set the “as of” date to any future date to see how old you — or anyone else — will be then.',
+      },
+      {
+        q: 'How do I calculate age in Excel?',
+        a: 'Use =DATEDIF(birth_date, as_on_date, "Y") for complete years, "YM" for the remaining months and "MD" for the remaining days.',
       },
     ],
   },

@@ -232,6 +232,38 @@ const increment: CalculatorDef<IncrementResult> = {
         )} increment.`,
 
   content: {
+    intro: {
+      heading: 'What is a salary increment?',
+      paragraphs: [
+        'A salary increment, or hike, is the percentage by which your pay rises — usually once a year at appraisal time, or when you change jobs. Knowing the exact percentage lets you compare offers, check your appraisal letter and see whether your pay is keeping pace with inflation.',
+        'This salary increment calculator works both ways: it applies a percentage hike to your current salary to show the new monthly and annual pay, or finds the hike percentage from your old and new salaries, and projects your salary over the next few years at the same rate.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'What different hikes mean on ₹80,000 a month',
+        table: {
+          columns: ['Hike', 'New monthly salary', 'Increase per month', 'Increase per year'],
+          rows: [
+            ['5%', '₹84,000', '₹4,000', '₹48,000'],
+            ['7.5%', '₹86,000', '₹6,000', '₹72,000'],
+            ['10%', '₹88,000', '₹8,000', '₹96,000'],
+            ['12%', '₹89,600', '₹9,600', '₹1,15,200'],
+          ],
+        },
+      },
+      {
+        heading: 'Your real increment',
+        paragraphs: [
+          'A hike only improves your standard of living if it beats inflation. With inflation at about 5%, a 7% hike is a real increase of roughly 2%. Over a career, the difference between hikes that just match inflation and hikes a few points above it decides how far your lifestyle — and savings — can grow.',
+        ],
+      },
+    ],
+    guides: [
+      'ctc-vs-in-hand-salary',
+      'inflation-and-real-returns',
+      'how-to-calculate-percentage',
+    ],
     howItWorks: [
       'An increment multiplies your existing salary, so it compounds like interest. A 10% raise every year does not add 50% over five years — it adds about 61%, because each raise is applied to a larger base.',
       'That compounding is why an early-career jump matters disproportionately: a higher base carries forward through every future appraisal.',
@@ -268,6 +300,10 @@ After n years = current salary × (1 + increment %)ⁿ`,
       {
         q: 'How much of my raise will I actually see?',
         a: 'Less than the headline figure, because the increase is taxed at your marginal rate and PF rises with basic. Use the Salary or CTC calculators to see the take-home effect.',
+      },
+      {
+        q: 'Will a hike push my whole salary into a higher tax slab?',
+        a: 'No. Slab rates apply only to the part of income within each slab. A raise that crosses a slab threshold is taxed at the higher rate only on the amount above the threshold, so your take-home always rises with a hike.',
       },
     ],
   },

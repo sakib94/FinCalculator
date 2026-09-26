@@ -148,6 +148,43 @@ const bmi: CalculatorDef<BmiResult> = {
   summary: (r) => `BMI ${r.bmi.toFixed(1)} — ${r.category} (${r.scaleLabel}).`,
 
   content: {
+    intro: {
+      heading: 'What is BMI?',
+      paragraphs: [
+        'Body mass index (BMI) is your weight in kilograms divided by the square of your height in metres. It is a quick screening measure for whether your weight is in a healthy range for your height. For Indians and other Asian populations, health risks such as diabetes and heart disease rise at lower BMIs, so Indian guidelines use lower cut-offs than the international WHO scale.',
+        'This BMI calculator works in metric or imperial units, shows your BMI category on either the Asian-Indian or the WHO scale, and the healthy weight range for your height.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'BMI categories',
+        table: {
+          columns: ['Category', 'Asian-Indian cut-offs', 'WHO cut-offs'],
+          rows: [
+            ['Underweight', 'Below 18.5', 'Below 18.5'],
+            ['Normal', '18.5 – 22.9', '18.5 – 24.9'],
+            ['Overweight', '23 – 24.9', '25 – 29.9'],
+            ['Obese', '25 and above', '30 and above'],
+          ],
+        },
+      },
+      {
+        heading: 'Healthy weight for your height',
+        table: {
+          caption: 'Asian-Indian normal range (BMI 18.5 – 23)',
+          columns: ['Height', 'Healthy weight range'],
+          rows: [
+            ['150 cm (4 ft 11 in)', '41.6 – 51.8 kg'],
+            ['160 cm (5 ft 3 in)', '47.4 – 58.9 kg'],
+            ['170 cm (5 ft 7 in)', '53.5 – 66.5 kg'],
+            ['180 cm (5 ft 11 in)', '59.9 – 74.5 kg'],
+          ],
+        },
+        after: [
+          'Waist size adds useful information: for Indian adults, a waist above about 90 cm for men or 80 cm for women suggests excess abdominal fat, even when BMI is normal.',
+        ],
+      },
+    ],
     howItWorks: [
       'Body mass index divides weight in kilograms by height in metres squared. It is a quick way to compare weight across people of different heights, which is exactly what it was designed for — population screening, not individual diagnosis.',
       'India and much of Asia use lower cut-offs than the WHO international scale, because research shows higher body-fat percentage and metabolic risk at a given BMI in South Asian populations. The overweight threshold is 23 rather than 25.',
@@ -180,6 +217,10 @@ Healthy weight range = normal-band BMI × height (m)²`,
       {
         q: 'What else should I look at?',
         a: 'Waist circumference, waist-to-height ratio, blood pressure, blood sugar and lipid levels together give a far better picture of health than BMI on its own.',
+      },
+      {
+        q: 'Is BMI different for children?',
+        a: 'Yes. For children and teenagers, BMI is compared with growth charts for their age and sex rather than fixed adult cut-offs. Ask a paediatrician to interpret a child’s BMI.',
       },
     ],
   },

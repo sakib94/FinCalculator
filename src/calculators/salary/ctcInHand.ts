@@ -191,6 +191,32 @@ const ctcInHand: CalculatorDef<CtcResult> = {
     )} a year).`,
 
   content: {
+    intro: {
+      heading: 'What is CTC, and how is in-hand salary worked out?',
+      paragraphs: [
+        'Cost to company (CTC) is everything an employer spends on you in a year: salary paid monthly, plus its own PF contribution, gratuity provision and sometimes insurance and bonuses. Your in-hand salary is only the part paid to you each month, after your own PF, professional tax and income tax are deducted — which is why it is always noticeably lower than CTC ÷ 12.',
+        'This CTC to in-hand calculator removes employer-only costs from your CTC to find the gross salary, then deducts PF, professional tax and income tax under either regime to show your monthly in-hand pay.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'In-hand salary for common CTCs',
+        table: {
+          caption: 'Basic 40% of CTC, PF on full basic, gratuity included in CTC, new regime',
+          columns: ['Annual CTC', 'Gross salary', 'Income tax', 'Monthly in-hand'],
+          rows: [
+            ['₹6 lakh', '₹5,59,656', '₹0', '₹44,038'],
+            ['₹10 lakh', '₹9,32,760', '₹0', '₹73,530'],
+            ['₹15 lakh', '₹13,99,140', '₹81,770', '₹1,03,581'],
+            ['₹25 lakh', '₹23,31,900', '₹2,74,790', '₹1,61,226'],
+          ],
+        },
+        after: [
+          'With basic at 40% of CTC, employer PF, gratuity and your own PF together absorb roughly 11%–12% of CTC before any income tax.',
+        ],
+      },
+    ],
+    guides: ['ctc-vs-in-hand-salary', 'old-vs-new-tax-regime', 'epf-vs-ppf-vs-nps'],
     howItWorks: [
       'CTC is what you cost your employer, not what you receive. Three things sit inside it that never reach your bank account: the employer’s 12% PF contribution, the gratuity accrual of 4.81% of basic, and benefits like insurance premiums.',
       'Removing those gives your gross salary — the figure on your payslip. From there, employee PF, professional tax and income tax are deducted to arrive at in-hand pay.',
@@ -230,6 +256,10 @@ Gratuity accrual = 4.81% of basic   (15 ÷ 26 ÷ 12)`,
       {
         q: 'Does variable pay count?',
         a: 'CTC usually includes target variable pay in full. If your bonus is uncertain, run the calculation with the fixed component only to see your guaranteed monthly income.',
+      },
+      {
+        q: 'Is employer PF part of CTC?',
+        a: 'Almost always, yes. The employer’s 12% PF contribution is counted in CTC but goes straight to your EPF account (and the pension scheme), not to your salary account.',
       },
     ],
   },

@@ -190,6 +190,43 @@ const salary: CalculatorDef<SalaryResult> = {
     )} (${formatPercent(r.takeHomePct, 1)}).`,
 
   content: {
+    intro: {
+      heading: 'What is take-home salary?',
+      paragraphs: [
+        'Take-home (or net) salary is what is credited to your bank account each month after deductions. Your gross monthly salary — basic, HRA and allowances — is reduced by your provident fund contribution, professional tax where your state levies it, income tax deducted at source (TDS) and any other deductions such as meal cards or loan recoveries.',
+        'This salary calculator breaks your gross salary into basic, HRA and special allowance, then subtracts PF, professional tax and estimated income tax under your chosen regime to show your monthly and annual take-home pay.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Take-home pay at common salaries',
+        table: {
+          caption: 'New regime, basic 40% of gross, PF on full basic, professional tax ₹200',
+          columns: ['Monthly gross', 'Employee PF', 'Income tax (TDS)', 'Monthly take-home'],
+          rows: [
+            ['₹50,000', '₹2,400', '₹0', '₹47,400'],
+            ['₹1,00,000', '₹4,800', '₹0', '₹95,000'],
+            ['₹2,00,000', '₹9,600', '₹24,375', '₹1,65,825'],
+          ],
+        },
+      },
+      {
+        heading: 'The parts of a salary',
+        bullets: [
+          'Basic salary: usually 40%–50% of gross; PF, gratuity and HRA are calculated on it.',
+          'House rent allowance (HRA): partly tax-exempt in the old regime if you pay rent.',
+          'Special allowance: the balancing figure; fully taxable.',
+          'Employee PF: 12% of basic (or of the ₹15,000 wage ceiling), saved in your EPF account.',
+          'Professional tax: a state tax of up to ₹2,500 a year, deducted monthly in states that levy it.',
+          'TDS: income tax spread across the year’s salary payments by your employer.',
+        ],
+      },
+    ],
+    guides: [
+      'ctc-vs-in-hand-salary',
+      'old-vs-new-tax-regime',
+      'hra-exemption-explained',
+    ],
     howItWorks: [
       'Your gross salary is split into basic, HRA and a residual special allowance. Basic matters more than its size suggests: PF, gratuity and HRA exemption are all calculated on it, so two people with the same gross salary can take home different amounts.',
       'From gross, three things are deducted: 12% of basic as provident fund, professional tax levied by your state, and income tax as TDS. What remains is your take-home.',
@@ -226,6 +263,10 @@ Take-home        = gross − PF − professional tax − income tax − other de
       {
         q: 'Can I reduce my PF deduction?',
         a: 'Only if your employer restricts PF to the ₹15,000 wage ceiling, which many do. It raises take-home by a few thousand a month but reduces long-term retirement savings that earn 8.25% tax-free.',
+      },
+      {
+        q: 'What is professional tax?',
+        a: 'A tax levied by some state governments on salaried people and professionals, capped at ₹2,500 a year. Maharashtra, Karnataka, West Bengal, Tamil Nadu and several other states levy it; many others do not. It is deductible from salary income in the old regime.',
       },
     ],
   },

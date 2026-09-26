@@ -183,6 +183,31 @@ const breakEven: CalculatorDef<BreakEvenResult> = {
     )}), contribution ${formatINR(r.contributionPerUnit)} per unit.`,
 
   content: {
+    intro: {
+      heading: 'What is the break-even point?',
+      paragraphs: [
+        'The break-even point is the level of sales at which a business covers all its costs and makes neither a profit nor a loss. Each unit sold contributes its price minus its variable cost towards the fixed costs; once enough units have been sold to cover the fixed costs, every further sale is profit.',
+        'This break-even calculator finds the break-even units and revenue, the contribution margin, the profit at your expected sales, the margin of safety, and the units needed for a target profit.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'What moves the break-even point',
+        table: {
+          caption: 'Base case: fixed costs ₹3,00,000, price ₹1,000, variable cost ₹600 — break-even 750 units',
+          columns: ['Change', 'Contribution per unit', 'New break-even'],
+          rows: [
+            ['Price raised to ₹1,100', '₹500', '600 units'],
+            ['Variable cost cut to ₹550', '₹450', '667 units'],
+            ['Fixed costs cut to ₹2,40,000', '₹400', '600 units'],
+          ],
+        },
+        after: [
+          'A 10% price rise lowers break-even by 20% here, because the whole increase goes to contribution. Price is usually the most powerful lever — if customers accept it.',
+        ],
+      },
+    ],
+    guides: ['how-to-calculate-percentage'],
     howItWorks: [
       'Every unit you sell brings in its price and costs you its variable cost. The difference — the contribution — goes towards paying the fixed costs. Break-even is simply the point at which enough units have been sold for those contributions to cover the fixed costs entirely. Past it, each further contribution is profit.',
       'This is why the contribution margin matters more than the headline price. Two products selling at ₹1,000 are completely different businesses if one has a ₹600 variable cost and the other ₹200: the second breaks even in a third of the volume.',
@@ -236,6 +261,10 @@ Margin of safety = (expected − break-even) ÷ expected × 100`,
       {
         q: 'How does this work with multiple products?',
         a: 'Use the weighted-average contribution margin ratio across your sales mix, and compute break-even in revenue rather than units. The result holds only while the mix stays roughly constant.',
+      },
+      {
+        q: 'What is the margin of safety?',
+        a: 'How far sales can fall before you reach break-even, as a percentage of expected sales. With expected sales of 1,200 units and break-even at 750, the margin of safety is 37.5%.',
       },
     ],
   },

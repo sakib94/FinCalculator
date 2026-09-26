@@ -164,6 +164,36 @@ const hra: CalculatorDef<HraResult> = {
     )} remains taxable.`,
 
   content: {
+    intro: {
+      heading: 'What is HRA exemption?',
+      paragraphs: [
+        'House rent allowance (HRA) is the part of your salary meant to cover rent. If you live in rented accommodation and are in the old tax regime, part or all of it is exempt from tax under Section 10(13A). The exempt amount is the lowest of three figures, so paying more rent does not always raise the exemption.',
+        'This HRA exemption calculator works out all three limits from your basic salary, DA, HRA received, rent paid and city, and shows the exempt and taxable HRA.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'How rent changes the exemption',
+        table: {
+          caption: 'Basic ₹6 lakh a year, HRA ₹2.4 lakh, metro city',
+          columns: ['Yearly rent', 'Rent − 10% of basic', 'Exempt HRA', 'Taxable HRA'],
+          rows: [
+            ['₹1,20,000', '₹60,000', '₹60,000', '₹1,80,000'],
+            ['₹1,80,000', '₹1,20,000', '₹1,20,000', '₹1,20,000'],
+            ['₹2,40,000', '₹1,80,000', '₹1,80,000', '₹60,000'],
+            ['₹3,00,000', '₹2,40,000', '₹2,40,000', '₹0'],
+          ],
+        },
+        after: [
+          'Once rent minus 10% of basic reaches the HRA you receive (or 50% of basic in a metro), paying more rent no longer increases the exemption.',
+        ],
+      },
+    ],
+    guides: [
+      'hra-exemption-explained',
+      'old-vs-new-tax-regime',
+      'home-loan-tax-benefits',
+    ],
     howItWorks: [
       'House rent allowance is exempt under section 10(13A) read with rule 2A, but only up to the LEAST of three amounts: the actual HRA you receive, the rent you paid less 10% of salary, and 50% of salary for a metro city or 40% elsewhere. That "least of" is the entire rule, and it is what surprises people — paying more rent stops helping the moment one of the other two limits becomes the smallest.',
       '"Salary" here has a specific meaning: basic pay plus dearness allowance that forms part of retirement benefits, plus any commission based on a fixed percentage of turnover. It is not gross salary, and it does not include other allowances. Using gross salary inflates every limit and produces a wrong answer.',
@@ -217,6 +247,10 @@ Salary = Basic + DA (forming part of retirement benefits)
       {
         q: 'Why is my exemption lower than the rent I pay?',
         a: 'Because one of the other two limits is smaller. Check the chart above: whichever bar is shortest is what you get. Usually it is the HRA actually received, which no amount of extra rent can increase.',
+      },
+      {
+        q: 'Can husband and wife both claim HRA for the same house?',
+        a: 'Yes, if both genuinely pay rent — for example, each paying half by bank transfer — and the rent agreement reflects it. Each claims the exemption on the rent they actually pay.',
       },
     ],
   },

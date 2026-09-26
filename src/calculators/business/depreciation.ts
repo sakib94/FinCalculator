@@ -163,6 +163,42 @@ const depreciation: CalculatorDef<DepreciationResult> = {
     )} total, closing book value ${formatINR(r.finalBookValue)}.`,
 
   content: {
+    intro: {
+      heading: 'What is depreciation?',
+      paragraphs: [
+        'Depreciation spreads the cost of an asset — machinery, a vehicle, computers, furniture — over the years it is used, rather than treating the whole cost as an expense in the year of purchase. It reflects wear and tear and obsolescence, and it reduces taxable profit.',
+        'This depreciation calculator shows the yearly depreciation and book value under the straight-line (SLM), written-down-value (WDV) and double-declining-balance methods, with a full schedule.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'SLM vs WDV in the first five years',
+        table: {
+          caption: 'Asset cost ₹10 lakh, salvage value ₹50,000, 10-year life; WDV at 15%',
+          columns: ['Year', 'Straight-line', 'Written-down value'],
+          rows: [
+            ['1', '₹95,000', '₹1,50,000'],
+            ['2', '₹95,000', '₹1,27,500'],
+            ['3', '₹95,000', '₹1,08,375'],
+            ['4', '₹95,000', '₹92,119'],
+            ['5', '₹95,000', '₹78,301'],
+          ],
+        },
+        after: [
+          'WDV front-loads depreciation, matching assets that lose value fastest when new; SLM spreads it evenly.',
+        ],
+      },
+      {
+        heading: 'Income-tax vs company-law depreciation',
+        bullets: [
+          'For income tax, assets are grouped into blocks and depreciated on the WDV method at prescribed rates — for example 15% for general plant and machinery, 40% for computers, 10% for furniture and 5% or 10% for buildings.',
+          'Only half the rate is allowed in the year of purchase if the asset is used for less than 180 days.',
+          'Companies’ books follow Schedule II of the Companies Act, which prescribes useful lives, with either SLM or WDV allowed.',
+          'Because the two sets of rules differ, a company’s book profit and taxable profit usually differ too.',
+        ],
+      },
+    ],
+    guides: ['how-to-calculate-percentage'],
     howItWorks: [
       'Depreciation spreads the cost of a long-lived asset across the years that actually benefit from it, instead of charging the whole amount in the year of purchase. It is an accounting allocation, not a cash outflow — the money left when you bought the asset.',
       'Straight line divides the depreciable amount evenly across the useful life. It is simple, predictable, and what the Companies Act expects for most financial reporting. Every year carries the same charge.',
@@ -215,6 +251,10 @@ In every method the book value never falls below salvage.`,
       {
         q: 'What is the difference between depreciation and amortisation?',
         a: 'They are the same allocation applied to different things: depreciation for tangible assets like machinery and buildings, amortisation for intangibles like patents, goodwill and software licences.',
+      },
+      {
+        q: 'Can land be depreciated?',
+        a: 'No. Land does not wear out, so it is not depreciated. Buildings on it are.',
       },
     ],
   },

@@ -125,6 +125,57 @@ const rd: CalculatorDef<RdResult> = {
     )} — ${formatINR(r.interest)} interest on ${formatINR(r.totalDeposited)} deposited.`,
 
   content: {
+    intro: {
+      heading: 'What is a recurring deposit (RD)?',
+      paragraphs: [
+        'A recurring deposit lets you save a fixed amount every month for a fixed period — typically 6 months to 10 years — and earn a fixed interest rate on it. It combines the discipline of a monthly saving habit with the certainty of a fixed deposit, which makes it popular for short-term goals such as a vacation, a gadget or a festival budget.',
+        'This RD calculator works out the maturity amount and total interest for bank and Post Office recurring deposits, using quarterly compounding as banks and the post office do.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'RD maturity for common monthly deposits',
+        table: {
+          caption: 'At 7% a year, compounded quarterly',
+          columns: ['Monthly deposit', '1 year', '3 years', '5 years'],
+          rows: [
+            ['₹5,000', '₹62,311', '₹2,00,686', '₹3,59,664'],
+            ['₹10,000', '₹1,24,621', '₹4,01,373', '₹7,19,328'],
+            ['₹25,000', '₹3,11,553', '₹10,03,432', '₹17,98,320'],
+          ],
+        },
+      },
+      {
+        heading: 'Bank RD vs Post Office RD',
+        table: {
+          columns: ['', 'Bank RD', 'Post Office RD'],
+          rows: [
+            ['Tenure', 'Usually 6 months to 10 years', '5 years, extendable by 5'],
+            [
+              'Rate',
+              'Set by each bank; senior citizen bonus common',
+              'Set by the government each quarter',
+            ],
+            [
+              'Safety',
+              'DICGC insurance up to ₹5 lakh per bank',
+              'Backed by the Government of India',
+            ],
+            [
+              'Missed instalment',
+              'Penalty varies by bank',
+              'Small penalty per ₹100 per month; account discontinued after 4 defaults',
+            ],
+            [
+              'Loan facility',
+              'Often up to 90% of balance',
+              'Up to 50% after one year',
+            ],
+          ],
+        },
+      },
+    ],
+    guides: ['sip-vs-fd-rd', 'fd-interest-and-tax', 'power-of-compounding'],
     howItWorks: [
       'A recurring deposit takes the same amount from you every month and pays a fixed rate on the growing balance. Banks and India Post compound RD interest every quarter, so interest itself starts earning interest.',
       'Each instalment earns for a different length of time — the first one for the whole tenure, the last one for just a month. The calculator adds all of them up exactly the way the bank does, rather than treating the deposits as one lump sum.',
@@ -162,6 +213,14 @@ R = monthly deposit   i = annual rate ÷ 400 (quarterly)   n = months ÷ 3`,
       {
         q: 'Can I withdraw an RD early?',
         a: 'Yes, usually with a penalty of around 1% on the rate. A Post Office RD can be closed after three years; the interest then falls to the savings account rate.',
+      },
+      {
+        q: 'Is RD interest taxable?',
+        a: 'Yes. RD interest is taxed at your income tax slab rate, and banks deduct TDS once your total interest from the bank — FDs and RDs combined — crosses ₹50,000 in a year (₹1 lakh for senior citizens).',
+      },
+      {
+        q: 'What happens if I miss an RD instalment?',
+        a: 'Most banks charge a small penalty on the missed amount and may close the RD after several missed instalments. The post office charges a penalty per ₹100 for each month of default. Set up an auto-debit to avoid misses.',
       },
     ],
   },

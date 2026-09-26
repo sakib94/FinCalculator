@@ -151,6 +151,31 @@ const discount: CalculatorDef<DiscountResult> = {
     )} (${formatPercent(r.effectiveDiscountPct, 1)} off).`,
 
   content: {
+    intro: {
+      heading: 'How are discounts calculated?',
+      paragraphs: [
+        'A discount reduces the price by a percentage or a fixed amount. Sale price = original price × (1 − discount ÷ 100). Things get trickier with stacked offers — “extra 10% off”, bank card discounts, coupons — because each discount applies to the already-reduced price, and GST is then charged on the discounted amount.',
+        'This discount calculator works out the sale price and your saving for a percentage or flat discount, applies an optional extra discount on top, adds GST on the final price, and shows the effective overall discount.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Stacked discounts are less than they sound',
+        table: {
+          columns: ['Offer', 'Effective discount'],
+          rows: [
+            ['20% + extra 10%', '28%'],
+            ['30% + extra 10%', '37%'],
+            ['50% + extra 20%', '60%'],
+            ['40% + extra 40%', '64%'],
+          ],
+        },
+        after: [
+          'Multiply the remaining shares: 30% + 10% leaves 0.70 × 0.90 = 0.63 of the price, a 37% discount. Always compare the final price rather than the headline percentages.',
+        ],
+      },
+    ],
+    guides: ['how-to-calculate-percentage', 'how-gst-works'],
     howItWorks: [
       'Enter the original price and the discount — as a percentage or a flat rupee amount — and the calculator shows the price you pay and how much you save.',
       'Many sales stack a second discount on top: “flat 30% off + extra 10%”. The second discount applies to the already-reduced price, so the two multiply rather than add. 30% plus 10% is 37% off, not 40%.',
@@ -181,6 +206,10 @@ Final price          = Price after discount × (1 + tax)`,
       {
         q: 'How do I find the original price from the sale price?',
         a: 'Divide the sale price by (1 − discount). A ₹2,100 price after 30% off was originally 2,100 ÷ 0.7 = ₹3,000.',
+      },
+      {
+        q: 'Is GST charged before or after the discount?',
+        a: 'On the price after any discount shown on the invoice. A ₹10,000 item with 10% off is taxed on ₹9,000.',
       },
     ],
   },

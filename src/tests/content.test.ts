@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { GUIDES, GUIDE_TOPICS, guideBySlug, readingMinutes } from '@/content/guides';
 import { INFO_PAGES } from '@/content/pages';
 import { REGISTRY } from '@/calculators';
-import { byId } from '@/data/catalog';
+import { CALCULATORS, byId } from '@/data/catalog';
 
 describe('guides', () => {
   it('have unique slugs in a URL-safe form', () => {
@@ -44,6 +44,14 @@ describe('calculator content', () => {
       for (const s of def.content.sections ?? []) {
         for (const row of s.table?.rows ?? []) expect(row.length, `${id}: ${s.heading}`).toBe(s.table!.columns.length);
       }
+    }
+  });
+
+  it('every calculator has a what-is intro and at least four FAQs', () => {
+    for (const c of CALCULATORS) {
+      const content = REGISTRY[c.id].content;
+      expect(content.intro, c.id).toBeDefined();
+      expect(content.faqs?.length ?? 0, c.id).toBeGreaterThanOrEqual(4);
     }
   });
 });

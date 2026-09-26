@@ -197,6 +197,41 @@ const goalSip: CalculatorDef<GoalSipResult> = {
         )} a month (or ${formatINR(r.lumpsumToday)} once today) at ${formatPercent(num(v.expectedReturn))}.`,
 
   content: {
+    intro: {
+      heading: 'What is goal-based SIP planning?',
+      paragraphs: [
+        'Goal-based investing starts from what you need the money for — a child’s education, a house down payment, a car, a dream holiday — and works backwards to the monthly amount you must invest to get there. It turns a vague wish into a specific SIP amount and a deadline.',
+        'This goal SIP calculator inflates the goal’s cost to the year you need it, accounts for savings you already have, and finds the monthly SIP (with an optional yearly step-up) or the one-time lumpsum that would reach the target at your expected return.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Monthly SIP needed for common targets',
+        table: {
+          caption: 'Assumed 12% a year, no inflation adjustment and no existing savings',
+          columns: ['Target amount', 'Time to goal', 'Monthly SIP', 'Or a lumpsum today'],
+          rows: [
+            ['₹10 lakh', '5 years', '₹12,123', '₹5,67,427'],
+            ['₹25 lakh', '10 years', '₹10,760', '₹8,04,933'],
+            ['₹50 lakh', '15 years', '₹9,909', '₹9,13,481'],
+            ['₹1 crore', '20 years', '₹10,009', '₹10,36,668'],
+          ],
+        },
+        after: [
+          'Roughly the same monthly SIP reaches ₹10 lakh in 5 years or ₹1 crore in 20 — time does most of the work. Remember to inflate the target first: the calculator does this when you enter an inflation rate.',
+        ],
+      },
+      {
+        heading: 'Matching investments to the goal’s horizon',
+        bullets: [
+          'Under 3 years: recurring deposits, FDs or liquid and short-term debt funds — you cannot afford a market fall just before the goal.',
+          '3 to 5 years: a mix of debt and hybrid funds, with a modest equity share.',
+          'More than 5 years: mainly diversified equity funds, shifting gradually to safer options in the last two or three years before the goal.',
+          'Keep one investment per goal, or at least track them separately, so money for retirement is not spent on a car.',
+        ],
+      },
+    ],
+    guides: ['what-is-sip', 'inflation-and-real-returns', 'sip-vs-fd-rd'],
     howItWorks: [
       'Start from what the goal costs today. The calculator inflates that to the year you need the money, because a ₹25 lakh education will not cost ₹25 lakh twelve years from now.',
       'Anything you have already saved for the goal grows alongside. The SIP only needs to cover what is left, and the calculator solves for the exact monthly amount — with an optional yearly step-up — that grows to that gap.',
@@ -232,6 +267,10 @@ FV of ₹1/mo   = [(1 + r)ⁿ − 1] ÷ r × (1 + r)     r = return ÷ 12,  n = 
       {
         q: 'What does step-up do?',
         a: 'It raises the SIP every year. Because you invest more later, when your income is higher, the starting SIP needed today is much smaller.',
+      },
+      {
+        q: 'What if I miss my goal amount?',
+        a: 'Re-run the calculator every year with your actual savings. If you are behind, increase the SIP, add a step-up, extend the deadline slightly or adjust the goal. Small corrections early are far easier than a large catch-up late.',
       },
     ],
   },

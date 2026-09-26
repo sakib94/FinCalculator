@@ -186,6 +186,41 @@ const simpleInterest: CalculatorDef<SimpleInterestResult> = {
     )}: ${formatINR(r.interest)}. Total ${formatINR(r.amount)}.`,
 
   content: {
+    intro: {
+      heading: 'What is simple interest?',
+      paragraphs: [
+        'Simple interest is interest calculated only on the original principal, never on interest already earned. It grows in a straight line: ₹1,00,000 at 8% earns ₹8,000 every year, whether it is the first year or the tenth. The formula is SI = P × R × T ÷ 100.',
+        'This simple interest calculator works out the interest and total amount for any principal, rate and period in years, months or days, and compares the result with compound interest at the same rate.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Simple vs compound interest over time',
+        table: {
+          caption: '₹1,00,000 at 8% a year',
+          columns: ['Period', 'Simple interest total', 'Compounded yearly'],
+          rows: [
+            ['1 year', '₹1,08,000', '₹1,08,000'],
+            ['3 years', '₹1,24,000', '₹1,25,971'],
+            ['5 years', '₹1,40,000', '₹1,46,933'],
+            ['10 years', '₹1,80,000', '₹2,15,892'],
+          ],
+        },
+        after: [
+          'For a year or less the two are identical; the gap grows with time. That is why simple interest is used mainly for short periods and informal loans.',
+        ],
+      },
+      {
+        heading: 'Where simple interest is used',
+        bullets: [
+          'Short-term loans between individuals and some gold loans.',
+          'Interest during an education loan’s moratorium at many banks.',
+          'Flat-rate car, bike and consumer loans, which apply simple interest to the original amount for the whole tenure — making them more expensive than they look.',
+          'Payout deposits such as the Post Office Monthly Income Scheme, where interest is paid out rather than reinvested.',
+        ],
+      },
+    ],
+    guides: ['power-of-compounding', 'flat-vs-reducing-interest-rate'],
     howItWorks: [
       'Simple interest is charged only on the original principal. The interest never joins the balance, so every year earns exactly the same amount and the total grows in a straight line.',
       'That is the key difference from compound interest, where each year’s interest is added to the balance and earns interest itself. Over one year the two are identical; over longer periods compounding pulls steadily ahead, and the comparison above shows by how much.',
@@ -221,6 +256,10 @@ P = principal   R = annual rate (%)   T = time in years
       {
         q: 'How do I find the rate if I know the interest?',
         a: 'Rearrange the formula: R = SI × 100 ÷ (P × T). For ₹24,000 interest on ₹1,00,000 over 3 years, R = 24,000 × 100 ÷ 3,00,000 = 8%.',
+      },
+      {
+        q: 'How do I calculate simple interest per day?',
+        a: 'Divide the annual interest by 365: ₹1,00,000 at 8% earns 8,000 ÷ 365 ≈ ₹21.92 a day. For 90 days, interest = 1,00,000 × 8 × 90 ÷ (100 × 365) ≈ ₹1,973.',
       },
     ],
   },

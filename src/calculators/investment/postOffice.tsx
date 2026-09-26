@@ -231,6 +231,57 @@ const postOffice: CalculatorDef<PostOfficeResult> = {
         )} ${r.payoutLabel.toLowerCase()} — ${formatINR(r.totalInterest)} over ${formatDuration(r.months)}.`,
 
   content: {
+    intro: {
+      heading: 'What are Post Office savings schemes?',
+      paragraphs: [
+        'India Post offers a family of small savings schemes backed by the Government of India: National Savings Certificate (NSC), Kisan Vikas Patra (KVP), the Monthly Income Scheme (MIS), the Senior Citizens’ Savings Scheme (SCSS) and time deposits of 1, 2, 3 and 5 years. Interest rates are set by the government every quarter and stay fixed for the life of each deposit once you invest.',
+        'This calculator shows the maturity value, the regular income, the interest earned and whether the scheme qualifies for Section 80C, for any of these schemes at the current rates, which you can change.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'What ₹1 lakh earns in each scheme',
+        table: {
+          caption: 'At the rates pre-filled in the calculator',
+          columns: ['Scheme', 'Rate', 'Term', 'What you get', '80C'],
+          rows: [
+            ['NSC', '7.7%', '5 years', '₹1,44,903 at maturity', 'Yes'],
+            ['KVP', '7.5%', '9 years 7 months', 'Money doubles to ₹2,00,000', 'No'],
+            [
+              'Monthly Income Scheme',
+              '7.4%',
+              '5 years',
+              '₹617 a month, principal back at the end',
+              'No',
+            ],
+            [
+              'Senior Citizens’ Savings Scheme',
+              '8.2%',
+              '5 years',
+              '₹2,050 a quarter, principal back at the end',
+              'Yes',
+            ],
+            [
+              '5-year Time Deposit',
+              '7.5%',
+              '5 years',
+              '₹7,714 a year, principal back at the end',
+              'Yes',
+            ],
+          ],
+        },
+      },
+      {
+        heading: 'Limits and eligibility',
+        bullets: [
+          'MIS: up to ₹9 lakh in a single account and ₹15 lakh in a joint account.',
+          'SCSS: for individuals aged 60 and above (earlier for some retirees), up to ₹30 lakh in total.',
+          'NSC, KVP and time deposits: no upper limit; minimum ₹1,000.',
+          'Interest on all these schemes is taxable at your slab rate, except that NSC interest reinvested in the first four years also counts towards 80C.',
+        ],
+      },
+    ],
+    guides: ['fd-interest-and-tax', 'ppf-explained', 'sip-vs-fd-rd'],
     howItWorks: [
       'India Post’s savings schemes are backed by the Government of India, which makes them among the safest places to keep money in the country. They come in two shapes, and the calculator handles both.',
       'Cumulative schemes — NSC and KVP — reinvest the interest every year and pay everything at maturity. NSC runs for 5 years; KVP simply doubles your money, and its term is however long that takes at the current rate (115 months at 7.5%).',
@@ -267,6 +318,14 @@ TD:          Yearly interest = P × [(1 + r/4)⁴ − 1]`,
       {
         q: 'How long does KVP take to double money?',
         a: 'At the current 7.5% rate, 115 months (9 years 7 months). The term is set by the government whenever the rate changes.',
+      },
+      {
+        q: 'Are post office schemes safe?',
+        a: 'Yes. They are sovereign-backed — the Government of India guarantees both the principal and the interest — which makes them among the safest savings options available.',
+      },
+      {
+        q: 'Can I withdraw early from post office schemes?',
+        a: 'Most allow premature closure after a minimum period (for example, one year for MIS and SCSS, two and a half years for KVP) with a deduction or lower interest. NSC can be closed early only in special cases such as the holder’s death.',
       },
     ],
   },

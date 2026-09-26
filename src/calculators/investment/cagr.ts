@@ -189,6 +189,35 @@ const cagr: CalculatorDef<CagrResult> = {
         )} years grows to ${formatINR(r.final)}.`,
 
   content: {
+    intro: {
+      heading: 'What is CAGR?',
+      paragraphs: [
+        'CAGR — compound annual growth rate — is the steady yearly rate at which an investment would have grown from its starting value to its ending value. It smooths out the ups and downs along the way into one comparable number, which is why fund factsheets, company reports and analysts use it.',
+        'This CAGR calculator finds the CAGR from a starting and ending value over any number of years, or works the other way — projecting a future value from a CAGR — and shows the absolute return and the inflation-adjusted (real) CAGR.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'CAGR needed to double or triple your money',
+        table: {
+          columns: ['Goal', 'In 5 years', 'In 10 years', 'In 15 years'],
+          rows: [
+            ['Double (2×)', '14.87%', '7.18%', '4.73%'],
+            ['Triple (3×)', '24.57%', '11.61%', '7.60%'],
+          ],
+        },
+        after: [
+          'A useful check on claims of quick riches: doubling money in five years needs almost 15% a year, every year. Doubling in ten needs only about 7.2%.',
+        ],
+      },
+      {
+        heading: 'CAGR vs average annual return',
+        paragraphs: [
+          'An average of yearly returns can be misleading. An investment that rises 50% one year and falls 50% the next has an average return of 0%, but you have actually lost money: ₹100 becomes ₹150, then ₹75. Its CAGR is about −13.4% a year. CAGR reflects what really happened to your money; a simple average does not.',
+        ],
+      },
+    ],
+    guides: ['what-is-cagr', 'power-of-compounding', 'sip-vs-lumpsum'],
     howItWorks: [
       'CAGR — compound annual growth rate — is the single steady yearly rate that would take a starting value to an ending value over a given time. It turns an uneven journey (up 30% one year, down 10% the next) into one comparable number.',
       'That is why CAGR is the standard way to compare mutual funds, stocks, property and business revenue over different periods. Absolute return tells you how much you made in total; CAGR tells you how fast.',
@@ -222,6 +251,14 @@ Doubling time = ln 2 ÷ ln(1 + CAGR)  ≈ 72 ÷ CAGR%`,
       {
         q: 'Can CAGR be used for SIP returns?',
         a: 'Not directly. A SIP invests at many dates, so each instalment has a different holding period. Use XIRR for SIP returns, or the Mutual Fund calculator to project them.',
+      },
+      {
+        q: 'Is CAGR the same as average annual return?',
+        a: 'No. The arithmetic average of yearly returns overstates growth whenever returns vary. CAGR is the geometric average — the constant rate that produces the same end value — and is the right measure of actual growth.',
+      },
+      {
+        q: 'How do I calculate CAGR in Excel?',
+        a: 'Use =(End/Start)^(1/Years)-1, or the RRI function: =RRI(years, start, end).',
       },
     ],
   },

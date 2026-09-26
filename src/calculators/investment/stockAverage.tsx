@@ -151,6 +151,32 @@ const stockAverage: CalculatorDef<StockAverageResult> = {
     `Average price ${price(r.averagePrice)} across ${formatNumber(r.totalQuantity)} shares (${formatINR(r.totalCost)} invested).`,
 
   content: {
+    intro: {
+      heading: 'What is a stock average calculator?',
+      paragraphs: [
+        'When you buy the same share at different prices, your cost per share is the weighted average of all your purchases: total amount paid divided by total shares held. That average decides your profit or loss, and how far the price must move for you to break even.',
+        'This stock average calculator combines up to three purchases, shows your average buy price, total investment, current value and unrealised profit or loss, the move needed to break even, and how many shares you would need to buy at today’s price to bring your average down to a target.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Worked example: averaging down',
+        paragraphs: [
+          'You bought 50 shares at ₹1,250 and later 30 more at ₹980. You now hold 80 shares for ₹91,900, an average of ₹1,148.75. At today’s price of ₹1,020 the holding is worth ₹81,600 — an unrealised loss of ₹10,300 (11.2%). The share has to rise about 12.6% from here for you to break even.',
+          'Buying more at a lower price reduced the average from ₹1,250, but it also increased the amount at risk in a share that was falling.',
+        ],
+      },
+      {
+        heading: 'When averaging down makes sense — and when it does not',
+        bullets: [
+          'It can make sense when the fall is due to market-wide weakness and the company’s business and outlook are unchanged.',
+          'It is dangerous when the price is falling because the business has deteriorated — a lower average does not help if the share keeps falling.',
+          'Set a limit on how much of your portfolio any single stock can become before you add more.',
+          'For diversified mutual funds, regular SIPs achieve the same averaging automatically and with far less concentration risk.',
+        ],
+      },
+    ],
+    guides: ['what-is-cagr', 'how-to-calculate-percentage'],
     howItWorks: [
       'When you buy the same share at different prices, your cost per share is the weighted average: the total amount paid divided by the total number of shares. Bigger purchases pull the average further towards their price.',
       'Enter today’s market price to see your unrealised profit or loss. Add a target average and the calculator works out how many shares you would need to buy at today’s price to bring your average to that level — the question behind “averaging down”.',
@@ -185,6 +211,14 @@ n = Q × (A − T) ÷ (T − c)      Q = shares held, A = current average`,
       {
         q: 'Why can’t I reach my target average?',
         a: 'Buying at today’s price can only move your average towards today’s price. If your target is below the current market price (while averaging down), no quantity will get you there.',
+      },
+      {
+        q: 'Does the average price include brokerage and charges?',
+        a: 'For an accurate picture, yes: add brokerage, STT, stamp duty and exchange charges to each purchase’s cost. Your broker’s contract notes list them.',
+      },
+      {
+        q: 'Is the average price used to calculate capital gains tax?',
+        a: 'Not exactly. For tax, shares are treated as sold on a first-in, first-out basis, so the gain on each sale uses the cost of the earliest shares you still hold, not the average. Your broker’s capital gains statement applies this rule.',
       },
     ],
   },

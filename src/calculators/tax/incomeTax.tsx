@@ -375,6 +375,48 @@ const incomeTax: CalculatorDef<TaxResult> = {
     )} (effective ${formatPercent(r.effectiveTaxRate)}), about ${formatINR(r.monthlyTax)} a month.`,
 
   content: {
+    intro: {
+      heading: 'How is income tax calculated in India?',
+      paragraphs: [
+        'Income tax is charged on your taxable income — gross income from salary, interest, rent and other sources, minus exemptions and deductions — using slab rates that rise with income. A rebate, a surcharge on high incomes and a 4% health and education cess then adjust the final figure. Since FY 2023-24, the new tax regime is the default; you can choose the old regime if its deductions save you more.',
+        'This income tax calculator works out your tax under both regimes for FY 2024-25, 2025-26 and 2026-27, including HRA exemption, standard deduction, Chapter VI-A deductions, the Section 87A rebate with marginal relief, surcharge and cess, and tells you which regime costs less.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'New regime tax at common salaries',
+        table: {
+          caption: 'Salaried individual below 60, FY 2026-27, standard deduction only',
+          columns: ['Gross salary', 'Tax payable', 'Effective tax rate'],
+          rows: [
+            ['₹12.75 lakh', '₹0', '0%'],
+            ['₹13 lakh', '₹26,000', '2.0%'],
+            ['₹15 lakh', '₹97,500', '6.5%'],
+            ['₹18 lakh', '₹1,50,800', '8.4%'],
+            ['₹20 lakh', '₹1,92,400', '9.6%'],
+            ['₹25 lakh', '₹3,19,800', '12.8%'],
+            ['₹30 lakh', '₹4,75,800', '15.9%'],
+            ['₹50 lakh', '₹10,99,800', '22.0%'],
+          ],
+        },
+        after: [
+          'Just above ₹12.75 lakh, marginal relief limits the tax to the income above the rebate threshold — at ₹13 lakh the tax is ₹26,000 including cess rather than about ₹66,000.',
+        ],
+      },
+      {
+        heading: 'Recent changes to remember',
+        bullets: [
+          'Finance Act 2025 (from FY 2025-26): new-regime slabs widened, and the rebate raised so that taxable income up to ₹12 lakh pays no tax.',
+          'Finance Act 2024: new-regime standard deduction raised to ₹75,000, employer NPS deduction under 80CCD(2) raised to 14% of basic in the new regime, and capital gains rates revised.',
+          'The Income-tax Act, 2025 replaced the 1961 Act from 1 April 2026 and renumbered sections; the familiar section numbers are used on this page.',
+        ],
+      },
+    ],
+    guides: [
+      'old-vs-new-tax-regime',
+      'hra-exemption-explained',
+      'home-loan-tax-benefits',
+    ],
     howItWorks: [
       'Income tax is worked out in a fixed order. Your gross income is reduced by exemptions such as HRA, then by the standard deduction, then by Chapter VI-A deductions like 80C and 80D. What remains is your taxable income, and slab rates are applied to it band by band — not a single flat rate on the whole amount.',
       'Rebate under section 87A is applied next: if your taxable income is within the limit, the rebate can wipe out the tax entirely. Surcharge applies only to high incomes, and 4% health and education cess is added last, on tax plus surcharge.',
@@ -425,6 +467,14 @@ Total tax       = tax + surcharge + cess`,
       {
         q: 'How do I update the calculator when the Budget changes the slabs?',
         a: 'All rates live in src/data/taxRules.ts. Copy the most recent financial-year entry, change the numbers, and the new year appears in the dropdown — no other file needs editing.',
+      },
+      {
+        q: 'Do I need to file a return if my tax is zero?',
+        a: 'Usually yes, if your gross income before deductions is above the basic exemption limit (₹4 lakh in the new regime, ₹2.5 lakh in the old regime for those below 60), and in several other situations — for example, to claim a refund of TDS or if you have foreign assets.',
+      },
+      {
+        q: 'What is the standard deduction?',
+        a: 'A flat deduction from salary or pension income, with no proof needed: ₹75,000 in the new regime and ₹50,000 in the old regime.',
       },
     ],
   },

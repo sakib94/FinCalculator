@@ -76,6 +76,36 @@ const percentage: CalculatorDef<PercentResult> = {
   summary: (r) => `${r.expression} = ${r.isPercent ? formatPercent(r.value, 2) : formatNumber(r.value, 2)}`,
 
   content: {
+    intro: {
+      heading: 'How do you calculate a percentage?',
+      paragraphs: [
+        'A percentage expresses a number as a share of 100. The everyday calculations are finding X% of a number, finding what percentage one number is of another, and working out a percentage increase or decrease between two values — for marks, discounts, price changes, salary hikes and returns.',
+        'This percentage calculator handles all five: X% of Y, X is what percent of Y, percentage change, and adding or subtracting a percentage, and shows the working.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Recovering from a fall needs a bigger rise',
+        table: {
+          columns: [
+            'If a value falls by',
+            'It must then rise by',
+            'To get back to the start',
+          ],
+          rows: [
+            ['10%', '11.1%', 'Yes'],
+            ['20%', '25%', 'Yes'],
+            ['30%', '42.9%', 'Yes'],
+            ['50%', '100%', 'Yes'],
+            ['75%', '300%', 'Yes'],
+          ],
+        },
+        after: [
+          'Because each percentage is measured from a different starting value, falls and rises are not symmetrical. This matters for investments: avoiding large losses is worth more than chasing large gains.',
+        ],
+      },
+    ],
+    guides: ['how-to-calculate-percentage'],
     howItWorks: [
       'All five operations come from one idea: a percentage is a fraction out of a hundred. “X% of Y” multiplies, “X is what percent of Y” divides, and increase and decrease apply the percentage to the original number before adding or subtracting.',
       'Percentage change is the one that trips people up, because it is always measured against the starting value. Going from 50 to 75 is a 50% increase, but going back from 75 to 50 is a 33.3% decrease — the same absolute change measured against a different base.',
@@ -102,6 +132,14 @@ Decrease X by Y%     = X × (1 − Y ÷ 100)`,
       {
         q: 'How do I calculate a percentage in reverse?',
         a: 'Use “X is what percent of Y”. To find the original before a known increase, divide by (1 + rate ÷ 100) rather than subtracting the percentage.',
+      },
+      {
+        q: 'How do I calculate percentage of marks?',
+        a: 'Divide marks obtained by total marks and multiply by 100. 432 out of 500 is 86.4%.',
+      },
+      {
+        q: 'What is the difference between percent and percentage points?',
+        a: 'If an interest rate rises from 8% to 10%, it rises by 2 percentage points, which is a 25% increase in the rate itself.',
       },
     ],
   },

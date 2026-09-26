@@ -173,6 +173,68 @@ const netWorth: CalculatorDef<NetWorthResult> = {
     )} in liabilities.`,
 
   content: {
+    intro: {
+      heading: 'What is net worth?',
+      paragraphs: [
+        'Net worth is everything you own minus everything you owe. Add up your assets — bank balances, deposits, investments, retirement accounts, property, gold, vehicles — and subtract your liabilities — home loan, car loan, personal loans and credit card dues. The result is the single best measure of your financial position, far more telling than income alone.',
+        'This net worth calculator totals your assets and liabilities, separates liquid net worth (what you could access quickly) from the total, and shows useful ratios: debt to assets, how many months your emergency fund covers, and your annual savings.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'What to include, and at what value',
+        table: {
+          columns: ['Item', 'Include as', 'Value to use'],
+          rows: [
+            [
+              'Savings, FDs, RDs',
+              'Liquid asset',
+              'Current balance including accrued interest',
+            ],
+            ['Mutual funds, shares', 'Investment', 'Current market value'],
+            [
+              'EPF, PPF, NPS',
+              'Retirement asset',
+              'Current balance from the passbook or statement',
+            ],
+            [
+              'Home you live in',
+              'Real estate',
+              'Realistic resale value, not purchase price',
+            ],
+            [
+              'Gold and jewellery',
+              'Asset',
+              'Current gold value by weight, excluding making charges',
+            ],
+            ['Car or bike', 'Asset', 'Current resale value — it falls every year'],
+            [
+              'Home, car, personal loans',
+              'Liability',
+              'Outstanding principal today',
+            ],
+            ['Credit cards', 'Liability', 'Full outstanding balance'],
+          ],
+        },
+        after: [
+          'Be conservative with property and vehicles, and ignore things you would never sell. The aim is a number you can track honestly year after year.',
+        ],
+      },
+      {
+        heading: 'Reading the ratios',
+        bullets: [
+          'Debt to assets: below about 30%–40% is comfortable for most households; very high ratios leave little room for setbacks.',
+          'Emergency fund: aim for at least six months of expenses in liquid assets, more if your income is irregular.',
+          'Liquid net worth: can be negative for people with a large home loan, which is normal early on — but it should rise over time as the loan is repaid and savings grow.',
+          'Savings rate: saving 20%–30% of income or more is what moves net worth up meaningfully over a decade.',
+        ],
+      },
+    ],
+    guides: [
+      'how-much-money-to-retire',
+      'inflation-and-real-returns',
+      'prepay-loan-or-invest',
+    ],
     howItWorks: [
       'Net worth is the single most honest number in personal finance: everything you own, minus everything you owe. Income tells you what passes through your hands; net worth tells you what actually stayed.',
       'The headline figure matters less than its composition. Two people with ₹1 crore net worth are in very different positions if one holds it entirely in a house they live in and the other has half of it in liquid investments. That is what the liquid net worth figure separates out.',
@@ -215,6 +277,14 @@ Emergency fund   = liquid assets ÷ monthly expenses`,
       {
         q: 'How often should I calculate this?',
         a: 'Once or twice a year is plenty. Net worth is a slow-moving measure, and checking it monthly mostly captures market noise rather than real progress.',
+      },
+      {
+        q: 'Should I include EPF and PPF in my net worth?',
+        a: 'Yes. They are your money, even though they are locked in. Many people track them separately as retirement assets so they are not counted as money available for other goals.',
+      },
+      {
+        q: 'Does net worth include future salary?',
+        a: 'No. Net worth is a snapshot of what you own and owe today. Future income, and future commitments such as rent, are not included.',
       },
     ],
   },

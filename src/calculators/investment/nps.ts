@@ -210,6 +210,47 @@ const nps: CalculatorDef<NpsResult> = {
     )}, estimated monthly pension ${formatINR(r.monthlyPension)}.`,
 
   content: {
+    intro: {
+      heading: 'What is the National Pension System (NPS)?',
+      paragraphs: [
+        'The National Pension System is a government-regulated, market-linked retirement scheme run by PFRDA. You contribute regularly until 60; the money is invested by a pension fund manager in a mix of equity, corporate bonds and government securities that you choose. At 60, part of the corpus can be withdrawn as a lump sum and the rest buys an annuity that pays you a pension for life.',
+        'This NPS calculator estimates your corpus at retirement from your age, monthly contribution, yearly increase and expected return, then splits it into the lump sum and the annuity purchase and estimates your monthly pension.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Tier I and Tier II accounts',
+        table: {
+          columns: ['', 'Tier I', 'Tier II'],
+          rows: [
+            ['Purpose', 'Retirement account', 'Optional savings account'],
+            ['Withdrawals', 'Restricted until 60', 'Anytime'],
+            ['Tax deduction', '80CCD(1), 80CCD(1B), 80CCD(2)', 'Generally none'],
+            ['Minimum contribution', '₹1,000 a year', 'None once opened'],
+            ['Needs Tier I?', '—', 'Yes'],
+          ],
+        },
+      },
+      {
+        heading: 'Choosing your investment mix',
+        bullets: [
+          'Active choice: you set the split between equity (E), corporate bonds (C), government securities (G) and alternative assets (A, up to 5%). Equity is capped at 75% until age 50, and the cap then tapers each year.',
+          'Auto choice: a life-cycle fund moves money from equity to bonds as you age. Aggressive (LC75), moderate (LC50) and conservative (LC25) versions start with different equity levels.',
+          'You pick one of the registered pension fund managers and can change the manager and the mix a limited number of times a year.',
+          'For a long horizon, a higher equity share has historically produced higher returns, with more year-to-year swings.',
+        ],
+      },
+      {
+        heading: 'NPS tax benefits',
+        bullets: [
+          'Section 80CCD(1): your contribution, up to 10% of salary (20% of income for the self-employed), within the overall ₹1.5 lakh 80C limit — old regime.',
+          'Section 80CCD(1B): an extra ₹50,000 over and above 80C — old regime only.',
+          'Section 80CCD(2): your employer’s contribution, up to 10% of basic + DA in the old regime and 14% in the new regime.',
+          'At 60, up to 60% of the corpus can be withdrawn tax-free; the annuity income is taxed as regular income.',
+        ],
+      },
+    ],
+    guides: ['epf-vs-ppf-vs-nps', 'how-much-money-to-retire'],
     howItWorks: [
       'The National Pension System invests your monthly contribution across equity, corporate bonds and government securities. The balance compounds every month until you retire, and each year your contribution steps up by the percentage you set.',
       'At maturity the rules split the corpus: at least 40% must be used to buy an annuity that pays you a pension for life, and the remaining 60% can be withdrawn as a tax-free lump sum. Your monthly pension is the annuity amount multiplied by the annuity rate, divided by twelve.',
@@ -252,6 +293,14 @@ Monthly pension = (annuity × annuity rate) ÷ 12`,
       {
         q: 'Can I retire before 60?',
         a: 'Early exit is allowed after three years, but then at least 80% of the corpus must go into an annuity and only 20% can be withdrawn — the reverse of the rule at 60.',
+      },
+      {
+        q: 'Is NPS better than a mutual fund SIP?',
+        a: 'NPS has very low costs and extra tax deductions, but locks money until 60 and requires part of the corpus to buy an annuity. Mutual funds are flexible and fully withdrawable. Many people use NPS for its tax benefit and mutual funds for flexibility.',
+      },
+      {
+        q: 'What annuity rate should I assume?',
+        a: 'Annuity rates depend on interest rates when you retire and the annuity option you choose. 5.5%–7% a year is a reasonable planning range; options that return the purchase price to your nominee pay less.',
       },
     ],
   },

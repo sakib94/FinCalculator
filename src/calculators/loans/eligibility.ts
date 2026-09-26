@@ -196,6 +196,46 @@ const eligibility: CalculatorDef<EligibilityResult> = {
     )} — capped by ${r.cappedBy === 'property' ? 'property value' : 'income'}.`,
 
   content: {
+    intro: {
+      heading: 'What decides your loan eligibility?',
+      paragraphs: [
+        'Lenders decide how much to lend by looking at how large an EMI you can afford. They allow your total EMIs — existing loans plus the new one — to take up only a fixed share of your net monthly income, called the FOIR (fixed obligations to income ratio). The largest loan whose EMI fits in that space, at the lender’s rate and tenure, is your income-based eligibility. For a home loan, RBI’s loan-to-value limit on the property can cap it further.',
+        'This loan eligibility calculator applies both tests: it finds the loan your income supports after existing EMIs, compares it with the property-based cap, and shows the maximum EMI, total interest and the down payment you would need.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Eligible loan by take-home income',
+        table: {
+          caption: '50% FOIR, no existing EMIs, 8.75% for 20 years',
+          columns: ['Net monthly income', 'Maximum EMI', 'Eligible loan'],
+          rows: [
+            ['₹50,000', '₹25,000', '₹28,28,980'],
+            ['₹75,000', '₹37,500', '₹42,43,470'],
+            ['₹1,00,000', '₹50,000', '₹56,57,960'],
+            ['₹1,50,000', '₹75,000', '₹84,86,940'],
+            ['₹2,00,000', '₹1,00,000', '₹1,13,15,920'],
+          ],
+        },
+        after: [
+          'Every ₹10,000 of existing EMIs reduces a home loan eligibility like this by about ₹11.3 lakh, which is why closing small loans before applying helps.',
+        ],
+      },
+      {
+        heading: 'Eligibility for other kinds of loans',
+        bullets: [
+          'Personal loans: lenders apply a FOIR too, often capping the loan at a multiple of monthly income, and weigh your credit score and employer heavily.',
+          'Car loans: the loan is usually limited to a share of the car’s on-road or ex-showroom price, as well as by FOIR.',
+          'Education loans: the student’s future earning potential, the course and institution, and the co-borrower’s income matter more than current income.',
+          'Loan against property: typically capped at 50%–70% of the property’s market value.',
+        ],
+      },
+    ],
+    guides: [
+      'how-much-home-loan-can-i-get',
+      'how-emi-is-calculated',
+      'home-loan-tax-benefits',
+    ],
     howItWorks: [
       'Lenders do not ask what you want to borrow; they work out what you can repay. The calculation starts from your net income, applies a FOIR — the share of income they will let go towards all loan instalments combined — and subtracts what you already pay each month. Whatever EMI capacity remains is then converted into a loan amount.',
       'That conversion is the present value of an annuity: given an EMI you can afford, an interest rate and a tenure, how much principal does that stream of payments support? Longer tenures and lower rates both increase it.',
@@ -245,6 +285,14 @@ r = annual rate ÷ 12      n = tenure in months`,
       {
         q: 'Does a longer tenure really help?',
         a: 'It increases the amount you qualify for, because the same EMI supports more principal. But the extra interest is substantial — always check the total interest figure before choosing a longer tenure purely to qualify.',
+      },
+      {
+        q: 'Does my credit score affect how much I can borrow?',
+        a: 'Indirectly, yes. A strong score gets a lower interest rate, which raises the loan a given EMI can support, and makes lenders more willing to use a higher FOIR. A weak score can mean rejection or a smaller sanction.',
+      },
+      {
+        q: 'Can rental income or bonuses be counted?',
+        a: 'Often, partly. Lenders usually count a share of documented rental income and average variable pay over two to three years. Enter those as other income in the calculator for a rough estimate.',
       },
     ],
   },

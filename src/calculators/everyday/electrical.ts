@@ -214,6 +214,33 @@ const electrical: CalculatorDef<ElectricalResult> = {
     )} a month.`,
 
   content: {
+    intro: {
+      heading: 'What is electrical load?',
+      paragraphs: [
+        'Your home’s connected load is the total wattage of every appliance that could run at once. The electricity board uses it — or rather the maximum demand you are likely to draw at one time — to decide the sanctioned load for your connection, usually in kW or kVA. The same appliance list, with hours of use, also tells you how many units (kWh) you consume and what your bill will be.',
+        'This electrical load calculator adds up your appliances, estimates the maximum demand and the connection size to apply for, the main MCB rating, monthly units and bill at your tariff, and the inverter and battery size needed for backup.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'What common appliances consume',
+        table: {
+          caption: 'One appliance at the calculator’s typical daily use, at ₹8 a unit',
+          columns: ['Appliance', 'Rating', 'Hours a day', 'Units a month', 'Cost a month'],
+          rows: [
+            ['Air conditioner (1.5 ton)', '1,500 W', '6', '270', '₹2,160'],
+            ['Water heater (geyser)', '2,000 W', '1', '60', '₹480'],
+            ['Refrigerator', '200 W', '8 (compressor running)', '48', '₹384'],
+            ['Ceiling fan', '75 W', '8', '18', '₹144'],
+            ['Television', '110 W', '5', '16.5', '₹132'],
+            ['LED light', '12 W', '6', '2.2', '₹17'],
+          ],
+        },
+        after: [
+          'Cooling and heating dominate most Indian electricity bills. A 5-star inverter AC set to 24–26 °C, a BLDC fan (around 30 W) and a timer on the geyser cut consumption far more than switching off lights.',
+        ],
+      },
+    ],
     howItWorks: [
       'Connected load is the simple sum of every appliance’s rating — what you would draw if everything ran at once. That almost never happens, so sizing a connection on connected load means paying fixed charges for capacity you never use.',
       'What matters instead is maximum demand: connected load multiplied by a diversity factor, typically around 0.6 for an Indian home. Your geyser and your AC rarely run at the same moment, and your iron and microwave almost never do.',
@@ -271,6 +298,10 @@ Battery Ah     = (essential watts × backup hours) ÷ (12 V × 0.8)`,
       {
         q: 'Why is my actual bill different?',
         a: 'Most state utilities use telescopic slab tariffs, where each additional block of units costs more, and add fuel surcharge, electricity duty and fixed demand charges. This calculator applies a single flat rate plus your fixed charge.',
+      },
+      {
+        q: 'How do I read units on my electricity bill?',
+        a: 'One unit is one kilowatt-hour (kWh): a 1,000 W appliance running for one hour, or a 100 W appliance for ten hours. Your bill shows units consumed as the difference between two meter readings, charged in slabs by most state boards.',
       },
     ],
   },

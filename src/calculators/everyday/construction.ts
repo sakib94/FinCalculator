@@ -208,6 +208,32 @@ const construction: CalculatorDef<ConstructionResult> = {
     )} kg steel, materials ${formatINR(r.materialCost)}, total about ${formatINR(r.estimatedTotalCost)}.`,
 
   content: {
+    intro: {
+      heading: 'How much material does a house need?',
+      paragraphs: [
+        'Before you build, you need a realistic estimate of the main materials — cement, sand, aggregate (gravel), steel and bricks — and what they will cost. Engineers use thumb rules per square foot of built-up area as a first estimate, refined later by detailed drawings and a bill of quantities.',
+        'This construction material calculator applies thumb rules for economy, standard or premium construction to your built-up area and number of floors, prices each material at your local rates, and estimates the total cost of the building including labour, finishing and other items.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Materials for a 1,200 sq ft house',
+        table: {
+          caption: 'Standard quality, single floor, at the calculator’s default thumb rules',
+          columns: ['Material', 'Quantity', 'Per sq ft'],
+          rows: [
+            ['Cement', '480 bags (50 kg)', '0.4 bag'],
+            ['Sand', '2,160 cu ft', '1.8 cu ft'],
+            ['Aggregate', '1,620 cu ft', '1.35 cu ft'],
+            ['Steel (TMT)', '4,800 kg', '4 kg'],
+            ['Bricks', '9,600', '8'],
+          ],
+        },
+        after: [
+          'At the default local prices, these materials cost about ₹8.3 lakh, and the estimated total cost of the building — including labour, finishing, electrical, plumbing and other items — is about ₹13.9 lakh. Material prices vary widely by city and season, so enter current local rates.',
+        ],
+      },
+    ],
     howItWorks: [
       'Indian residential construction is estimated from per-square-foot thumb rules that contractors and quantity surveyors have used for decades. For a standard RCC framed house, one square foot of built-up area consumes roughly 0.4 bags of cement, 1.8 cft of sand, 1.35 cft of aggregate, 4 kg of steel and 8 bricks.',
       'The quality tier scales those figures. A premium build carries deeper foundations, thicker slabs, more reinforcement and better blockwork, so it uses roughly 18% more material than a standard build; an economy build uses about 12% less.',
@@ -265,6 +291,10 @@ Total build cost ≈ material cost ÷ 0.60
       {
         q: 'How much does steel vary by number of floors?',
         a: 'Lower floors carry more load, so reinforcement rises with height. Budget about 4 kg per sqft for a ground-plus-one, and 5–6 kg for taller structures.',
+      },
+      {
+        q: 'How can I reduce construction material costs?',
+        a: 'Buy steel and cement in bulk from dealers when prices dip, use fly-ash bricks or AAC blocks where suitable, avoid over-designing the structure, and finalise drawings before starting so there is little rework. Never compromise on structural steel or concrete quality.',
       },
     ],
   },

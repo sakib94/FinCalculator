@@ -292,6 +292,50 @@ const epf: CalculatorDef<EpfResult> = {
     `assuming ${formatPercent(num(v.annualReturn))} interest and ${formatPercent(num(v.annualIncrease))} annual salary growth.`,
 
   content: {
+    intro: {
+      heading: 'What is EPF?',
+      paragraphs: [
+        'The Employees’ Provident Fund (EPF) is the compulsory retirement savings scheme for salaried employees in India, run by the Employees’ Provident Fund Organisation (EPFO). Every month, you and your employer each contribute 12% of your basic salary plus dearness allowance. Your share and part of your employer’s go into your EPF account, which earns interest declared every year — 8.25% for FY 2025-26.',
+        'This EPF calculator projects your provident fund balance at retirement from your current balance, salary, contribution rates, expected salary growth and the EPF interest rate, with a year-by-year breakdown of contributions and interest. It follows EPFO’s method of calculating interest on the monthly running balance.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Where your employer’s 12% goes',
+        paragraphs: [
+          'Your own 12% goes entirely into EPF. Your employer’s 12% is split: 8.33% of wages goes to the Employees’ Pension Scheme (EPS), capped at 8.33% of the ₹15,000 wage ceiling — ₹1,250 a month — and the rest goes into your EPF account.',
+        ],
+        table: {
+          caption: 'Monthly contributions when PF is paid on full basic + DA',
+          columns: [
+            'Basic + DA',
+            'Your contribution (12%)',
+            'Employer to EPS',
+            'Employer to EPF',
+            'Total into EPF',
+          ],
+          rows: [
+            ['₹15,000', '₹1,800', '₹1,250', '₹550', '₹2,350'],
+            ['₹30,000', '₹3,600', '₹1,250', '₹2,350', '₹5,950'],
+            ['₹50,000', '₹6,000', '₹1,250', '₹4,750', '₹10,750'],
+          ],
+        },
+        after: [
+          'So for most employees earning above ₹15,000, the employer’s share into EPF is more than 3.67% of basic. Check your EPF passbook: if the employer credit is higher, enter it as a percentage or an amount in the calculator. The employer also pays a small contribution for EDLI life insurance and administration charges, which do not reach your account.',
+        ],
+      },
+      {
+        heading: 'EPF withdrawals and tax',
+        bullets: [
+          'Full withdrawal is allowed on retirement at 58, or after two months of unemployment.',
+          'Partial withdrawals are allowed for specific needs — buying or building a house, repaying a home loan, medical treatment, marriage, higher education — subject to service and amount limits.',
+          'Withdrawals after five years of continuous service (including service with previous employers if the account was transferred) are tax-free.',
+          'Withdrawals before five years are taxable, and TDS is deducted if the amount exceeds ₹50,000.',
+          'Interest on your own contributions above ₹2.5 lakh a year (₹5 lakh if your employer does not contribute) is taxable every year.',
+        ],
+      },
+    ],
+    guides: ['epf-vs-ppf-vs-nps', 'how-much-money-to-retire'],
     howItWorks: [
       'The Employees’ Provident Fund is a retirement savings scheme run by EPFO. Every month you contribute 12% of your Basic + DA, and your employer matches it — but only 3.67% of the employer’s share lands in your EPF account. The remaining 8.33% goes to the Employees’ Pension Scheme (EPS), which pays a separate pension and is not part of this corpus.',
       'EPFO calculates interest on the running balance every month and credits the whole year’s interest at the end of the financial year. This calculator follows the same method, so the year-end balances match your passbook closely rather than using a rough annual compounding shortcut.',
@@ -337,6 +381,14 @@ Next year's salary = this year's salary × (1 + annual increase)`,
       {
         q: 'What happens to EPF when I change jobs?',
         a: 'Transfer the balance to your new employer using your UAN rather than withdrawing it. The balance keeps earning interest and your service period stays continuous, which matters for tax-free withdrawal after five years.',
+      },
+      {
+        q: 'How is EPF interest calculated?',
+        a: 'EPFO calculates interest on the running balance at the end of each month at one-twelfth of the annual rate, and credits the total to your account once a year. Contributions made during the year therefore earn interest only from the month after they are credited.',
+      },
+      {
+        q: 'Can I increase my EPF contribution?',
+        a: 'Yes, through Voluntary Provident Fund (VPF): ask your employer to deduct more than 12%. VPF earns the EPF rate, but your employer does not match it, and interest on total contributions above ₹2.5 lakh a year is taxable.',
       },
     ],
   },

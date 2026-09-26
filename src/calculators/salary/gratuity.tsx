@@ -123,6 +123,37 @@ const gratuity: CalculatorDef<GratuityResult> = {
       : 'Not eligible for gratuity yet — five years of continuous service are required.',
 
   content: {
+    intro: {
+      heading: 'What is gratuity?',
+      paragraphs: [
+        'Gratuity is a lump sum an employer pays when you leave after at least five years of continuous service — on resignation, retirement or termination — as a reward for long service. Under the Payment of Gratuity Act, it is 15 days’ wages for every completed year of service, based on your last drawn basic pay plus dearness allowance, divided by 26 working days a month.',
+        'This gratuity calculator applies the statutory formula, rounds service of more than six months up to the next year as the Act requires, and shows the tax-exempt and taxable portions.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Gratuity for different salaries and service',
+        table: {
+          caption: 'Employer covered by the Act; last drawn basic + DA per month',
+          columns: ['Basic + DA', '5 years', '10 years', '20 years'],
+          rows: [
+            ['₹30,000', '₹86,538', '₹1,73,077', '₹3,46,154'],
+            ['₹50,000', '₹1,44,231', '₹2,88,462', '₹5,76,923'],
+            ['₹1,00,000', '₹2,88,462', '₹5,76,923', '₹11,53,846'],
+          ],
+        },
+      },
+      {
+        heading: 'Eligibility and tax',
+        bullets: [
+          'Five years of continuous service with the same employer is required, except on death or disablement.',
+          'Under the Labour Codes in force since 21 November 2025, fixed-term employees become eligible after one year of service.',
+          'Gratuity is tax-exempt up to ₹20 lakh over your whole career for private-sector employees; government employees’ gratuity is fully exempt.',
+          'For employers not covered by the Act, the formula uses half a month’s average salary for each completed year, based on the last ten months’ average.',
+        ],
+      },
+    ],
+    guides: ['ctc-vs-in-hand-salary', 'how-much-money-to-retire'],
     howItWorks: [
       'Gratuity is a lump sum your employer pays for long service, governed by the Payment of Gratuity Act, 1972. You become eligible after five years of continuous service, and the amount depends only on your last drawn Basic + DA and how long you served.',
       'For establishments covered by the Act, each year of service earns 15 days of wages, and a month is treated as 26 working days — hence the 15/26 formula. A part-year of six months or more is rounded up to a full year, which can be worth a meaningful amount.',
@@ -165,6 +196,10 @@ Not covered:
       {
         q: 'Does gratuity in my CTC mean I will definitely get it?',
         a: 'No. Many employers show gratuity as 4.81% of basic inside CTC, but it is only paid once you complete five years. Leave earlier and that part of your CTC never materialises.',
+      },
+      {
+        q: 'Is gratuity paid if I resign?',
+        a: 'Yes, if you have completed five years of continuous service. The reason for leaving does not matter, except that gratuity can be forfeited if you are dismissed for specified misconduct.',
       },
     ],
   },

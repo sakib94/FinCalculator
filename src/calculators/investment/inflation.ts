@@ -127,6 +127,34 @@ const inflation: CalculatorDef<InflationResult> = {
     )}. Real return ${formatPercent(r.realReturnPct)}.`,
 
   content: {
+    intro: {
+      heading: 'What is inflation, and why calculate it?',
+      paragraphs: [
+        'Inflation is the general rise in prices over time. At 6% inflation, something that costs ₹1,00,000 today will cost about ₹1,79,000 in ten years. The flip side is that money kept idle loses purchasing power: the same ₹1 lakh would then buy only about ₹56,000 worth of today’s goods.',
+        'This inflation calculator shows the future cost of anything at a chosen inflation rate, how much today’s money will be worth in the future, and — if you enter an investment return — the real, inflation-adjusted return and what your investment will be worth in today’s money.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'The future cost of ₹1 lakh',
+        table: {
+          columns: ['Inflation rate', 'In 10 years', 'In 20 years', 'In 30 years'],
+          rows: [
+            ['4%', '₹1,48,024', '₹2,19,112', '₹3,24,340'],
+            ['6%', '₹1,79,085', '₹3,20,714', '₹5,74,349'],
+            ['8%', '₹2,15,892', '₹4,66,096', '₹10,06,266'],
+          ],
+        },
+        after: [
+          'The RBI’s target for consumer price inflation is 4%, within a band of 2% to 6%. For long-term planning, 6% is a common, slightly cautious assumption; costs such as education and healthcare have often risen faster.',
+        ],
+      },
+    ],
+    guides: [
+      'inflation-and-real-returns',
+      'how-much-money-to-retire',
+      'power-of-compounding',
+    ],
     howItWorks: [
       'Inflation works exactly like compound interest, but against you. A cost of ₹1,00,000 growing at 6% a year becomes ₹1,79,085 in ten years — and the ₹1,00,000 sitting in your account buys only ₹55,839 worth of the same goods.',
       'The figure that really matters is the real return: what your investment earns after inflation is stripped out. An 8% return during 6% inflation is not an 8% gain, it is roughly 1.9% of genuine purchasing power.',
@@ -156,6 +184,14 @@ Real return       = (1 + return) ÷ (1 + inflation) − 1`,
       {
         q: 'Does this mean holding cash is bad?',
         a: 'Cash loses purchasing power steadily, so it is poorly suited to long-term goals. It remains the right place for an emergency fund, where availability matters more than return.',
+      },
+      {
+        q: 'How do I calculate the future value of money with inflation?',
+        a: 'Future cost = today’s cost × (1 + inflation rate)^years. For ₹50,000 at 6% for 10 years: 50,000 × 1.06¹⁰ ≈ ₹89,542.',
+      },
+      {
+        q: 'What was India’s inflation rate historically?',
+        a: 'Consumer price inflation in India has averaged roughly 5%–6% over the last couple of decades, with years well above and below that. Since 2016, the RBI has targeted 4% CPI inflation.',
       },
     ],
   },

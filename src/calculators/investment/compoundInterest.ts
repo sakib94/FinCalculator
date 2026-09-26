@@ -174,6 +174,38 @@ const compoundInterest: CalculatorDef<CompoundResult> = {
     )} — ${formatINR(r.totalInterest)} earned.`,
 
   content: {
+    intro: {
+      heading: 'What is compound interest?',
+      paragraphs: [
+        'Compound interest is interest earned on both your original money and the interest it has already earned. Each period, interest is added to the balance, and the next period’s interest is worked out on that larger balance. Over long periods this snowball effect makes compound interest grow much faster than simple interest.',
+        'This compound interest calculator works out the maturity value and interest for yearly, half-yearly, quarterly, monthly or daily compounding, with optional monthly additions, and shows how much of the result comes from compounding compared with simple interest.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'How rate and time change the result',
+        table: {
+          caption: '₹1,00,000 compounded yearly',
+          columns: ['Rate', 'After 10 years', 'After 20 years', 'After 30 years'],
+          rows: [
+            ['6%', '₹1,79,085', '₹3,20,714', '₹5,74,349'],
+            ['8%', '₹2,15,892', '₹4,66,096', '₹10,06,266'],
+            ['10%', '₹2,59,374', '₹6,72,750', '₹17,44,940'],
+            ['12%', '₹3,10,585', '₹9,64,629', '₹29,95,992'],
+          ],
+        },
+        after: [
+          'Two things stand out. Doubling the time more than doubles the gain, and a few percentage points of extra return make a huge difference over 30 years — ₹1 lakh at 12% ends at almost three times the value at 8%.',
+        ],
+      },
+      {
+        heading: 'Adding money every month',
+        paragraphs: [
+          'Most people do not invest once and wait; they add money regularly. Enter a monthly contribution in the calculator to see the combined effect of the initial amount and ongoing additions — the same maths that drives a SIP or a recurring deposit. Each addition compounds from the month it is made.',
+        ],
+      },
+    ],
+    guides: ['power-of-compounding', 'what-is-cagr', 'inflation-and-real-returns'],
     howItWorks: [
       'Compound interest is interest earning interest. Simple interest pays only on the original principal, so it grows in a straight line. Compound interest adds each period’s interest back to the balance, so the next period earns on a larger base — and the curve bends upward.',
       'Compounding frequency matters, though less than people expect. The same 10% quoted rate is worth 10% compounded yearly, 10.25% half-yearly, 10.38% quarterly and 10.47% monthly. That gap is the difference between the nominal rate a bank advertises and the effective rate you actually receive, which is why the effective annual rate is the number to compare across products.',
@@ -218,6 +250,14 @@ Effective annual rate = (1 + r/n)^n − 1`,
       {
         q: 'How do I use the Rule of 72?',
         a: 'Divide 72 by the annual rate to estimate the years to double. At 12% it is six years, at 8% it is nine. It is an approximation but accurate enough for mental arithmetic at ordinary rates.',
+      },
+      {
+        q: 'Which investments pay compound interest?',
+        a: 'Cumulative fixed deposits and recurring deposits (quarterly), PPF and Sukanya Samriddhi (yearly), NSC (yearly, paid at maturity) and savings accounts. Market investments such as mutual funds compound too, through reinvested gains, although not at a fixed rate.',
+      },
+      {
+        q: 'How do I calculate compound interest for a few months?',
+        a: 'Use A = P × (1 + r/n)^(n × t) with t in years — six months is 0.5. For quarterly compounding over nine months, n = 4 and t = 0.75, giving three compounding periods.',
       },
     ],
   },

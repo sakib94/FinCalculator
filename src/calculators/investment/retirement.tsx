@@ -199,6 +199,49 @@ const retirement: CalculatorDef<RetirementResult> = {
     }.`,
 
   content: {
+    intro: {
+      heading: 'How much do you need to retire?',
+      paragraphs: [
+        'Retirement planning answers two questions: how large a corpus you need on the day you stop working, and whether your savings are on track to reach it. The corpus has to pay your living costs — rising with inflation — for 25 years or more, while earning a modest return in safe investments.',
+        'This retirement calculator inflates your current monthly expenses to your retirement date, works out the corpus needed to fund them through your planned lifespan, projects what your existing savings and monthly investments will grow to, and shows the shortfall (or surplus) and the extra monthly investment needed to close any gap.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Corpus needed for different lifestyles',
+        table: {
+          caption: 'Age 32 today, retiring at 60, planning to 85; 6% inflation; 7% return after retirement',
+          columns: [
+            'Monthly expenses today',
+            'Monthly expenses at 60',
+            'Corpus needed at 60',
+          ],
+          rows: [
+            ['₹40,000', '₹2,04,467', '₹5,49,29,497'],
+            ['₹60,000', '₹3,06,701', '₹8,23,94,245'],
+            ['₹1,00,000', '₹5,11,169', '₹13,73,23,742'],
+          ],
+        },
+        after: [
+          'These figures look enormous because 28 years of inflation multiply today’s costs about five times. What matters is the monthly investment needed today, which the calculator also shows — and which falls sharply the earlier you start.',
+        ],
+      },
+      {
+        heading: 'Ways to close a shortfall',
+        bullets: [
+          'Start or increase SIPs now, and step them up every year with your salary.',
+          'Work a few years longer: each extra year adds contributions and growth, and shortens the period the corpus must last.',
+          'Reduce planned retirement expenses — clear all loans before retiring and plan housing costs.',
+          'Hold a sensible share of growth assets before retirement; an all-deposit portfolio rarely beats inflation after tax.',
+          'Count EPF, PPF and NPS balances in your existing savings so the gap is measured correctly.',
+        ],
+      },
+    ],
+    guides: [
+      'how-much-money-to-retire',
+      'epf-vs-ppf-vs-nps',
+      'inflation-and-real-returns',
+    ],
     howItWorks: [
       'Retirement planning runs in two halves. First, your current monthly expenses are inflated to the day you retire — that is what your lifestyle will actually cost then. Second, the calculator works out the lump sum needed on that day to pay those expenses, rising with inflation, until your plan-until age.',
       'The corpus is discounted at the inflation-adjusted post-retirement return, not the nominal one. This matters: a 7% return during 6% inflation supports withdrawals at only about 0.94% real, so the corpus required is much larger than a naive calculation suggests.',
@@ -241,6 +284,14 @@ Projected corpus      = savings × (1 + pre-return)^years + future value of SIPs
       {
         q: 'What if I cannot invest the extra amount needed?',
         a: 'There are three other levers: retire later, spend less in retirement, or increase investments gradually as your income grows. A 10% annual step-up in your investment usually closes a moderate gap on its own.',
+      },
+      {
+        q: 'At what age should I start saving for retirement?',
+        a: 'As early as possible — ideally with your first salary. Money invested in your twenties has 30–35 years to compound; starting ten years later can more than double the monthly amount needed for the same corpus.',
+      },
+      {
+        q: 'What post-retirement return should I assume?',
+        a: 'Because retirement money needs to be safer, a return of 6%–8% before tax is a common planning assumption, roughly 1%–2% above inflation. Using a lower real return gives a more cautious, larger corpus target.',
       },
     ],
   },

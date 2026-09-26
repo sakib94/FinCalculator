@@ -189,6 +189,35 @@ const profitMargin: CalculatorDef<ProfitMarginResult> = {
     )} revenue. Gross margin ${formatPercent(r.grossMarginPct, 2)}.`,
 
   content: {
+    intro: {
+      heading: 'What is profit margin?',
+      paragraphs: [
+        'Profit margin tells you how much of every rupee of sales you keep as profit. Gross margin looks at sales minus the direct cost of goods; operating margin also deducts running expenses such as salaries and rent; net margin deducts interest and tax too. Together they show where a business makes — or loses — its money.',
+        'This profit margin calculator works out gross, operating and net profit and margins from revenue and costs, plus the markup on cost and the cost ratio.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Worked example',
+        table: {
+          caption: 'Revenue ₹50 lakh',
+          columns: ['Line', 'Amount', 'Margin'],
+          rows: [
+            ['Revenue', '₹50,00,000', '100%'],
+            ['Cost of goods sold', '₹30,00,000', '60%'],
+            ['Gross profit', '₹20,00,000', '40%'],
+            ['Operating expenses', '₹12,00,000', '24%'],
+            ['Operating profit', '₹8,00,000', '16%'],
+            ['Tax at 25%', '₹2,00,000', '4%'],
+            ['Net profit', '₹6,00,000', '12%'],
+          ],
+        },
+        after: [
+          'A 40% gross margin shrinks to 12% by the bottom line. Improving any line — negotiating purchase costs, controlling overheads — lifts the net margin directly.',
+        ],
+      },
+    ],
+    guides: ['how-to-calculate-percentage', 'how-gst-works'],
     howItWorks: [
       'Margin is always profit divided by REVENUE. Markup is profit divided by COST. They describe the same trade but produce different numbers, and confusing them is the most expensive arithmetic mistake in small business: a 50% markup is only a 33.3% margin, and a 100% markup is a 50% margin.',
       'Three margins are worth tracking, and they answer different questions. Gross margin shows whether the product itself makes money after direct costs. Operating margin shows whether the business makes money after the cost of running it. Net margin shows what is actually left for the owners after interest and tax.',
@@ -235,6 +264,10 @@ Markup = gross profit ÷ cost × 100`,
       {
         q: 'Is a high margin always better?',
         a: 'Not necessarily. A lower margin at much higher volume can produce more absolute profit, which is the entire business model of supermarkets. What matters is margin multiplied by volume, against the capital employed.',
+      },
+      {
+        q: 'What is a good profit margin?',
+        a: 'It varies enormously by industry: grocery retail often runs on low single-digit net margins, while software and consulting can earn far more. Compare with businesses in your own sector and track your own trend over time.',
       },
     ],
   },

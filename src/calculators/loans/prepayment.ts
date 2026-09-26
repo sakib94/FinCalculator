@@ -236,6 +236,48 @@ const prepayment: CalculatorDef<PrepaymentResult> = {
     }.`,
 
   content: {
+    intro: {
+      heading: 'What is loan prepayment?',
+      paragraphs: [
+        'A prepayment — or part-payment — is money you pay towards a loan over and above your regular EMIs. The whole amount reduces the outstanding principal, so you stop paying interest on it for the rest of the loan. Afterwards the lender either keeps your EMI and shortens the tenure, or keeps the tenure and lowers the EMI.',
+        'This loan prepayment calculator shows the interest you save, the new tenure or EMI, and the effective return you earn on the money you prepay, for a one-time lumpsum, a regular extra monthly payment, or both.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'Earlier prepayments save far more',
+        table: {
+          caption: '₹5 lakh prepaid on a ₹40 lakh outstanding balance at 8.75%, tenure reduced',
+          columns: [
+            'Tenure remaining when you prepay',
+            'Interest saved',
+            'Loan ends earlier by',
+          ],
+          rows: [
+            ['18 years', '₹14,71,897', '4 years 5 months'],
+            ['12 years', '₹7,85,308', '2 years 4 months'],
+            ['6 years', '₹3,12,224', '11 months'],
+          ],
+        },
+        after: [
+          'The same ₹5 lakh saves almost five times as much interest when there are 18 years left as when there are 6. If you plan to prepay, do it as early in the loan as you can.',
+        ],
+      },
+      {
+        heading: 'Prepayment rules by loan type',
+        bullets: [
+          'Floating-rate loans to individuals (most home loans): RBI rules prohibit prepayment or foreclosure charges.',
+          'Fixed-rate loans (most personal, car and bike loans): lenders may charge a fee, often 2%–5% of the amount prepaid or outstanding, and may require a minimum number of EMIs first.',
+          'Some lenders limit how many part-payments you can make a year or set a minimum amount per part-payment.',
+          'Always ask for a revised repayment schedule after a prepayment and check which option — lower tenure or lower EMI — has been applied.',
+        ],
+      },
+    ],
+    guides: [
+      'prepay-loan-or-invest',
+      'reduce-tenure-or-emi',
+      'how-emi-is-calculated',
+    ],
     howItWorks: [
       'A prepayment goes entirely against principal. Because interest each month is charged on the outstanding balance, every rupee you prepay stops accruing interest for the whole remaining tenure — which is why prepaying early in a loan saves so much more than prepaying late.',
       'You then choose what to do with the headroom. Reducing the tenure keeps your EMI the same and finishes the loan sooner; reducing the EMI keeps the end date and lowers the monthly outgo. Reducing the tenure almost always saves more interest, because the balance falls faster. Reducing the EMI helps cash flow instead.',
@@ -287,6 +329,10 @@ The fee buys nothing — it is pure cost.`,
       {
         q: 'Will the bank charge me for prepaying?',
         a: 'Not on a floating-rate home loan taken by an individual — the RBI prohibits it. Fixed-rate home loans, personal loans and business loans may carry a charge, typically 2–4% of the amount prepaid.',
+      },
+      {
+        q: 'How much cash should I keep before prepaying?',
+        a: 'Keep an emergency fund of at least six months of expenses, including EMIs, in liquid form. Money paid into a loan cannot easily be taken back if you lose your job or face a medical emergency.',
       },
     ],
   },

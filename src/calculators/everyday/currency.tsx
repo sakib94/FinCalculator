@@ -108,6 +108,31 @@ const currency: CalculatorDef<CurrencyResult> = {
     )}.`,
 
   content: {
+    intro: {
+      heading: 'How does currency conversion really work?',
+      paragraphs: [
+        'Every currency conversion uses an exchange rate — how many rupees one unit of another currency costs. The rate you see in the news is the mid-market rate, halfway between buying and selling prices. Banks, card networks and money changers add a markup to that rate and may charge fees, so the rate you actually get is always a little worse.',
+        'This currency calculator converts between major currencies at a rate you enter, adds the provider’s markup and any flat fee, and shows the true cost of the conversion — so you can compare a bank transfer, a forex card and a credit card.',
+      ],
+    },
+    sections: [
+      {
+        heading: 'What a markup costs on US$1,000',
+        table: {
+          caption: 'At a mid-market rate of ₹88 per US dollar',
+          columns: ['Markup over mid-market', 'You pay', 'Extra cost'],
+          rows: [
+            ['0% (mid-market)', '₹88,000', '—'],
+            ['1%', '₹88,880', '₹880'],
+            ['2%', '₹89,760', '₹1,760'],
+            ['3%', '₹90,640', '₹2,640'],
+          ],
+        },
+        after: [
+          'Credit and debit cards typically add a foreign transaction fee of 2%–3.5% plus GST on it; forex cards and specialist remittance services usually cost less. A small GST also applies to currency conversion itself.',
+        ],
+      },
+    ],
     howItWorks: [
       'Converting currency is a multiplication, but the rate you get is rarely the rate you see quoted. Banks, cards and transfer services add a markup — a spread over the mid-market rate — and often a fixed fee on top.',
       'This calculator applies the fee first, then converts at the marked-up rate, which is how most remittance services actually work. The “cost of conversion” line shows what that combination costs you compared with the mid-market rate.',
@@ -141,6 +166,10 @@ Cost          = amount × mid-market rate − converted`,
       {
         q: 'How much markup do banks charge?',
         a: 'Typically 1.5–3.5% for card transactions and wire transfers. Specialist transfer services are usually cheaper. Comparing the effective rate, not the advertised fee, is the only reliable way to tell.',
+      },
+      {
+        q: 'Is it cheaper to pay abroad in rupees or in local currency?',
+        a: 'Usually in local currency. When a card terminal or website offers to charge you in rupees (“dynamic currency conversion”), it typically applies its own, less favourable rate. Choose the local currency and let your card network convert.',
       },
     ],
   },
