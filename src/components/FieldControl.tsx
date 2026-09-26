@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
+import type { KeyboardEvent } from 'react';
 import type { Field, Values } from '@/calculators/types';
 import { groupIndian, parseNumeric, toIndianWords } from '@/lib/format';
 import { sliderScale } from '@/lib/slider';
@@ -129,6 +130,7 @@ export function FieldControl({ field, value, error, onChange }: Props) {
             className="input"
             value={String(value ?? '')}
             onChange={(e) => onChange(field.name, e.target.value)}
+            onKeyDown={advanceOnEnter}
             aria-invalid={!!error}
             aria-describedby={error ? errorId : undefined}
           />
@@ -168,7 +170,7 @@ export function FieldControl({ field, value, error, onChange }: Props) {
           type="text"
           inputMode="decimal"
           autoComplete="off"
-          enterKeyHint="done"
+          enterKeyHint="next"
           placeholder={field.placeholder}
           value={text}
           onFocus={() => {
@@ -179,6 +181,7 @@ export function FieldControl({ field, value, error, onChange }: Props) {
             setText(initialText(field, value));
           }}
           onChange={(e) => handleText(e.target.value)}
+          onKeyDown={advanceOnEnter}
           aria-invalid={!!error}
           aria-describedby={error ? errorId : field.type === 'currency' ? hintId : undefined}
         />
@@ -215,6 +218,35 @@ export function FieldControl({ field, value, error, onChange }: Props) {
       {error && <FieldError id={errorId} message={error} />}
     </div>
   );
+}
+
+/**
+ * Enter confirms a field the way Tab would: the value is tidied (on blur)
+ * and focus moves to the next visible input in the same form. From the
+ * last field it closes the keyboard and brings the result into view —
+ * on a phone the result card sits below the inputs.
+ */
+function advanceOnEnter(e: KeyboardEvent<HTMLInputElement>) {
+  if (e.key !== 'Enter' || e.nativeEvent.isComposing) return;
+  e.preventDefault();
+  const current = e.currentTarget;
+  const form = current.closest('.panel-input') ?? document;
+  const inputs = Array.from(form.querySelectorAll<HTMLElement>('input.input, select.input')).filter(
+    // Skip fields hidden by a condition or tucked inside a collapsed section.
+    (el) => el.offsetParent !== null && !el.closest('details:not([open])') && !(el as HTMLInputElement).disabled,
+  );
+  const next = inputs[inputs.indexOf(current) + 1];
+  if (next) {
+    next.focus();
+    if (next instanceof HTMLInputElement && next.type === 'text') next.select();
+    return;
+  }
+  current.blur();
+  const result = document.querySelector<HTMLElement>('.panel-result');
+  if (result) {
+    const top = result.getBoundingClientRect().top;
+    if (top < 0 || top > window.innerHeight * 0.6) result.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function FieldError({ id, message }: { id: string; message: string }) {
