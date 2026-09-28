@@ -1,6 +1,6 @@
 @echo off
 REM ---------------------------------------------------------------
-REM  Finora - local test server (for testing only, not production)
+REM  FinCalc - local test server (for testing only, not production)
 REM
 REM  Starts the Vite dev server on port 5173, reachable from this PC
 REM  and from any phone/tablet on the same Wi-Fi network.
@@ -11,7 +11,7 @@ REM ---------------------------------------------------------------
 setlocal
 REM This file lives in local-testing\ - run everything from the project root.
 cd /d "%~dp0.."
-title Finora local server (dev)
+title FinCalc local server (dev)
 
 where node >nul 2>nul
 if errorlevel 1 (
@@ -21,14 +21,26 @@ if errorlevel 1 (
   exit /b 1
 )
 
-if not exist "node_modules\" (
-  echo Installing dependencies ^(first run only^)...
+REM Install dependencies on the first run AND whenever package-lock.json
+REM has changed since the last install - e.g. after a git pull that added
+REM a package. A copy of the lockfile from the last install is kept in
+REM node_modules and compared byte for byte.
+set "STAMP=node_modules\.fincalc-installed-lock"
+set "NEED_INSTALL="
+if not exist "node_modules\" set "NEED_INSTALL=1"
+if not exist "%STAMP%" set "NEED_INSTALL=1"
+if not defined NEED_INSTALL (
+  fc /b "package-lock.json" "%STAMP%" >nul 2>nul || set "NEED_INSTALL=1"
+)
+if defined NEED_INSTALL (
+  echo Installing / updating dependencies ^(only when they have changed^)...
   call npm install
   if errorlevel 1 (
     echo [ERROR] npm install failed.
     pause
     exit /b 1
   )
+  copy /y "package-lock.json" "%STAMP%" >nul
 )
 
 echo.
