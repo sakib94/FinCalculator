@@ -1,0 +1,252 @@
+/* ================================================================
+   Guides, categories, information pages and 404
+   ================================================================ */
+
+.page-head {
+  max-width: 820px;
+  margin: 4px 0 clamp(24px, 3vw, 40px);
+}
+.page-head h1 {
+  font-size: clamp(1.8rem, 1.2rem + 2.2vw, 2.75rem);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+  text-wrap: balance;
+  margin: 2px 0 14px;
+}
+.page-head .eyebrow svg {
+  color: var(--color-signature);
+}
+.page-lead {
+  font-size: clamp(1rem, 0.95rem + 0.3vw, 1.15rem);
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  max-width: 64ch;
+  margin: 0;
+}
+.page-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+.page-section {
+  margin-top: var(--section-gap);
+}
+.page-section > .section-head {
+  align-items: flex-end;
+  margin-bottom: 18px;
+}
+.page-section > .section-head h2 {
+  font-size: var(--fs-h2);
+}
+.page-section > .section-head .link {
+  margin-left: auto;
+  white-space: nowrap;
+  font-weight: var(--weight-semibold);
+  color: var(--color-primary);
+}
+
+.topic-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 22px;
+}
+.chip-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-muted);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+}
+
+/* ---------------- Guide article ---------------- */
+.guide-layout {
+  margin-top: 4px;
+}
+.key-points {
+  position: relative;
+  padding: 20px 22px 20px 24px;
+  margin-bottom: 36px;
+  border-radius: var(--r-lg);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+.key-points::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--color-signature);
+}
+.article .key-points h2.kp-title {
+  font-family: var(--font);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 12px;
+  word-spacing: normal;
+}
+.key-points ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.key-points li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--color-text);
+  line-height: 1.55;
+  margin: 0;
+}
+.key-points li svg {
+  flex: none;
+  margin-top: 4px;
+  color: var(--color-success);
+}
+
+/* Calculators to try, under the contents on wide screens. */
+.toc-tools {
+  margin-top: 26px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-divider);
+}
+.toc-tools-title {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin: 0 0 10px;
+}
+.toc-tool {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 12px;
+  margin-bottom: 6px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  transition: border-color var(--dur) var(--ease);
+}
+.toc-tool svg:first-child {
+  color: var(--color-primary);
+}
+.toc-tool svg:last-child {
+  margin-left: auto;
+  color: var(--color-text-muted);
+}
+.toc-tool:hover {
+  text-decoration: none;
+  border-color: var(--color-primary-border);
+}
+@media (max-width: 1099px) {
+  .toc-tools {
+    display: none;
+  }
+}
+
+.article-solo > .article {
+  max-width: 820px;
+}
+
+.category-intro {
+  max-width: var(--maxw-read);
+  margin-top: 28px;
+  color: var(--color-text-secondary);
+}
+
+.contact-card {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 28px;
+  padding: 16px 20px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-1);
+  color: var(--color-text);
+}
+.contact-card:hover {
+  text-decoration: none;
+  border-color: var(--color-primary-border);
+}
+.contact-card > svg {
+  box-sizing: content-box;
+  padding: 10px;
+  border-radius: 12px;
+  color: var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.contact-card span {
+  display: grid;
+}
+
+/* ---------------- 404 ---------------- */
+.not-found {
+  max-width: 640px;
+  margin: clamp(24px, 6vw, 72px) auto;
+  text-align: center;
+}
+.nf-code {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(4.5rem, 3rem + 7vw, 8rem);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.05em;
+  color: var(--color-text);
+}
+.nf-code span {
+  color: var(--color-primary);
+  /* The brand's gold, as an underline rather than as text colour, which
+     would be too faint on the light page. */
+  box-shadow: inset 0 -0.09em 0 var(--color-signature);
+}
+.not-found h1 {
+  margin: 12px 0 10px;
+  font-size: var(--fs-h2);
+}
+.nf-text {
+  color: var(--color-text-secondary);
+  max-width: 48ch;
+  margin: 0 auto;
+}
+.nf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 24px;
+}
+.nf-sub {
+  margin: 40px 0 12px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.nf-chips {
+  justify-content: center;
+}

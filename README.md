@@ -1,4 +1,4 @@
-# Finora — All-in-One Calculator
+# FinCalc — Financial Calculators for India
 
 A financial and utility calculator platform for India: 49 calculators covering loans, investment,
 retirement, tax, salary, business, construction and everyday maths, plus 22 long-form financial
@@ -105,12 +105,14 @@ src/
 │   ├── catalog.ts      # Calculator & category metadata: names, keywords, SEO
 │   ├── site.ts         # ⚠️ Domain, contact email and AdSense ids — edit before going live
 │   └── taxRules.ts     # ⚠️ ALL tax slabs, rebates, surcharge bands and deduction caps
-├── components/         # Shell, form renderer, charts, tables, result cards
+├── components/         # Shell (header, mega-menu, drawer, footer), form renderer,
+│                       # charts, tables, result cards, logo, article contents
 ├── hooks/              # Theme, favourites, recents, media queries
 ├── lib/                # Formatting, validation, router + URLs, page metadata, storage
 ├── pages/              # Dashboard, calculator, category, guides, info pages, 404
 ├── entry-server.tsx    # Build-time renderer used by scripts/prerender.mjs
-├── styles/             # Design tokens + component CSS
+├── styles/             # tokens.css (design tokens), base, layout (shell), components,
+│                       # home, calc (calculator page), pages (guides, 404), charts, print
 └── tests/              # Vitest suites for the engines
 ```
 
@@ -171,12 +173,44 @@ Rates currently configured: FY 2024-25, FY 2025-26 and FY 2026-27, with EPF at 8
 
 ---
 
+## Site structure
+
+Every page answers the same questions in the same order.
+
+- **Header** — the FinCalc mark, a *Calculators* button that opens a mega-menu with all 49 tools
+  by category, direct tabs for Loans, Investment and Tax & Salary, Guides, search (⌘K), language
+  and theme. Below 1024px the menu becomes a drawer with one accordion per category (the current
+  one open).
+- **Home** — what FinCalc is and a *working* EMI calculator in the hero (three sliders, the
+  answer, a principal/interest bar, then a hand-off to the full calculator with the same
+  numbers); trust figures; favourites and recents; the six most-used tools; categories; featured
+  guides; why it can be trusted; and a full directory.
+- **Calculator pages** — title, then a jump bar (*Calculator · Charts · Table · Guide · FAQ ·
+  Next steps*) that sticks under the header on wide screens and carries the headline result once
+  the result card scrolls away. Inputs sit beside the answer; under the headline figure a
+  composition bar shows what it is made of (principal vs interest, invested vs returns…) in the
+  same colours the charts use. Charts sit two to a row. The explanation reads as an article with
+  an *On this page* index, and *Next steps* links related calculators and guides. On phones a
+  result dock pins the answer to the bottom of the screen while you edit the inputs.
+- **Guides** — the same article layout, with key points up front and the calculators to try
+  beside the contents.
+- **Footer** — calculators by category, popular tools, guides, company and legal pages.
+
+In-page navigation uses buttons that scroll and move focus (`lib/scroll.ts`), never `#hash`
+links, because the `file://` build keeps its route in the hash.
+
 ## Design system
 
 FinCalc's visual language is **calm, precise and trustworthy**: cool, faintly tinted neutrals
 do most of the work; one brand hue marks everything interactive; a deep "ink" ground is reserved
 for the one figure that matters (the headline result); and green, red and amber carry meaning
 only — growth, loss, attention. No gradient text, no shine effects, no animated backgrounds.
+
+**Brand.** The mark (`components/Logo.tsx`, `public/icons/`) is three rising bars on an ink
+tile, the tallest in the palette's *signature* colour (gold in Premium). Type is self-hosted —
+**Plus Jakarta Sans** (variable) for display headings and **Inter** (variable) for everything
+else, including every figure, with tabular numerals. No third-party font requests; the three
+files nearly every page needs are preloaded by the pre-renderer.
 
 Tokens live in `src/styles/tokens.css` in two layers:
 
@@ -186,8 +220,13 @@ Tokens live in `src/styles/tokens.css` in two layers:
    `--color-primary-hover`, `--color-surface-elevated`, `--color-border`, `--color-text-muted`,
    `--color-success` / `-danger` / `-warning` / `-info` (each with a `-bg`), `--color-focus`,
    `--color-disabled-*`, `--color-input-*`, `--color-table-*`, `--color-tooltip-*`,
-   `--color-hero-*`, `--color-chart-*`. Components use these, so a palette or mode change never
-   needs a per-component override.
+   `--color-hero-*`, `--color-on-hero-muted`, `--color-signature`, `--color-chart-*`. Components
+   use these, so a palette or mode change never needs a per-component override.
+
+Scale tokens sit alongside: type (`--fs-display`, `--fs-h1`, `--fs-h2`, `--text-*`), spacing
+(`--space-2xs` … `--space-3xl`, `--section-gap`), radius (`--r-xs` … `--r-2xl`), shadows
+(`--shadow-1…3`), motion (`--dur*`, `--ease`, `--ease-out`) and layout (`--maxw`,
+`--maxw-read`, `--gutter`, `--topbar-h`).
 
 Five palettes ship, each a complete, separately tuned light **and** dark system:
 
@@ -211,33 +250,33 @@ Component conventions:
 - **Inputs** — a visible resting border, darker on hover, brand border + ring on focus; errors
   add a red border, a tinted fill, an icon and a message.
 - **Stats** — tone is shown by the value's colour *and* a marker shape (square, circle,
-  diamond), so meaning never rests on colour alone.
+  diamond), so meaning never rests on colour alone. Chart legends and composition bars use the
+  same idea: each series has its own marker shape as well as its colour.
 - **Tables** — sticky sunken header, zebra rows, brand-tinted hover, tabular right-aligned
   figures and a totals row with a strong top rule.
 - **Numbers** — tabular figures everywhere a value can change or line up.
 
 **Every palette is contrast-audited, not eyeballed.** `npm run check:contrast` walks all ten
-palette/mode combinations and checks 250 pairs — body, secondary and muted text on every ground,
-links, button labels (including hover), white on the result card, status colours and each chart
-series. Every text role meets WCAG AA (4.5:1) in all of them.
+palette/mode combinations and checks 270 pairs — body, secondary and muted text on every ground,
+links, button labels (including hover), white and muted white on the result card, status colours
+and each chart series. Every text role meets WCAG AA (4.5:1) in all of them.
 
-Pick a theme from the topbar, cycle palettes with ⌘⇧L / Ctrl-Shift-L, or flip light/dark with
+Pick a theme from the header, cycle palettes with ⌘⇧L / Ctrl-Shift-L, or flip light/dark with
 ⌘⇧D / Ctrl-Shift-D.
 
 Chart series use a five-colour categorical palette per theme, each colour at least 3:1 against
 its surface. Charts are hand-built SVG (~250 lines) — they inherit theme tokens directly and add
 nothing to the bundle.
 
-Navigation sits to the **right** of the content and is last in the DOM, so reading and tab
-order both reach the calculator before the menu. Entries are quiet rows; the current page gets a
-soft brand ground, brand text and an indicator bar. Motion is handled by a few shared utilities in
-`base.css` (`.anim-rise`, `.anim-zoom`, `.stagger`) rather than per-component animation, and
-all of it is switched off wholesale under `prefers-reduced-motion`.
+The current section is marked in the header with an underline; the mega-menu closes on Escape,
+an outside click, or when focus moves past it. Motion is handled by a few shared utilities in
+`base.css` (`.anim-rise`, `.anim-zoom`, `.stagger`) plus short transitions on the menu, jump
+bar and result dock, and all of it is switched off under `prefers-reduced-motion`.
 
-Responsive behaviour: the sidebar becomes a right-hand drawer below 1024px, input grids
-collapse to one column below 620px, tables scroll horizontally inside their own container, and
-every control has a ≥44px touch target. Nothing overflows horizontally at any width from 320px
-up.
+Responsive behaviour: the header collapses to a drawer below 1024px, the calculator's inputs
+and result stack below 900px, the article index folds above the text below 1100px, input grids
+collapse to one column below 620px, tables scroll inside their own container, and every
+control has a ≥44px touch target. Nothing overflows horizontally at any width from 320px up.
 
 ---
 
@@ -313,10 +352,12 @@ rules are needed.
 ```bash
 # nginx
 server {
-  root /var/www/finora/dist;
+  root /var/www/fincalc/dist;
   location / { try_files $uri $uri/ =404; }
   error_page 404 /404.html;
-  location /assets/ { expires 1y; add_header Cache-Control "public, immutable"; }
+  # Asset names are not content-hashed (index.js, style.css — so file:// builds keep working),
+  # so let browsers revalidate rather than cache them as immutable.
+  location /assets/ { add_header Cache-Control "no-cache"; }
 }
 ```
 

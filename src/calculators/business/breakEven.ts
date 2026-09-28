@@ -155,7 +155,7 @@ const breakEven: CalculatorDef<BreakEvenResult> = {
 
   table: (r) => ({
     title: 'Profit at different volumes',
-    csvName: 'finora-break-even',
+    csvName: 'fincalc-break-even',
     columns: [
       { key: 'units', label: 'Units', align: 'left' },
       { key: 'revenue', label: 'Revenue' },

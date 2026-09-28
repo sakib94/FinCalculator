@@ -18,6 +18,31 @@ const SERIES_VARS = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'v
 
 export const seriesColor = (i: number): string => SERIES_VARS[i % SERIES_VARS.length];
 
+/** Legend markers differ in shape as well as colour, so a reader who
+ * cannot tell the colours apart can still match a series to its label. */
+const MARKERS = [
+  <rect key="s" x="1" y="1" width="8" height="8" rx="1.5" />,
+  <circle key="c" cx="5" cy="5" r="4.2" />,
+  <path key="d" d="M5 0.6 9.4 5 5 9.4 0.6 5Z" />,
+  <path key="t" d="M5 0.8 9.4 9 0.6 9Z" />,
+  <rect key="b" x="0.5" y="3" width="9" height="4" rx="1" />,
+];
+
+export function Marker({ index }: { index: number }) {
+  return (
+    <svg
+      className="marker"
+      viewBox="0 0 10 10"
+      width="10"
+      height="10"
+      aria-hidden="true"
+      style={{ color: seriesColor(index) }}
+    >
+      <g fill="currentColor">{MARKERS[index % MARKERS.length]}</g>
+    </svg>
+  );
+}
+
 function useWidth<T extends HTMLElement>() {
   const ref = useRef<T | null>(null);
   const [width, setWidth] = useState(560);
@@ -266,16 +291,7 @@ function CartesianChart({ spec }: { spec: Extract<ChartSpec, { kind: 'line' | 'b
             </div>
             {spec.series.map((s, si) => (
               <div className="t-row" key={s.name}>
-                <span
-                  className="sw"
-                  style={{
-                    background: seriesColor(si),
-                    width: 9,
-                    height: 9,
-                    borderRadius: 3,
-                    display: 'inline-block',
-                  }}
-                />
+                <Marker index={si} />
                 {t(s.name)}
                 <span className="t-val">{format(s.values[hover.index] ?? 0)}</span>
               </div>
@@ -294,7 +310,7 @@ function CartesianChart({ spec }: { spec: Extract<ChartSpec, { kind: 'line' | 'b
         <div className="legend">
           {spec.series.map((s, si) => (
             <span className="l-item" key={s.name}>
-              <span className="sw" style={{ background: seriesColor(si) }} />
+              <Marker index={si} />
               {t(s.name)}
             </span>
           ))}
@@ -391,7 +407,7 @@ function DonutChart({ spec }: { spec: Extract<ChartSpec, { kind: 'donut' }> }) {
                   onMouseLeave={() => setActive(null)}
                 >
                   <td>
-                    <span className="sw" style={{ background: s.color }} /> {t(s.label)}
+                    <Marker index={i} /> {t(s.label)}
                   </td>
                   <td className="val">{format(s.value)}</td>
                   <td className="pct">{(s.share * 100).toFixed(1)}%</td>

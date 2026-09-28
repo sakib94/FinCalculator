@@ -165,7 +165,7 @@ const salary: CalculatorDef<SalaryResult> = {
 
   table: (r) => ({
     title: 'Monthly payslip breakdown',
-    csvName: 'finora-salary-breakdown',
+    csvName: 'fincalc-salary-breakdown',
     columns: [
       { key: 'item', label: 'Component', align: 'left' },
       { key: 'monthly', label: 'Monthly' },

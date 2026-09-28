@@ -139,7 +139,7 @@ const homeLoan: CalculatorDef<LoanEmiResult> = {
 
   charts: (r) => emiCharts(r),
 
-  table: (r) => emiTable(r, 'finora-home-loan-schedule'),
+  table: (r) => emiTable(r, 'fincalc-home-loan-schedule'),
 
   summary: (r) => emiSummary('Home loan', r),
 

@@ -6,10 +6,18 @@ import type { ContentSection, FAQ } from '@/calculators/types';
  * real H2/H3 headings, short paragraphs, lists and scrollable tables.
  */
 
-export function SectionBlock({ section, level = 2 }: { section: ContentSection; level?: 2 | 3 }) {
+export function SectionBlock({
+  section,
+  level = 2,
+  id,
+}: {
+  section: ContentSection;
+  level?: 2 | 3;
+  id?: string;
+}) {
   const Heading = level === 2 ? 'h2' : 'h3';
   return (
-    <section className="prose-section">
+    <section className="prose-section" id={id}>
       <Heading>{section.heading}</Heading>
       {section.paragraphs?.map((p, i) => <p key={i}>{p}</p>)}
       {section.bullets && section.bullets.length > 0 && (
@@ -47,10 +55,18 @@ export function SectionBlock({ section, level = 2 }: { section: ContentSection; 
   );
 }
 
-export function FaqList({ faqs, heading = 'Frequently asked questions' }: { faqs: FAQ[]; heading?: string }) {
+export function FaqList({
+  faqs,
+  heading = 'Frequently asked questions',
+  id,
+}: {
+  faqs: FAQ[];
+  heading?: string;
+  id?: string;
+}) {
   if (!faqs.length) return null;
   return (
-    <section className="prose-section">
+    <section className="prose-section" id={id}>
       <h2>{heading}</h2>
       <div className="faq-list">
         {faqs.map((f, i) => (

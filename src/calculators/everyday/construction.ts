@@ -170,7 +170,7 @@ const construction: CalculatorDef<ConstructionResult> = {
 
   table: (r) => ({
     title: 'Bill of materials',
-    csvName: 'finora-construction-materials',
+    csvName: 'fincalc-construction-materials',
     columns: [
       { key: 'material', label: 'Material', align: 'left' },
       { key: 'quantity', label: 'Quantity' },

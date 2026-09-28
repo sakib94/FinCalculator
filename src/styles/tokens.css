@@ -40,39 +40,70 @@
   --r-md: 11px;
   --r-lg: 14px;
   --r-xl: 20px;
+  --r-2xl: 28px;
+  --radius-sm: var(--r-sm);
+  --radius-md: var(--r-md);
+  --radius-lg: var(--r-lg);
+  --radius-xl: var(--r-xl);
+  --radius-pill: 999px;
+
+  /* ---- Spacing (4px base) ---- */
+  --space-2xs: 4px;
+  --space-xs: 8px;
+  --space-sm: 12px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 72px;
+  --section-gap: clamp(44px, 3vw + 28px, 80px);
 
   /* ---- Motion ---- */
   --dur: 150ms;
   --dur-2: 280ms;
   --dur-3: 520ms;
   --ease: cubic-bezier(0.2, 0, 0, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.2, 0.52, 1);
 
-  /* ---- Type ---- */
-  /* 'Noto Sans Devanagari' and 'Nirmala UI' carry the Hindi interface;
-     both ship with Android and Windows respectively. */
-  --font: 'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+  /* ---- Type ----
+     Inter for everything you read and every number you compare (tabular
+     figures, disambiguated 1/l/I); Plus Jakarta Sans for display headings,
+     which gives the brand its voice. 'Noto Sans Devanagari' and
+     'Nirmala UI' carry the Hindi interface on Android and Windows. */
+  --font: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
     'Helvetica Neue', Arial, 'Noto Sans', 'Noto Sans Devanagari', 'Nirmala UI', sans-serif;
-  --font-num: 'Inter var', 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Plus Jakarta Sans Variable', 'Plus Jakarta Sans', var(--font);
+  --font-num: 'Inter Variable', 'Inter', -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 
+  --text-2xs: 0.68rem;
   --text-xs: 0.72rem;
   --text-sm: 0.82rem;
   --text-md: 0.92rem;
   --text-base: 0.95rem;
   --text-lg: 1.08rem;
+  --text-xl: 1.25rem;
+  --fs-display: clamp(2.15rem, 1.35rem + 3.1vw, 3.6rem);
+  --fs-h1: clamp(1.6rem, 1.2rem + 1.5vw, 2.3rem);
+  --fs-h2: clamp(1.2rem, 1.02rem + 0.7vw, 1.55rem);
+  --fs-h3: 1.05rem;
+  --fs-result: clamp(2rem, 1.3rem + 2.4vw, 2.9rem);
   --weight-regular: 450;
   --weight-medium: 550;
   --weight-semibold: 620;
   --weight-bold: 700;
+  --weight-heavy: 780;
   --tracking-tight: -0.022em;
+  --tracking-display: -0.035em;
+  --display-word-gap: 0.09em;
   --tracking-caps: 0.08em;
 
   /* ---- Layout ---- */
-  --sidebar-w: 288px;
-  --topbar-h: 60px;
-  --maxw: 1180px;
-  --main-gutter: 44px;
+  --topbar-h: 64px;
+  --maxw: 1200px;
+  --maxw-read: 72ch;
+  --gutter: clamp(16px, 3vw, 40px);
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
 
@@ -150,6 +181,19 @@
   --color-hero-from: var(--hero-from);
   --color-hero-to: var(--hero-to);
   --color-on-hero: #ffffff;
+  /* Secondary text on the ink hero surfaces; 88% white stays AA on the
+     lightest hero end of every palette (see check-contrast). */
+  --color-on-hero-muted: rgb(255 255 255 / 0.88);
+
+  /* Brand signature — a warm highlight used only for brand moments (the
+     logo, the result card's rule, eyebrow dots). Never for status. */
+  --color-signature: var(--signature);
+
+  /* Footer — an ink band that anchors every page */
+  --color-footer-bg: var(--hero-from);
+  --color-footer-text: rgb(255 255 255 / 0.9);
+  --color-footer-muted: rgb(255 255 255 / 0.66);
+  --color-footer-border: rgb(255 255 255 / 0.1);
 
   /* Charts */
   --color-chart-grid: color-mix(in srgb, var(--border) 80%, var(--surface));
@@ -181,12 +225,16 @@
   --shadow-2: 0 2px 4px rgb(var(--shadow-color) / 0.04), 0 8px 20px -6px rgb(var(--shadow-color) / 0.1);
   --shadow-3: 0 4px 8px rgb(var(--shadow-color) / 0.05), 0 22px 48px -12px rgb(var(--shadow-color) / 0.22);
   --overlay: rgb(var(--shadow-color) / 0.42);
+  --shadow-sm: var(--shadow-1);
+  --shadow-md: var(--shadow-2);
+  --shadow-lg: var(--shadow-3);
 }
 
 /* Dark mode: elevation comes from lighter surfaces and hairlines, not
    from shadows — a shadow on a dark ground reads as a smudge. */
 :root[data-mode='dark'] {
   --color-surface-elevated: var(--surface-2);
+  --color-footer-bg: color-mix(in srgb, var(--bg) 70%, #000);
   /* Sunken wells (segmented tracks, search, table headers) sit below the
      card in dark mode, so they are darker than it, not lighter. */
   --color-surface-sunken: color-mix(in srgb, var(--bg) 65%, var(--surface));
@@ -219,6 +267,7 @@
 :root,
 :root[data-palette='premium'] {
   color-scheme: light;
+  --signature: #c8952c;
   --shadow-color: 16 24 48;
 
   --brand-50: #eef2fd;
@@ -257,6 +306,7 @@
 
 :root[data-palette='premium'][data-mode='dark'] {
   color-scheme: dark;
+  --signature: #e2b457;
 
   --brand-50: #121b35;
   --brand-100: #17244a;
@@ -297,6 +347,7 @@
    ================================================================== */
 :root[data-palette='ocean'] {
   color-scheme: light;
+  --signature: #1aa3be;
   --shadow-color: 8 36 48;
 
   --brand-50: #e8f4f7;
@@ -335,6 +386,7 @@
 
 :root[data-palette='ocean'][data-mode='dark'] {
   color-scheme: dark;
+  --signature: #4fd1e6;
 
   --brand-50: #0a2028;
   --brand-100: #0e2c36;
@@ -375,6 +427,7 @@
    ================================================================== */
 :root[data-palette='emerald'] {
   color-scheme: light;
+  --signature: #c08a22;
   --shadow-color: 14 40 30;
 
   --brand-50: #e9f4ee;
@@ -413,6 +466,7 @@
 
 :root[data-palette='emerald'][data-mode='dark'] {
   color-scheme: dark;
+  --signature: #e0b453;
 
   --brand-50: #0b2019;
   --brand-100: #0f2d22;
@@ -453,6 +507,7 @@
    ================================================================== */
 :root[data-palette='royal'] {
   color-scheme: light;
+  --signature: #d99a2b;
   --shadow-color: 30 24 72;
 
   --brand-50: #f0effd;
@@ -491,6 +546,7 @@
 
 :root[data-palette='royal'][data-mode='dark'] {
   color-scheme: dark;
+  --signature: #ecb65a;
 
   --brand-50: #17143a;
   --brand-100: #1f1b4d;
@@ -531,6 +587,7 @@
    ================================================================== */
 :root[data-palette='graphite'] {
   color-scheme: light;
+  --signature: #e08a12;
   --shadow-color: 40 32 24;
 
   --brand-50: #fbf2e6;
@@ -569,6 +626,7 @@
 
 :root[data-palette='graphite'][data-mode='dark'] {
   color-scheme: dark;
+  --signature: #f5a85a;
 
   --brand-50: #261a0e;
   --brand-100: #342312;

@@ -1,6 +1,14 @@
+/* Self-hosted variable fonts: no third-party requests, and the browser
+   downloads only the unicode subsets a page actually uses (latin, plus
+   latin-ext for the ₹ sign). */
+@import '@fontsource-variable/inter/index.css';
+@import '@fontsource-variable/plus-jakarta-sans/index.css';
 @import './tokens.css';
 @import './base.css';
 @import './layout.css';
 @import './components.css';
+@import './home.css';
 @import './charts.css';
+@import './calc.css';
+@import './pages.css';
 @import './print.css';

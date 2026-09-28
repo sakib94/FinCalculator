@@ -1,5 +1,8 @@
 import { infoPageBySlug } from '@/content/pages';
 import { SectionBlock } from '@/components/Prose';
+import { ArticleToc } from '@/components/ArticleToc';
+import { PageHeader } from '@/components/PageHeader';
+import { slugId } from '@/lib/scroll';
 import { Icon } from '@/components/Icon';
 import { Link } from '@/lib/router';
 import { useT } from '@/hooks/PreferencesContext';
@@ -15,41 +18,47 @@ export function InfoPage({ slug }: { slug: string }) {
   const page = infoPageBySlug(slug);
   if (!page) return <NotFound />;
 
+  const toc = page.sections.length >= 4 ? page.sections.map((s) => ({ id: slugId('p', s.heading), label: s.heading })) : [];
+
   return (
-    <div>
+    <div className="page">
       <nav className="crumbs" aria-label="Breadcrumb">
         <Link to="/">{t('Home')}</Link>
         <span>/</span>
         <span aria-current="page">{page.title}</span>
       </nav>
 
-      <article className="guide">
-        <header className="guide-head">
-          <h1>{page.title}</h1>
-          <p className="guide-lead">{page.lead}</p>
-          {page.legal && (
-            <p className="guide-meta">
-              <Icon name="calendar" size={13} /> Last updated {formatDate(SITE.legalUpdated)}
-            </p>
-          )}
-        </header>
+      <PageHeader
+        eyebrow={page.legal ? t('Legal') : SITE.name}
+        title={page.title}
+        lead={page.lead}
+        meta={
+          page.legal ? (
+            <>
+              <Icon name="calendar" size={13} /> {t('Last updated')} {formatDate(SITE.legalUpdated)}
+            </>
+          ) : undefined
+        }
+      />
 
-        {page.slug === 'contact' && (
-          <a className="card card-pad contact-card" href={`mailto:${SITE.contactEmail}`}>
-            <Icon name="mail" size={22} />
-            <span>
-              <span className="section-label">Email us</span>
-              <strong>{SITE.contactEmail}</strong>
-            </span>
-          </a>
-        )}
+      {page.slug === 'contact' && (
+        <a className="contact-card" href={`mailto:${SITE.contactEmail}`}>
+          <Icon name="mail" size={22} />
+          <span>
+            <span className="section-label">{t('Email us')}</span>
+            <strong>{SITE.contactEmail}</strong>
+          </span>
+        </a>
+      )}
 
-        <div className="card card-pad prose article">
+      <div className={toc.length ? 'article-layout' : 'article-solo'}>
+        <ArticleToc items={toc} />
+        <article className="prose article" aria-label={page.title}>
           {page.sections.map((s, i) => (
-            <SectionBlock key={i} section={s} />
+            <SectionBlock key={i} section={s} id={slugId('p', s.heading)} />
           ))}
-        </div>
-      </article>
+        </article>
+      </div>
     </div>
   );
 }

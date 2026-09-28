@@ -173,7 +173,7 @@ const nps: CalculatorDef<NpsResult> = {
   table: (r) => ({
     title: 'Year-wise projection',
     previewRows: 10,
-    csvName: 'finora-nps-projection',
+    csvName: 'fincalc-nps-projection',
     columns: [
       { key: 'age', label: 'Age', align: 'left' },
       { key: 'monthly', label: 'Monthly' },

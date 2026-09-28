@@ -128,7 +128,7 @@ const tds: CalculatorDef<TdsResult> = {
 
   table: (r) => ({
     title: 'Deduction working',
-    csvName: 'finora-tds',
+    csvName: 'fincalc-tds',
     columns: [
       { key: 'item', label: 'Item', align: 'left' },
       { key: 'value', label: 'Amount' },

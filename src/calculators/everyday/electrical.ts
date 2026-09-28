@@ -170,7 +170,7 @@ const electrical: CalculatorDef<ElectricalResult> = {
 
   table: (r) => ({
     title: 'Appliance-wise load and running cost',
-    csvName: 'finora-electrical-load',
+    csvName: 'fincalc-electrical-load',
     columns: [
       { key: 'appliance', label: 'Appliance', align: 'left' },
       { key: 'qty', label: 'Qty' },

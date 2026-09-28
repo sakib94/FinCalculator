@@ -15,9 +15,13 @@ import { HeroResult, StatGrid } from './Results';
 import { ContentSections } from './ContentSections';
 import { AdSlot } from './AdSlot';
 import { CalculatorTile } from './CalculatorTile';
+import { CalcJumpBar, CompositionBar, ResultDock, useResultPosition } from './CalcPageParts';
+import type { JumpItem } from './CalcPageParts';
 import { Icon } from './Icon';
 import { useToast } from './Toast';
 import { useFavorites, useT } from '@/hooks/PreferencesContext';
+import { guideBySlug, readingMinutes } from '@/content/guides';
+import { SITE } from '@/data/site';
 
 interface Props {
   meta: CalculatorMeta;
@@ -49,7 +53,8 @@ export function CalculatorView({ meta, def }: Props) {
   const [touched, setTouched] = useState<Record<string, boolean>>(() =>
     touchedFor(valuesFromSearch(def.fields, search)),
   );
-  const resultRef = useRef<HTMLDivElement>(null);
+  const [heroEl, setHeroEl] = useState<HTMLDivElement | null>(null);
+  const resultPos = useResultPosition(heroEl);
   const t = useT();
   const { notify } = useToast();
   const { isFavorite, toggle } = useFavorites();
@@ -149,9 +154,20 @@ export function CalculatorView({ meta, def }: Props) {
   const table = result && def.table ? def.table(result, values) : null;
   const extra = result && def.extra ? def.extra(result, values) : null;
   const related = relatedTo(meta);
+  const guides = (def.content.guides ?? []).map(guideBySlug).filter((g): g is NonNullable<typeof g> => !!g);
+  const composition = charts.find((c): c is Extract<typeof c, { kind: 'donut' }> => c.kind === 'donut');
+
+  const jumps: JumpItem[] = [
+    { id: 'calc-tool', label: t('Calculator') },
+    ...(charts.length ? [{ id: 'calc-charts', label: t('Charts') }] : []),
+    ...(table ? [{ id: 'calc-table', label: t('Table') }] : []),
+    { id: 'calc-guide', label: t('Guide') },
+    ...(def.content.faqs?.length ? [{ id: 'calc-faq', label: t('FAQ') }] : []),
+    ...(related.length || guides.length ? [{ id: 'calc-next', label: t('Next steps') }] : []),
+  ];
 
   return (
-    <article>
+    <article className="calc-page">
       <nav className="crumbs no-print" aria-label="Breadcrumb">
         <Link to="/">{t('Home')}</Link>
         <span>/</span>
@@ -187,7 +203,9 @@ export function CalculatorView({ meta, def }: Props) {
         </div>
       </header>
 
-      <div className="calc-grid">
+      <CalcJumpBar items={jumps} hero={heroes[0]} showHero={!!result && resultPos === 'above'} />
+
+      <div className="calc-grid" id="calc-tool">
         {/* ---------------- Inputs ---------------- */}
         <div className="card accent-top lift panel-input">
           <div className="card-head">
@@ -266,7 +284,7 @@ export function CalculatorView({ meta, def }: Props) {
         {/* Mirrors the inputs card: same shape, same numbered header, its own
             tint — so the two halves read as two labelled steps rather than a
             form on the left and loose tiles on the right. */}
-        <div className="card accent-top lift panel-result" ref={resultRef}>
+        <div className="card accent-top lift panel-result" id="calc-result">
           <div className="card-head">
             <span className="step-dot" aria-hidden="true">
               2
@@ -277,9 +295,11 @@ export function CalculatorView({ meta, def }: Props) {
           <div className="card-pad stack">
             {result ? (
               <>
-                <div className="anim-zoom">
+                <div className="anim-zoom" ref={setHeroEl}>
                   <HeroResult heroes={heroes} />
                 </div>
+
+                {composition && <CompositionBar spec={composition} />}
 
                 {stats.length > 0 && <StatGrid stats={stats} />}
 
@@ -318,44 +338,80 @@ export function CalculatorView({ meta, def }: Props) {
       </div>
 
       {charts.length > 0 && (
-        <div className="stack" style={{ marginTop: 16 }}>
+        <section className="calc-block chart-grid" id="calc-charts" aria-label={t('Charts')}>
           {charts.map((spec, i) => (
-            <section className="card card-pad lift" key={i}>
+            <div className={`card card-pad lift chart-card${spec.kind === 'donut' ? ' is-donut' : ''}`} key={i}>
               <Chart spec={spec} />
-            </section>
+            </div>
           ))}
-        </div>
+        </section>
       )}
 
       {table && (
-        <div style={{ marginTop: 16 }}>
+        <section className="calc-block" id="calc-table" aria-label={t(table.title)}>
           <DataTable spec={table} />
-        </div>
+        </section>
       )}
 
       <AdSlot placement="after-results" />
 
-      <div style={{ marginTop: 22 }}>
+      <section className="calc-block calc-guide" id="calc-guide" aria-labelledby="guide-head">
+        <div className="block-head">
+          <p className="eyebrow">{t('Understand the result')}</p>
+          <h2 id="guide-head">{t('About the {name}').replace('{name}', t(meta.name))}</h2>
+        </div>
         <ContentSections content={def.content} name={meta.name} />
-      </div>
+      </section>
 
-      {related.length > 0 && (
-        <section className="section no-print" aria-labelledby="related-head">
-          <div className="section-head">
-            <h2 id="related-head">{t('Related calculators')}</h2>
+      {(related.length > 0 || guides.length > 0) && (
+        <section className="calc-block next-steps no-print" id="calc-next" aria-labelledby="next-head">
+          <div className="block-head">
+            <p className="eyebrow">{t('Next steps')}</p>
+            <h2 id="next-head">{t('Keep planning')}</h2>
           </div>
-          <div className="tile-grid">
-            {related.map((c) => (
-              <CalculatorTile key={c.id} calc={c} />
-            ))}
+          <div className={`next-grid${guides.length && related.length ? '' : ' single'}`}>
+            {related.length > 0 && (
+              <div>
+                <h3 className="next-sub">{t('Related calculators')}</h3>
+                <div className="tile-grid next-tiles">
+                  {related.map((c) => (
+                    <CalculatorTile key={c.id} calc={c} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {guides.length > 0 && (
+              <div>
+                <h3 className="next-sub">{t('Read the guide')}</h3>
+                <ul className="read-list">
+                  {guides.map((g) => (
+                    <li key={g.slug}>
+                      <Link to={`/guides/${g.slug}`}>
+                        <span className="rl-topic">{t(g.topic)}</span>
+                        <span className="rl-title">{g.title}</span>
+                        <span className="rl-meta">
+                          {readingMinutes(g)} {t('min read')}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         </section>
       )}
 
-      <p className="small muted" style={{ marginTop: 18 }}>
-        Finora runs entirely in your browser — the figures you enter are never sent anywhere. Results are
-        estimates for planning only, not financial, tax or investment advice.
+      <p className="trust-line">
+        <Icon name="lock" size={14} />
+        <span>
+          {t(
+            '{site} runs entirely in your browser — the figures you enter are never sent anywhere. Results are estimates for planning only, not financial, tax or investment advice.',
+          ).replace('{site}', SITE.name)}
+        </span>
       </p>
+
+      <ResultDock hero={heroes[0]} show={!!result && resultPos === 'below'} />
     </article>
   );
 }

@@ -103,7 +103,7 @@ const inflation: CalculatorDef<InflationResult> = {
   table: (r) => ({
     title: 'Year-wise impact',
     previewRows: 10,
-    csvName: 'finora-inflation-projection',
+    csvName: 'fincalc-inflation-projection',
     columns: [
       { key: 'year', label: 'Year', align: 'left' },
       { key: 'cost', label: 'Cost then' },

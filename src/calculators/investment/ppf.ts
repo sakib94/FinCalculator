@@ -112,7 +112,7 @@ const ppf: CalculatorDef<PpfResult> = {
   table: (r) => ({
     title: 'Year-wise balance',
     previewRows: 15,
-    csvName: 'finora-ppf-projection',
+    csvName: 'fincalc-ppf-projection',
     columns: [
       { key: 'year', label: 'Year', align: 'left' },
       { key: 'opening', label: 'Opening' },

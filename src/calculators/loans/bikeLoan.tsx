@@ -102,7 +102,7 @@ const bikeLoan: CalculatorDef<LoanEmiResult> = {
 
   charts: (r) => emiCharts(r),
 
-  table: (r) => emiTable(r, 'finora-bike-loan-schedule'),
+  table: (r) => emiTable(r, 'fincalc-bike-loan-schedule'),
 
   summary: (r) => emiSummary('Bike loan', r),
 

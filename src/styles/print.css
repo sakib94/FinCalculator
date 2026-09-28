@@ -1,6 +1,9 @@
 @media print {
   .topbar,
-  .sidebar,
+  .drawer,
+  .mega,
+  .site-footer,
+  .scroll-progress,
   .no-print,
   .scrim,
   .toast {

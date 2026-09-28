@@ -196,7 +196,7 @@ const educationLoan: CalculatorDef<EducationLoanResult> = {
   table: (r) =>
     emiTable(
       r,
-      'finora-education-loan-schedule',
+      'fincalc-education-loan-schedule',
       'The schedule starts with the first EMI, after the moratorium. For information only — your bank’s schedule depends on actual disbursement dates.',
     ),
 

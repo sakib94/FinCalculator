@@ -38,6 +38,12 @@ const contrast = (a, b) => {
   return (l1 + 0.05) / (l2 + 0.05);
 };
 
+const blendWhite = (alpha, bgHex) =>
+  '#' +
+  hexToRgb(bgHex)
+    .map((v) => Math.round(alpha * 255 + (1 - alpha) * v).toString(16).padStart(2, '0'))
+    .join('');
+
 const PALETTES = ['premium', 'ocean', 'emerald', 'royal', 'graphite'];
 
 // [label, foreground token, background token, minimum ratio]
@@ -57,6 +63,8 @@ const CHECKS = [
   ['button label on hover', '--brand-ink', '--brand-700', 4.5],
   ['hero text on hero start', '#ffffff', '--hero-from', 4.5],
   ['hero text on hero end', '#ffffff', '--hero-to', 4.5],
+  ['muted hero text on hero start', 'white@0.88', '--hero-from', 4.5],
+  ['muted hero text on hero end', 'white@0.88', '--hero-to', 4.5],
   ['positive on surface', '--positive', '--surface', 4.5],
   ['negative on surface', '--negative', '--surface', 4.5],
   ['warning on surface', '--warning', '--surface', 4.5],
@@ -83,8 +91,9 @@ for (const p of PALETTES) {
     let worst = { label: '', ratio: Infinity };
 
     for (const [label, fg, bg, min] of CHECKS) {
-      const f = get(fg);
       const b = get(bg);
+      // "white@0.88": white at 88% opacity, composited over the background.
+      const f = fg.startsWith('white@') && b ? blendWhite(Number(fg.slice(6)), b) : get(fg);
       if (!f || !b || !f.startsWith('#') || !b.startsWith('#')) continue;
       checked++;
       const ratio = contrast(f, b);

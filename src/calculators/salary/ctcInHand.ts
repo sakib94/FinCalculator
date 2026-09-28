@@ -166,7 +166,7 @@ const ctcInHand: CalculatorDef<CtcResult> = {
 
   table: (r) => ({
     title: 'CTC to in-hand, step by step',
-    csvName: 'finora-ctc-breakdown',
+    csvName: 'fincalc-ctc-breakdown',
     columns: [
       { key: 'item', label: 'Component', align: 'left' },
       { key: 'annual', label: 'Annual' },

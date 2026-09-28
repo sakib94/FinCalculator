@@ -340,7 +340,7 @@ const incomeTax: CalculatorDef<TaxResult> = {
 
   table: (r) => ({
     title: `Slab-wise tax · ${r.regimeLabel} · ${r.fyLabel}`,
-    csvName: 'finora-income-tax-slabs',
+    csvName: 'fincalc-income-tax-slabs',
     previewRows: 12,
     columns: [
       { key: 'slab', label: 'Income slab', align: 'left' },

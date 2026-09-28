@@ -7,7 +7,7 @@ import type { Mode, Palette, PaletteId, ResolvedMode } from './usePreferences';
 
 /**
  * Theme, favourites and recently-used live in one store shared by the whole
- * app, so starring a calculator updates the sidebar, the dashboard and the
+ * app, so starring a calculator updates the menu, the home page and the
  * page header at once — and the theme picker, the topbar icon and the
  * keyboard shortcut all read the same value rather than separate copies.
  * Everything is persisted locally — nothing leaves the browser.

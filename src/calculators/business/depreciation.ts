@@ -132,7 +132,7 @@ const depreciation: CalculatorDef<DepreciationResult> = {
   table: (r) => ({
     title: 'Depreciation schedule',
     previewRows: 12,
-    csvName: 'finora-depreciation',
+    csvName: 'fincalc-depreciation',
     columns: [
       { key: 'year', label: 'Year', align: 'left' },
       { key: 'opening', label: 'Opening value' },

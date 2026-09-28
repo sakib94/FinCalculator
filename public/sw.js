@@ -1,6 +1,6 @@
-/* Finora service worker — cache-first for the app shell, network-first for
+/* FinCalc service worker — cache-first for the app shell, network-first for
    everything else. Bump CACHE on each release to invalidate old assets. */
-const CACHE = 'finora-v17';
+const CACHE = 'fincalc-v18';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icons/favicon.svg'];
 
 self.addEventListener('install', (event) => {

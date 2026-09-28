@@ -173,7 +173,7 @@ const prepayment: CalculatorDef<PrepaymentResult> = {
 
   table: (r) => ({
     title: 'Side-by-side comparison',
-    csvName: 'finora-prepayment',
+    csvName: 'fincalc-prepayment',
     columns: [
       { key: 'item', label: 'Item', align: 'left' },
       { key: 'before', label: 'Without prepaying' },

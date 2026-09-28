@@ -2,7 +2,7 @@
   position: relative;
   width: 100%;
 }
-.chart svg {
+.chart svg:where(:not(.marker)) {
   display: block;
   width: 100%;
   height: auto;
@@ -52,6 +52,16 @@
   margin-top: 10px;
   font-size: 0.79rem;
   color: var(--text-2);
+}
+/* A colour key. Always paired with a text label, never used alone. */
+.sw {
+  display: inline-block;
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  margin-right: 6px;
+  vertical-align: -1px;
 }
 .legend span.sw {
   display: inline-block;

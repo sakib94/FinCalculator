@@ -185,7 +185,7 @@ const capitalGains: CalculatorDef<CapitalGainsResult> = {
 
   table: (r, v) => ({
     title: 'Capital gains computation',
-    csvName: 'finora-capital-gains',
+    csvName: 'fincalc-capital-gains',
     columns: [
       { key: 'item', label: 'Particulars', align: 'left' },
       { key: 'amount', label: 'Amount' },

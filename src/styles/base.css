@@ -15,7 +15,7 @@ body {
   color: var(--color-text);
   font-family: var(--font);
   font-size: 15px;
-  line-height: 1.55;
+  line-height: 1.6;
   font-feature-settings: 'cv11' 1, 'ss01' 1;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -35,13 +35,24 @@ h4 {
   font-weight: var(--weight-semibold);
 }
 
-h1 {
-  font-size: clamp(1.5rem, 1.18rem + 1.2vw, 2.05rem);
+/* Display headings speak in the brand face; everything smaller stays in
+   Inter for legibility. */
+h1,
+h2 {
+  font-family: var(--font-display);
   font-weight: var(--weight-bold);
-  letter-spacing: -0.028em;
+  /* Plus Jakarta Sans draws a narrow space; with tight tracking the words
+     in a heading run together. Open the word gap back up. */
+  word-spacing: var(--display-word-gap);
+}
+h1 {
+  font-size: var(--fs-h1);
+  letter-spacing: -0.03em;
+  line-height: 1.12;
 }
 h2 {
-  font-size: clamp(1.12rem, 1rem + 0.55vw, 1.36rem);
+  font-size: var(--fs-h2);
+  letter-spacing: -0.022em;
 }
 h3 {
   font-size: 1.02rem;

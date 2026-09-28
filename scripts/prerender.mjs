@@ -16,7 +16,7 @@
  * tags, JSON-LD and the fully rendered page content, so it is indexable
  * before any JavaScript runs. The browser bundle then takes over.
  */
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -26,7 +26,18 @@ const ssrDir = join(projectRoot, 'dist-ssr');
 
 const ssr = await import(pathToFileURL(join(ssrDir, 'entry-server.js')).href);
 const { SITE } = ssr;
-const template = await readFile(join(dist, 'index.html'), 'utf8');
+let template = await readFile(join(dist, 'index.html'), 'utf8');
+
+// Preload the three font files almost every page paints with — body text,
+// the ₹ sign (Inter's latin-ext subset) and the display face — so the first
+// paint uses them instead of swapping a fallback out a moment later.
+const PRELOAD_FONTS = /^(inter-latin-wght-normal|inter-latin-ext-wght-normal|plus-jakarta-sans-latin-wght-normal)[\w.-]*\.woff2$/;
+const fontPreloads = (await readdir(join(dist, 'assets')))
+  .filter((f) => PRELOAD_FONTS.test(f))
+  .map((f) => `<link rel="preload" href="./assets/${f}" as="font" type="font/woff2" crossorigin />`);
+if (fontPreloads.length) {
+  template = template.replace('<link rel="stylesheet"', `${fontPreloads.join('\n    ')}\n    <link rel="stylesheet"`);
+}
 
 if (!template.includes('<!--app-start-->') || !template.includes('<!--app-end-->')) {
   throw new Error('dist/index.html is missing the <!--app-start--> / <!--app-end--> markers');

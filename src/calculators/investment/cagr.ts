@@ -157,7 +157,7 @@ const cagr: CalculatorDef<CagrResult> = {
       ? {
           title: 'Year-wise value at this CAGR',
           previewRows: 12,
-          csvName: 'finora-cagr',
+          csvName: 'fincalc-cagr',
           columns: [
             { key: 'year', label: 'Year', align: 'left' },
             { key: 'value', label: 'Value' },

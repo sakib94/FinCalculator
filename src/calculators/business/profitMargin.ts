@@ -161,7 +161,7 @@ const profitMargin: CalculatorDef<ProfitMarginResult> = {
 
   table: (r) => ({
     title: 'Profit and loss summary',
-    csvName: 'finora-profit-margin',
+    csvName: 'fincalc-profit-margin',
     columns: [
       { key: 'item', label: 'Particulars', align: 'left' },
       { key: 'amount', label: 'Amount' },

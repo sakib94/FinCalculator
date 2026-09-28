@@ -18,7 +18,7 @@ interface SiteConfig {
 }
 
 export const SITE: SiteConfig = {
-  name: 'Finora',
+  name: 'FinCalc',
 
   /**
    * The production origin, with no trailing slash. Canonical URLs, the

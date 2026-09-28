@@ -98,7 +98,7 @@ const rd: CalculatorDef<RdResult> = {
 
   table: (r) => ({
     title: 'Year-wise growth',
-    csvName: 'finora-rd-projection',
+    csvName: 'fincalc-rd-projection',
     columns: [
       { key: 'year', label: 'Year', align: 'left' },
       { key: 'deposited', label: 'Deposited so far' },

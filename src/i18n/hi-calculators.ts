@@ -83,6 +83,8 @@ export const HI_CALCULATORS: Record<string, string> = {
   'Quarterly (bank standard)': 'तिमाही (बैंक मानक)',
   'Simple interest (no compounding)': 'साधारण ब्याज (कंपाउंडिंग नहीं)',
   Months: 'महीने',
+  Years: 'साल',
+  'Tenure unit': 'अवधि की इकाई',
   'Number of Years': 'वर्षों की संख्या',
   'Additional Months': 'अतिरिक्त महीने',
   'Months saved': 'बचे हुए महीने',

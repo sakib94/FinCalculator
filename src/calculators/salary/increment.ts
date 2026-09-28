@@ -201,7 +201,7 @@ const increment: CalculatorDef<IncrementResult> = {
   table: (r) => ({
     title: 'Year-wise salary projection',
     previewRows: 10,
-    csvName: 'finora-salary-projection',
+    csvName: 'fincalc-salary-projection',
     columns: [
       { key: 'year', label: 'Year', align: 'left' },
       { key: 'monthly', label: 'Monthly salary' },
