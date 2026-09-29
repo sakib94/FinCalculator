@@ -22,7 +22,7 @@
   align-items: center;
   gap: 8px;
   height: var(--topbar-h);
-  max-width: calc(var(--maxw) + 2 * var(--gutter));
+  max-width: var(--shell-maxw);
   margin: 0 auto;
   padding: 0 var(--gutter);
 }
@@ -178,7 +178,7 @@
   transition: opacity var(--dur-2) var(--ease-out), transform var(--dur-2) var(--ease-out);
 }
 .mega-inner {
-  max-width: calc(var(--maxw) + 2 * var(--gutter));
+  max-width: var(--shell-maxw);
   margin: 0 auto;
   padding: 22px var(--gutter) 16px;
   max-height: calc(100dvh - var(--topbar-h) - 20px);
@@ -551,6 +551,117 @@
 /* ================================================================
    Page body
    ================================================================ */
+
+/* Content and, on wide screens, the calculator menu on its right. The
+   header, mega-menu and this row share one width so their edges line up. */
+:root {
+  --side-w: 260px;
+  --side-gap: 28px;
+  --shell-maxw: calc(var(--maxw) + 2 * var(--gutter));
+}
+.shell {
+  flex: 1;
+  display: flex;
+  align-items: flex-start;
+  width: 100%;
+  max-width: var(--shell-maxw);
+  margin: 0 auto;
+}
+
+/* ---------------- Right-hand calculator menu ---------------- */
+.side-nav {
+  display: none;
+}
+@media (min-width: 1200px) {
+  :root {
+    --shell-maxw: calc(var(--maxw) + var(--side-w) + var(--side-gap) + 2 * var(--gutter));
+  }
+  .shell > .main {
+    padding-right: var(--side-gap);
+  }
+  .side-nav {
+    display: block;
+    position: sticky;
+    top: calc(var(--topbar-h) + var(--safe-t));
+    flex: none;
+    width: calc(var(--side-w) + var(--gutter));
+    max-height: calc(100dvh - var(--topbar-h) - var(--safe-t));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border-strong) transparent;
+    padding: 28px var(--gutter) calc(28px + var(--safe-b)) 0;
+  }
+}
+.side-group {
+  display: grid;
+  gap: 7px;
+}
+.side-group + .side-group {
+  margin-top: 18px;
+}
+.side-title {
+  padding: 0 4px 2px;
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.side-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding: 7px 12px;
+  border: 1px solid color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
+  border-radius: var(--r-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: 0.875rem;
+  font-weight: var(--weight-medium);
+  line-height: 1.25;
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease),
+    color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.side-item > svg {
+  flex: none;
+  color: var(--color-text-muted);
+  transition: color var(--dur) var(--ease);
+}
+.side-item:hover {
+  text-decoration: none;
+  color: var(--color-text);
+  border-color: var(--color-primary-border);
+  box-shadow: var(--shadow-1);
+}
+.side-item:hover > svg {
+  color: var(--color-primary);
+}
+.side-item[aria-current='page'] {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  font-weight: var(--weight-semibold);
+}
+.side-item[aria-current='page'] > svg {
+  color: var(--color-primary);
+}
+.side-item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.side-label {
+  min-width: 0;
+}
+.side-new,
+.side-star {
+  margin-left: auto;
+}
+.side-star {
+  color: var(--color-warning);
+}
+
 .main {
   flex: 1;
   min-width: 0;
@@ -707,7 +818,7 @@
   padding: 52px var(--gutter) calc(22px + var(--safe-b));
 }
 .footer-inner {
-  max-width: var(--maxw);
+  max-width: calc(var(--shell-maxw) - 2 * var(--gutter));
   margin: 0 auto;
 }
 .footer-top {

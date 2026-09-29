@@ -203,7 +203,9 @@
 .fields {
   display: grid;
   gap: var(--gap-fields);
-  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  /* 180px lets two fields sit side by side even in the narrower panels
+     beside the right-hand menu. */
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 .field {
   min-width: 0;
@@ -663,7 +665,7 @@ input[type='date'].input {
 .stat-grid {
   display: grid;
   gap: var(--gap-stat);
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(128px, 1fr));
 }
 .stat {
   position: relative;

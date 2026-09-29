@@ -12,6 +12,7 @@ import { SearchDialog } from './SearchDialog';
 import { ThemeMenu } from './ThemeMenu';
 import { LanguageMenu } from './LanguageMenu';
 import { ScrollProgress } from './ScrollProgress';
+import { SideNav } from './SideNav';
 
 /** Categories promoted to the header on wide screens. */
 const HEADER_CATEGORIES = ['loans', 'investment', 'tax'] as const;
@@ -41,8 +42,9 @@ const FOOTER_GUIDES: [slug: string, label: string][] = [
  *
  * A single header carries the brand, the primary navigation (a Calculators
  * mega-menu, the three busiest categories and Guides), search and the
- * language and appearance menus. Content gets the full width below it.
- * On small screens the navigation moves into a slide-in drawer.
+ * language and appearance menus. On wide screens every calculator is also
+ * listed in a menu on the right (SideNav); on small screens the navigation
+ * moves into a slide-in drawer.
  *
  * The mega-menu stays in the DOM when closed (hidden with CSS), so the
  * pre-rendered HTML of every page links to every calculator.
@@ -381,9 +383,12 @@ export function AppShell({ children }: { children: ReactNode }) {
         </>
       )}
 
-      <main className="main" id="main">
-        <div className="main-inner">{children}</div>
-      </main>
+      <div className="shell">
+        <main className="main" id="main">
+          <div className="main-inner">{children}</div>
+        </main>
+        <SideNav path={path} />
+      </div>
 
       <footer className="site-footer no-print">
         <div className="footer-inner">
