@@ -248,7 +248,7 @@ html {
 .chart-card.is-donut .donut-wrap {
   flex: 1;
 }
-@container content (max-width: 680px) {
+@media (max-width: 900px) {
   .chart-grid {
     grid-template-columns: 1fr;
   }
@@ -312,7 +312,7 @@ html {
   color: var(--color-primary);
   border-left-color: var(--color-primary);
 }
-@container content (max-width: 879px) {
+@media (max-width: 1099px) {
   .article-layout {
     grid-template-columns: 1fr;
     grid-template-areas: 'toc' 'article';
@@ -501,12 +501,12 @@ html {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
 }
-@container content (max-width: 760px) {
+@media (max-width: 900px) {
   .next-grid {
     grid-template-columns: 1fr;
   }
 }
-@container content (max-width: 560px) {
+@media (max-width: 640px) {
   .next-tiles,
   .next-grid.single .next-tiles {
     grid-template-columns: 1fr;
