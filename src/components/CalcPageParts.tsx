@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import type { ChartSpec, Hero } from '@/calculators/types';
 import { formatINRCompact } from '@/lib/format';
 import { scrollToSection } from '@/lib/scroll';
@@ -151,8 +152,13 @@ export function CompositionBar({ spec }: { spec: DonutSpec }) {
  */
 export function ResultDock({ hero, show }: { hero?: Hero; show: boolean }) {
   const t = useT();
-  if (!hero) return null;
-  return (
+  // Rendered into <body>: the page content is a size container, which
+  // would otherwise pin a fixed element to the content box, not the screen.
+  // Client-only, since the server renderer has no portals.
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  if (!hero || !mounted) return null;
+  return createPortal(
     <div className={`result-dock no-print${show ? ' show' : ''}`} aria-hidden={!show}>
       <div className="rd-text">
         <span className="rd-label">{t(hero.label)}</span>
@@ -162,7 +168,8 @@ export function ResultDock({ hero, show }: { hero?: Hero; show: boolean }) {
         {t('Details')}
         <Icon name="chevronDown" size={15} />
       </button>
-    </div>
+    </div>,
+    document.body,
   );
 }
 

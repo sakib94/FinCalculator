@@ -362,7 +362,7 @@
   border-radius: 4px;
 }
 
-@media (max-width: 960px) {
+@container content (max-width: 840px) {
   .settings-layout {
     grid-template-columns: 1fr;
   }

@@ -572,7 +572,20 @@
 .side-nav {
   display: none;
 }
-@media (min-width: 1200px) {
+/* Shown wherever the desktop header is (1024px and up), a little narrower
+   on smaller laptops. The page beside it adapts through container queries. */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  :root {
+    --side-w: 224px;
+    --side-gap: 20px;
+  }
+  .side-nav .side-item {
+    font-size: 0.84rem;
+    padding: 6px 10px;
+    gap: 8px;
+  }
+}
+@media (min-width: 1024px) {
   :root {
     --shell-maxw: calc(var(--maxw) + var(--side-w) + var(--side-gap) + 2 * var(--gutter));
   }
@@ -674,6 +687,12 @@
 .main-inner {
   max-width: var(--maxw);
   margin: 0 auto;
+  /* Page layouts respond to the width they actually get — the full window
+     on phones, or the space beside the right-hand menu on desktops — via
+     `@container content (…)` rules rather than screen-width media queries.
+     (Size containment re-anchors position: fixed descendants to this box,
+     so the few fixed elements a page owns are portalled to <body>.) */
+  container: content / inline-size;
 }
 
 /* ================================================================

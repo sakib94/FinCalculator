@@ -182,9 +182,12 @@ Every page answers the same questions in the same order.
   by category, direct tabs for Loans, Investment and Tax & Salary, Guides, search (⌘K), language
   and theme. Below 1024px the menu becomes a drawer with one accordion per category (the current
   one open).
-- **Right-hand menu** — on screens 1200px and wider, every calculator is also listed down the
-  right of every page, by category, with Dashboard, Financial guides and your favourites at the
-  top. It scrolls on its own and keeps the current calculator in view.
+- **Right-hand menu** — wherever the desktop header shows (1024px and wider), every calculator
+  is also listed down the right of every page, by category, with Dashboard, Financial guides
+  and your favourites at the top. It scrolls on its own and keeps the current calculator in
+  view. Page layouts respond to the width they actually get beside it (CSS container queries on
+  `.main-inner`), so the calculator panels, charts, home hero and article contents rearrange
+  themselves on smaller laptops instead of being squeezed.
 - **Home** — what FinCalc is and a *working* EMI calculator in the hero (three sliders, the
   answer, a principal/interest bar, then a hand-off to the full calculator with the same
   numbers); trust figures; favourites and recents; the six most-used tools; categories; featured
