@@ -110,21 +110,22 @@
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
 
-  /* ---- Density (comfortable) — see the compact block at the end ---- */
-  --control-h: 42px;
-  --control-h-sm: 34px;
-  --input-py: 9px;
-  --pad-card: 16px;
-  --pad-card-head: 12px 16px;
-  --gap-stack: 12px;
-  --gap-fields: 14px 16px;
-  --field-label-gap: 6px;
-  --pad-stat: 11px 13px;
-  --gap-stat: 10px;
-  --pad-hero: 18px 20px;
-  --pad-tile: 11px 13px;
-  --tile-min-h: 64px;
-  --cell-py: 9px;
+  /* ---- Density (comfortable) — see the compact block at the end ----
+     Standard, not oversized: 40px controls, 14px card padding. */
+  --control-h: 40px;
+  --control-h-sm: 32px;
+  --input-py: 8px;
+  --pad-card: 14px;
+  --pad-card-head: 10px 14px;
+  --gap-stack: 10px;
+  --gap-fields: 12px 14px;
+  --field-label-gap: 5px;
+  --pad-stat: 9px 12px;
+  --gap-stat: 8px;
+  --pad-hero: 14px 18px;
+  --pad-tile: 10px 12px;
+  --tile-min-h: 60px;
+  --cell-py: 8px;
   --cell-px: 14px;
   --text-table: 0.86rem;
 
@@ -549,25 +550,26 @@
    target too small to tap.
    ================================================================== */
 :root[data-density='compact'] {
-  --control-h: 36px;
-  --control-h-sm: 30px;
-  --input-py: 6px;
-  --pad-card: 12px;
-  --pad-card-head: 9px 12px;
-  --gap-stack: 9px;
-  --gap-fields: 10px 12px;
+  --control-h: 34px;
+  --control-h-sm: 28px;
+  --input-py: 5px;
+  --pad-card: 11px;
+  --pad-card-head: 8px 11px;
+  --gap-stack: 8px;
+  --gap-fields: 9px 11px;
   --field-label-gap: 4px;
-  --pad-stat: 8px 11px;
-  --gap-stat: 8px;
-  --pad-hero: 14px 16px;
-  --pad-tile: 8px 12px;
-  --tile-min-h: 54px;
-  --cell-py: 6px;
-  --cell-px: 12px;
+  --pad-stat: 7px 10px;
+  --gap-stat: 6px;
+  --pad-hero: 11px 14px;
+  --pad-tile: 7px 11px;
+  --tile-min-h: 50px;
+  --cell-py: 5px;
+  --cell-px: 11px;
   --text-table: 0.83rem;
   --section-gap: clamp(32px, 2vw + 22px, 56px);
 }
 @media (pointer: coarse) {
+  :root,
   :root[data-density='compact'] {
     --control-h: 42px;
     --control-h-sm: 36px;

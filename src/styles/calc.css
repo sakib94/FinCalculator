@@ -164,7 +164,7 @@ html {
 /* ---------------- Composition bar ---------------- */
 .comp {
   margin: 0;
-  padding: 14px 16px;
+  padding: var(--pad-stat);
   border: 1px solid var(--color-border);
   border-radius: var(--r-md);
   background: var(--color-surface);
@@ -173,12 +173,12 @@ html {
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   color: var(--color-text-muted);
-  margin-bottom: 9px;
+  margin-bottom: 7px;
 }
 .comp-bar {
   display: flex;
   gap: 3px;
-  height: 12px;
+  height: 10px;
   border-radius: var(--radius-pill);
   overflow: hidden;
 }
@@ -195,11 +195,11 @@ html {
 .comp-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px 20px;
-  margin: 10px 0 0;
+  gap: 4px 18px;
+  margin: 8px 0 0;
   padding: 0;
   list-style: none;
-  font-size: var(--text-sm);
+  font-size: 0.8rem;
 }
 .comp-legend li {
   display: inline-flex;

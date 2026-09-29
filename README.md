@@ -319,8 +319,9 @@ bar and result dock, and all of it is switched off under `prefers-reduced-motion
 
 Responsive behaviour: the header collapses to a drawer below 1024px, the calculator's inputs
 and result stack below 900px, the article index folds above the text below 1100px, input grids
-collapse to one column below 620px, tables scroll inside their own container, and every
-control has a ≥44px touch target. Nothing overflows horizontally at any width from 320px up.
+collapse to one column below 620px, tables scroll inside their own container, and controls
+are at least 42px tall on touch screens (40px with a mouse). Side by side, the inputs and
+result panels are always the same height. Nothing overflows horizontally at any width from 320px up.
 
 ---
 

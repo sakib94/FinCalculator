@@ -597,44 +597,44 @@ input[type='date'].input {
   position: relative;
 }
 .hero-result .h-label {
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: var(--weight-semibold);
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--color-on-hero-muted);
 }
 .hero-result .h-value {
-  font-size: clamp(1.7rem, 1.15rem + 1.8vw, 2.35rem);
+  font-size: clamp(1.5rem, 1.1rem + 1.3vw, 2rem);
   font-weight: var(--weight-bold);
   letter-spacing: -0.035em;
   line-height: 1.12;
-  margin-top: 4px;
+  margin-top: 3px;
   font-variant-numeric: tabular-nums;
   /* One line, always. fitClass() in Results.tsx steps the size down for
      longer figures rather than letting them wrap. */
   white-space: nowrap;
 }
 .hero-result .h-value.sm {
-  font-size: clamp(1.45rem, 1rem + 1.5vw, 2rem);
+  font-size: clamp(1.35rem, 1rem + 1.15vw, 1.75rem);
 }
 .hero-result .h-value.xs {
-  font-size: clamp(1.25rem, 0.9rem + 1.25vw, 1.7rem);
+  font-size: clamp(1.18rem, 0.9rem + 1vw, 1.5rem);
 }
 .hero-result .h-value.xxs {
-  font-size: clamp(1.05rem, 0.82rem + 0.9vw, 1.38rem);
+  font-size: clamp(1rem, 0.82rem + 0.75vw, 1.28rem);
   letter-spacing: -0.02em;
 }
 .hero-result .h-caption {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--color-on-hero-muted);
-  margin-top: 6px;
-  padding-top: 8px;
+  margin-top: 5px;
+  padding-top: 6px;
   border-top: 1px solid rgb(255 255 255 / 0.12);
 }
 
 /* Secondary hero figures, in the plain cards beside the ink one. */
 .h-alt {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   font-weight: var(--weight-bold);
   letter-spacing: -0.03em;
   margin-top: 4px;
@@ -643,10 +643,10 @@ input[type='date'].input {
   font-variant-numeric: tabular-nums;
 }
 .h-alt.sm {
-  font-size: 1.3rem;
+  font-size: 1.18rem;
 }
 .h-alt.xs {
-  font-size: 1.12rem;
+  font-size: 1.06rem;
 }
 .h-alt.xxs {
   font-size: 0.98rem;
@@ -707,16 +707,16 @@ input[type='date'].input {
   transform: rotate(45deg);
 }
 .stat .s-value {
-  font-size: 1.08rem;
+  font-size: 1rem;
   font-weight: var(--weight-bold);
   letter-spacing: -0.02em;
-  margin-top: 3px;
+  margin-top: 2px;
   color: var(--color-text);
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 .stat .s-value.sm {
-  font-size: 0.95rem;
+  font-size: 0.92rem;
 }
 .stat.positive .s-value {
   color: var(--color-success);
@@ -732,9 +732,9 @@ input[type='date'].input {
   display: flex;
   justify-content: space-between;
   gap: 14px;
-  padding: 10px 0;
+  padding: 7px 0;
   border-bottom: 1px solid var(--color-divider);
-  font-size: 0.9rem;
+  font-size: 0.87rem;
 }
 .kv:last-child {
   border-bottom: 0;
@@ -752,8 +752,8 @@ input[type='date'].input {
   border-top: 2px solid var(--color-border-strong);
   border-bottom: 0;
   margin-top: 4px;
-  padding-top: 12px;
-  font-size: 1rem;
+  padding-top: 9px;
+  font-size: 0.95rem;
 }
 .kv.total dt {
   color: var(--color-text);
@@ -829,14 +829,14 @@ input[type='date'].input {
 .note {
   display: flex;
   gap: 10px;
-  padding: 12px 14px;
+  padding: 9px 12px;
   border-radius: var(--r-md);
   background: var(--color-info-bg);
   border: 1px solid color-mix(in srgb, var(--color-info) 18%, var(--color-border));
   border-left: 3px solid var(--color-info);
-  font-size: 0.85rem;
+  font-size: 0.83rem;
   color: var(--color-text-secondary);
-  line-height: 1.55;
+  line-height: 1.5;
 }
 .note strong {
   color: var(--color-text);
@@ -972,12 +972,12 @@ table.data tfoot td:first-child {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 13px 15px;
+  padding: 8px 14px;
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
   list-style: none;
-  min-height: 48px;
+  min-height: var(--control-h);
 }
 .acc summary::-webkit-details-marker {
   display: none;
@@ -1000,7 +1000,7 @@ table.data tfoot td:first-child {
   background: var(--surface-2);
 }
 .acc .acc-body {
-  padding: 0 15px 15px;
+  padding: 0 14px 14px;
   font-size: 0.89rem;
   color: var(--text-2);
   line-height: 1.6;
@@ -1589,7 +1589,29 @@ table.data tfoot td:first-child {
   display: grid;
   gap: 16px;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  align-items: start;
+  /* Side by side, the inputs and the result are one unit: the same
+     height, with each panel's footer row (Reset / Copy · Share …) pinned to
+     its bottom edge so any spare room sits above it, not below. */
+  align-items: stretch;
+}
+.panel-input,
+.panel-result {
+  display: flex;
+  flex-direction: column;
+}
+.panel-input > .card-pad,
+.panel-result > .card-pad {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-stack);
+}
+.panel-input > .card-pad > .live-row,
+.panel-result > .card-pad > .btn-row:last-child {
+  margin-top: auto;
+}
+.panel-result > .card-pad > .result-placeholder {
+  flex: 1;
 }
 @media (max-width: 900px) {
   .calc-grid {
