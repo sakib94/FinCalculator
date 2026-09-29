@@ -57,7 +57,11 @@ const percentage: CalculatorDef<PercentResult> = {
     switch (r.mode) {
       case 'change':
         return [
-          { label: 'Absolute change', value: formatNumber(b - a, 2), tone: b >= a ? 'positive' : 'negative' },
+          {
+            label: 'Absolute change',
+            value: `${b > a ? '+' : b < a ? '\u2212' : ''}${formatNumber(Math.abs(b - a), 2)}`,
+            tone: b >= a ? 'positive' : 'negative',
+          },
           { label: 'Direction', value: b >= a ? 'Increase' : 'Decrease' },
         ];
       case 'increase':

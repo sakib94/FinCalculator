@@ -5,7 +5,7 @@ import {
   type IncrementMode,
   type IncrementResult,
 } from '@/engines/salary';
-import { formatINR, formatPercent } from '@/lib/format';
+import { formatINR, formatPercent, formatSignedINR } from '@/lib/format';
 import { num, str } from '@/lib/validate';
 
 const mode = (v: Values) => str(v.mode, 'rate') as IncrementMode;
@@ -152,7 +152,7 @@ const increment: CalculatorDef<IncrementResult> = {
           },
           {
             label: 'Increase a year',
-            value: formatINR(r.increaseAnnual),
+            value: formatSignedINR(r.increaseAnnual),
             caption: `${formatINR(r.increaseMonthly)} more every month`,
           },
         ]
@@ -175,16 +175,16 @@ const increment: CalculatorDef<IncrementResult> = {
       return [
         { label: 'Previous monthly', value: formatINR(r.currentMonthly) },
         { label: 'New monthly', value: formatINR(r.newMonthly) },
-        { label: 'Monthly increase', value: formatINR(r.increaseMonthly), tone: tone(r.increaseMonthly) },
+        { label: 'Monthly increase', value: formatSignedINR(r.increaseMonthly), tone: tone(r.increaseMonthly) },
         { label: 'Previous annual', value: formatINR(r.currentAnnual) },
         { label: 'New annual', value: formatINR(r.newAnnual) },
-        { label: 'Annual increase', value: formatINR(r.increaseAnnual), tone: tone(r.increaseAnnual) },
+        { label: 'Annual increase', value: formatSignedINR(r.increaseAnnual), tone: tone(r.increaseAnnual) },
       ];
     return [
       { label: 'Current monthly', value: formatINR(r.currentMonthly) },
-      { label: 'Monthly increase', value: formatINR(r.increaseMonthly), tone: tone(r.increaseMonthly) },
+      { label: 'Monthly increase', value: formatSignedINR(r.increaseMonthly), tone: tone(r.increaseMonthly) },
       { label: 'Current annual', value: formatINR(r.currentAnnual) },
-      { label: 'Annual increase', value: formatINR(r.increaseAnnual), tone: tone(r.increaseAnnual) },
+      { label: 'Annual increase', value: formatSignedINR(r.increaseAnnual), tone: tone(r.increaseAnnual) },
     ];
   },
 

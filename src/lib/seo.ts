@@ -11,7 +11,7 @@ export function applyPageMeta(meta: PageMeta, path: string): void {
   setMeta('name', 'description', meta.description);
   setMeta('property', 'og:title', meta.title);
   setMeta('property', 'og:description', meta.description);
-  setMeta('name', 'robots', meta.notFound ? 'noindex' : 'index, follow');
+  setMeta('name', 'robots', meta.notFound || meta.noindex ? 'noindex' : 'index, follow');
 
   const url = canonicalUrlFor(path);
   setMeta('property', 'og:url', url);

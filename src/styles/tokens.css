@@ -3,34 +3,34 @@
 
    FinCalc's visual language: calm, precise, trustworthy.
      · Neutrals do most of the work — cool, faintly tinted greys.
-     · One brand hue marks everything interactive.
+     · One accent hue marks everything interactive.
      · A deep "ink" ground is reserved for the one figure that matters
        (the headline result).
-     · Green, red and amber carry meaning only: growth, loss, attention.
+     · Green, red and amber carry meaning only: gain, cost, attention.
 
-   Two layers:
+   Appearance is three independent choices, each an attribute on <html>
+   written before first paint (src/theme/boot.ts) and kept in step by
+   src/theme/useAppearance.ts:
 
-   1. PRIMITIVES, declared per palette and per mode:
-        --brand-50…700, --accent-*, --bg, --surface, --surface-2/3,
-        --border, --border-strong, --text, --text-2, --text-3,
-        --positive, --negative, --warning, --hero-*, --series-1…5
+     data-mode     light | dark        (System is resolved to one of these)
+     data-accent   blue | indigo | emerald | violet | amber
+     data-density  comfortable | compact
 
-   2. SEMANTIC TOKENS (--color-*), declared once on :root and derived
-      from the primitives. Components use these, so every palette and
-      both modes stay consistent without per-component overrides.
+   Layers, in order:
 
-   Palettes (each a complete light + dark system, not just a new hue):
-     Premium   ink + sapphire      the default: banking-grade, neutral
-     Ocean     deep sea + cyan     cool, technical
-     Emerald   forest + gold       wealth, growth
-     Royal     indigo + violet     considered, editorial
-     Graphite  charcoal + amber    warm, understated
+   1. SCALES — shape, spacing, motion, type, layout. Mode-independent.
+   2. SEMANTIC TOKENS (--color-*, --focus-ring, …) — what components use.
+      Declared once, derived from the primitives below.
+   3. MODE PRIMITIVES — neutrals, status colours, the brand signature and
+      shadows. One set per mode, shared by every accent, so the product
+      reads the same whichever accent is chosen.
+   4. ACCENT PRIMITIVES — the accent scale (--brand-*), the tint of the
+      ink result card and the chart palette. Five accents × two modes;
+      nothing else changes with the accent. Status colours never do.
+   5. DENSITY — padding, control heights and gaps.
 
-   [data-palette] picks the hue family and [data-mode] the surface.
-   usePreferences.ts always writes both attributes ("auto" is resolved to
-   light or dark in JS), so each palette needs one block per mode.
-
-   Run `npm run check:contrast` after changing any colour.
+   Run `npm run check:contrast` after changing any colour: it audits every
+   mode × accent combination.
    ------------------------------------------------------------------ */
 
 :root {
@@ -65,6 +65,9 @@
   --ease: cubic-bezier(0.2, 0, 0, 1);
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.34, 1.2, 0.52, 1);
+  /* Light <-> dark cross-fade: quick enough to feel instant, long enough
+     not to flash. */
+  --dur-theme: 200ms;
 
   /* ---- Type ----
      Inter for everything you read and every number you compare (tabular
@@ -107,11 +110,30 @@
   --safe-t: env(safe-area-inset-top, 0px);
   --safe-b: env(safe-area-inset-bottom, 0px);
 
+  /* ---- Density (comfortable) — see the compact block at the end ---- */
+  --control-h: 42px;
+  --control-h-sm: 34px;
+  --input-py: 9px;
+  --pad-card: 16px;
+  --pad-card-head: 12px 16px;
+  --gap-stack: 12px;
+  --gap-fields: 14px 16px;
+  --field-label-gap: 6px;
+  --pad-stat: 11px 13px;
+  --gap-stat: 10px;
+  --pad-hero: 18px 20px;
+  --pad-tile: 11px 13px;
+  --tile-min-h: 64px;
+  --cell-py: 9px;
+  --cell-px: 14px;
+  --text-table: 0.86rem;
+
   /* ================================================================
      SEMANTIC TOKENS
      ================================================================ */
 
-  /* Brand & actions */
+  /* Accent (the user's chosen hue) & actions. `primary` and `accent` are
+     the same thing; both names exist because both read naturally. */
   --color-primary: var(--brand-600);
   --color-primary-hover: var(--brand-700);
   --color-primary-active: var(--brand-700);
@@ -119,12 +141,17 @@
   --color-primary-soft-hover: var(--brand-100);
   --color-primary-border: color-mix(in srgb, var(--brand-500) 38%, var(--border));
   --color-on-primary: var(--brand-ink);
-  --color-accent: var(--accent-600);
+  --color-accent: var(--color-primary);
+  --color-accent-hover: var(--color-primary-hover);
+  --color-accent-soft: var(--color-primary-soft);
+  --color-on-accent: var(--color-on-primary);
 
   /* Grounds & surfaces */
   --color-background: var(--bg);
+  --color-bg: var(--bg);
   --color-background-subtle: var(--bg-subtle);
   --color-surface: var(--surface);
+  --color-surface-secondary: var(--surface-2);
   --color-surface-muted: var(--surface-2);
   --color-surface-sunken: var(--surface-3);
   --color-surface-elevated: var(--surface);
@@ -138,24 +165,37 @@
 
   /* Text */
   --color-text: var(--text);
+  --color-text-primary: var(--text);
   --color-text-secondary: var(--text-2);
   --color-text-muted: var(--text-3);
   --color-link: var(--brand-600);
 
-  /* Status — each with a quiet background for notes and badges */
+  /* Status — independent of the accent. Each has a quiet "soft" ground
+     for notes and badges and an "on" colour for text on a solid fill. */
   --color-success: var(--positive);
-  --color-success-bg: color-mix(in srgb, var(--positive) 10%, var(--surface));
+  --color-success-soft: color-mix(in srgb, var(--positive) 10%, var(--surface));
+  --color-on-success: var(--on-status);
   --color-danger: var(--negative);
-  --color-danger-bg: color-mix(in srgb, var(--negative) 9%, var(--surface));
+  --color-danger-soft: color-mix(in srgb, var(--negative) 9%, var(--surface));
+  --color-on-danger: var(--on-status);
   --color-warning: var(--warning);
-  --color-warning-bg: color-mix(in srgb, var(--warning) 12%, var(--surface));
-  --color-info: var(--brand-600);
-  --color-info-bg: color-mix(in srgb, var(--brand-500) 7%, var(--surface));
+  --color-warning-soft: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  --color-on-warning: var(--on-status);
+  --color-info: var(--info);
+  --color-info-soft: color-mix(in srgb, var(--info) 8%, var(--surface));
+  /* Older names for the soft grounds, kept for existing styles. */
+  --color-success-bg: var(--color-success-soft);
+  --color-danger-bg: var(--color-danger-soft);
+  --color-warning-bg: var(--color-warning-soft);
+  --color-info-bg: var(--color-info-soft);
 
   /* Interaction states */
   --color-hover: color-mix(in srgb, var(--text) 5%, transparent);
   --color-active: color-mix(in srgb, var(--text) 9%, transparent);
+  --color-selected: color-mix(in srgb, var(--brand-500) 10%, var(--surface));
   --color-focus: var(--brand-500);
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--brand-500) 30%, transparent);
+  --focus-ring-danger: 0 0 0 3px color-mix(in srgb, var(--negative) 24%, transparent);
   --color-disabled-bg: var(--surface-3);
   --color-disabled-text: color-mix(in srgb, var(--text-3) 70%, var(--surface));
 
@@ -166,28 +206,33 @@
   --color-input-border-focus: var(--brand-600);
   --color-input-affix: var(--text-3);
 
-  /* Tables */
+  /* Tables — a sunken header, hairline rows, no zebra. */
   --color-table-header: var(--surface-3);
   --color-table-header-text: var(--text-2);
-  --color-table-stripe: color-mix(in srgb, var(--surface-3) 45%, var(--surface));
-  --color-table-hover: color-mix(in srgb, var(--brand-500) 7%, var(--surface));
-  --color-table-total: color-mix(in srgb, var(--brand-500) 8%, var(--surface));
+  --color-table-hover: color-mix(in srgb, var(--brand-500) 6%, var(--surface));
+  --color-table-selected: var(--color-selected);
+  --color-table-total: color-mix(in srgb, var(--brand-500) 7%, var(--surface));
 
   /* Tooltips & toasts — an inverted "ink" chip in light mode */
   --color-tooltip-bg: var(--text);
   --color-tooltip-text: var(--surface);
 
-  /* Hero result — the one saturated ground on the page */
+  /* Hero result — the one saturated ground on the page, tinted by the
+     accent but always dark enough for white text. */
   --color-hero-from: var(--hero-from);
   --color-hero-to: var(--hero-to);
   --color-on-hero: #ffffff;
   /* Secondary text on the ink hero surfaces; 88% white stays AA on the
-     lightest hero end of every palette (see check-contrast). */
+     lightest hero end of every accent (see check-contrast). */
   --color-on-hero-muted: rgb(255 255 255 / 0.88);
 
-  /* Brand signature — a warm highlight used only for brand moments (the
-     logo, the result card's rule, eyebrow dots). Never for status. */
+  /* Brand — constant across accents, so changing the accent never makes
+     FinCalc look like a different product. The signature gold marks brand
+     moments (the logo, the result card's rule, eyebrow dots); never status. */
   --color-signature: var(--signature);
+  --color-brand-word: var(--brand-word);
+  --brand-mark-from: #0c1631;
+  --brand-mark-to: #1f3f93;
 
   /* Footer — an ink band that anchors every page */
   --color-footer-bg: var(--hero-from);
@@ -195,7 +240,13 @@
   --color-footer-muted: rgb(255 255 255 / 0.66);
   --color-footer-border: rgb(255 255 255 / 0.1);
 
-  /* Charts */
+  /* Charts — one categorical palette per accent (series 1 is always the
+     accent), with grid and axis from the neutrals. */
+  --color-chart-1: var(--series-1);
+  --color-chart-2: var(--series-2);
+  --color-chart-3: var(--series-3);
+  --color-chart-4: var(--series-4);
+  --color-chart-5: var(--series-5);
   --color-chart-grid: color-mix(in srgb, var(--border) 80%, var(--surface));
   --color-chart-axis: var(--border-strong);
 
@@ -209,11 +260,11 @@
   --negative-bg: var(--color-danger-bg);
   --warning-bg: var(--color-warning-bg);
   --grid: var(--color-chart-grid);
-  --ring: 0 0 0 3px color-mix(in srgb, var(--brand-500) 26%, transparent);
-  --ring-danger: 0 0 0 3px color-mix(in srgb, var(--negative) 22%, transparent);
+  --ring: var(--focus-ring);
+  --ring-danger: var(--focus-ring-danger);
   --shadow-brand: 0 6px 16px -8px color-mix(in srgb, var(--brand-700) 55%, transparent);
 
-  /* Scroll progress: a single, quiet brand bar. */
+  /* Scroll progress: a single, quiet accent bar. */
   --progress-page: linear-gradient(90deg, var(--brand-600), var(--brand-500));
   --progress-rail: linear-gradient(90deg, var(--brand-600), var(--brand-500));
 
@@ -243,14 +294,15 @@
   --color-tooltip-text: var(--text);
   --color-hover: color-mix(in srgb, var(--text) 6%, transparent);
   --color-active: color-mix(in srgb, var(--text) 11%, transparent);
+  --color-selected: color-mix(in srgb, var(--brand-500) 14%, var(--surface));
   --color-input-bg: color-mix(in srgb, var(--bg) 55%, var(--surface));
   --color-input-border: var(--border-strong);
   --color-input-border-hover: color-mix(in srgb, var(--border-strong) 60%, var(--text-3));
-  --color-table-stripe: color-mix(in srgb, var(--surface-2) 60%, var(--surface));
-  --color-success-bg: color-mix(in srgb, var(--positive) 12%, var(--surface));
-  --color-danger-bg: color-mix(in srgb, var(--negative) 12%, var(--surface));
-  --color-warning-bg: color-mix(in srgb, var(--warning) 12%, var(--surface));
-  --color-info-bg: color-mix(in srgb, var(--brand-500) 10%, var(--surface));
+  --color-success-soft: color-mix(in srgb, var(--positive) 12%, var(--surface));
+  --color-danger-soft: color-mix(in srgb, var(--negative) 12%, var(--surface));
+  --color-warning-soft: color-mix(in srgb, var(--warning) 12%, var(--surface));
+  --color-info-soft: color-mix(in srgb, var(--info) 11%, var(--surface));
+  --color-table-hover: color-mix(in srgb, var(--brand-500) 8%, var(--surface));
   --panel-result: color-mix(in srgb, var(--brand-500) 5%, var(--surface));
   --page-wash: color-mix(in srgb, var(--brand-500) 8%, transparent);
   --shadow-brand: none;
@@ -262,25 +314,13 @@
 }
 
 /* ==================================================================
-   PREMIUM — ink + sapphire (default)
+   MODE PRIMITIVES — neutrals, status, signature, shadow tint
    ================================================================== */
 :root,
-:root[data-palette='premium'] {
+:root[data-mode='light'] {
   color-scheme: light;
   --signature: #c8952c;
   --shadow-color: 16 24 48;
-
-  --brand-50: #eef2fd;
-  --brand-100: #dde5fb;
-  --brand-200: #bccbf6;
-  --brand-500: #3461d9;
-  --brand-600: #2450c4;
-  --brand-700: #1c3f9c;
-  --brand-ink: #ffffff;
-  --accent-500: #13897c;
-  --accent-600: #0e7065;
-  --hero-from: #0c1631;
-  --hero-to: #1f3f93;
 
   --bg: #f4f6fa;
   --bg-subtle: #eaeef5;
@@ -296,29 +336,14 @@
   --positive: #0b7a4b;
   --negative: #c02f2a;
   --warning: #8c5d00;
-
-  --series-1: #2450c4;
-  --series-2: #13897c;
-  --series-3: #d0772a;
-  --series-4: #7a5ac8;
-  --series-5: #c2476d;
+  --info: #1f5fbf;
+  --on-status: #ffffff;
+  --brand-word: #2450c4;
 }
 
-:root[data-palette='premium'][data-mode='dark'] {
+:root[data-mode='dark'] {
   color-scheme: dark;
   --signature: #e2b457;
-
-  --brand-50: #121b35;
-  --brand-100: #17244a;
-  --brand-200: #22346a;
-  --brand-500: #6d8df5;
-  --brand-600: #82a0ff;
-  --brand-700: #a9bdff;
-  --brand-ink: #0a1126;
-  --accent-500: #3cc4b2;
-  --accent-600: #2cae9d;
-  --hero-from: #101c3f;
-  --hero-to: #22408f;
 
   --bg: #080c16;
   --bg-subtle: #0b1020;
@@ -334,7 +359,47 @@
   --positive: #3fcf8e;
   --negative: #ff7b70;
   --warning: #e3ad4a;
+  --info: #7fb0ff;
+  /* Status fills are light in dark mode, so text on them is dark. */
+  --on-status: #0b0f1a;
+  --brand-word: #82a0ff;
+}
 
+/* ==================================================================
+   ACCENT PRIMITIVES — accent scale, result-card tint, chart palette
+   Each accent: a light block and a dark block. Series 1 is the accent;
+   2–5 are hues chosen to stay distinct from it.
+   ================================================================== */
+
+/* ---- Blue (default) ---- */
+:root,
+:root[data-accent='blue'] {
+  --brand-50: #eef2fd;
+  --brand-100: #dde5fb;
+  --brand-200: #bccbf6;
+  --brand-500: #3461d9;
+  --brand-600: #2450c4;
+  --brand-700: #1c3f9c;
+  --brand-ink: #ffffff;
+  --hero-from: #0c1631;
+  --hero-to: #1f3f93;
+  --series-1: #2450c4;
+  --series-2: #13897c;
+  --series-3: #d0772a;
+  --series-4: #7a5ac8;
+  --series-5: #c2476d;
+}
+:root[data-mode='dark']:not([data-accent]),
+:root[data-mode='dark'][data-accent='blue'] {
+  --brand-50: #121b35;
+  --brand-100: #17244a;
+  --brand-200: #22346a;
+  --brand-500: #6d8df5;
+  --brand-600: #82a0ff;
+  --brand-700: #a9bdff;
+  --brand-ink: #0a1126;
+  --hero-from: #101c3f;
+  --hero-to: #22408f;
   --series-1: #82a0ff;
   --series-2: #3cc4b2;
   --series-3: #f0a05a;
@@ -342,322 +407,169 @@
   --series-5: #f07fa2;
 }
 
-/* ==================================================================
-   OCEAN — deep sea + cyan
-   ================================================================== */
-:root[data-palette='ocean'] {
-  color-scheme: light;
-  --signature: #1aa3be;
-  --shadow-color: 8 36 48;
-
-  --brand-50: #e8f4f7;
-  --brand-100: #cfe8ee;
-  --brand-200: #a2d2de;
-  --brand-500: #0b82a0;
-  --brand-600: #086a84;
-  --brand-700: #06546a;
+/* ---- Indigo ---- */
+:root[data-accent='indigo'] {
+  --brand-50: #eef0fe;
+  --brand-100: #e0e3fd;
+  --brand-200: #c3c8fa;
+  --brand-500: #4f46e5;
+  --brand-600: #4338ca;
+  --brand-700: #3730a3;
   --brand-ink: #ffffff;
-  --accent-500: #2f78c4;
-  --accent-600: #235fa3;
-  --hero-from: #07232e;
-  --hero-to: #0b6f88;
-
-  --bg: #f2f7f9;
-  --bg-subtle: #e7f0f3;
-  --surface: #ffffff;
-  --surface-2: #f8fbfc;
-  --surface-3: #ecf3f5;
-  --border: #dae6ea;
-  --border-strong: #b1c6cd;
-  --text: #0a1d24;
-  --text-2: #37545d;
-  --text-3: #4f6d77;
-
-  --positive: #0a7a52;
-  --negative: #c0342a;
-  --warning: #8a6100;
-
-  --series-1: #086a84;
-  --series-2: #d9722c;
-  --series-3: #4b5fc7;
-  --series-4: #12996b;
-  --series-5: #b23d86;
+  --hero-from: #13123a;
+  --hero-to: #3730a3;
+  --series-1: #4338ca;
+  --series-2: #13897c;
+  --series-3: #d0772a;
+  --series-4: #c2476d;
+  --series-5: #a67c16;
+}
+:root[data-mode='dark'][data-accent='indigo'] {
+  --brand-50: #15173a;
+  --brand-100: #1c1f4d;
+  --brand-200: #2a2e6c;
+  --brand-500: #7f86f0;
+  --brand-600: #9ba3ff;
+  --brand-700: #c3c7ff;
+  --brand-ink: #0b0c26;
+  --hero-from: #15143f;
+  --hero-to: #363199;
+  --series-1: #9ba3ff;
+  --series-2: #3cc4b2;
+  --series-3: #f0a05a;
+  --series-4: #f07fa2;
+  --series-5: #d9b24a;
 }
 
-:root[data-palette='ocean'][data-mode='dark'] {
-  color-scheme: dark;
-  --signature: #4fd1e6;
-
-  --brand-50: #0a2028;
-  --brand-100: #0e2c36;
-  --brand-200: #143f4c;
-  --brand-500: #2cb7d2;
-  --brand-600: #45c6de;
-  --brand-700: #7fdaeb;
-  --brand-ink: #03171d;
-  --accent-500: #6aa8e6;
-  --accent-600: #5192d3;
-  --hero-from: #06202a;
-  --hero-to: #0b6a82;
-
-  --bg: #061116;
-  --bg-subtle: #09171d;
-  --surface: #0c1c23;
-  --surface-2: #11252d;
-  --surface-3: #162e37;
-  --border: #1c3a45;
-  --border-strong: #2b5261;
-  --text: #e2eef1;
-  --text-2: #a4bec6;
-  --text-3: #7c9aa4;
-
-  --positive: #35c98a;
-  --negative: #ff7d72;
-  --warning: #e5a944;
-
-  --series-1: #45c6de;
-  --series-2: #f0954e;
-  --series-3: #8b98f0;
-  --series-4: #21c48c;
-  --series-5: #e56ab5;
-}
-
-/* ==================================================================
-   EMERALD — forest + gold
-   ================================================================== */
-:root[data-palette='emerald'] {
-  color-scheme: light;
-  --signature: #c08a22;
-  --shadow-color: 14 40 30;
-
-  --brand-50: #e9f4ee;
-  --brand-100: #d2eadc;
-  --brand-200: #a6d4b9;
-  --brand-500: #13805a;
-  --brand-600: #0d6a4a;
-  --brand-700: #0a533a;
+/* ---- Emerald ---- */
+:root[data-accent='emerald'] {
+  --brand-50: #e8f6f0;
+  --brand-100: #d0eee1;
+  --brand-200: #a3dcc4;
+  --brand-500: #059669;
+  --brand-600: #047857;
+  --brand-700: #065f46;
   --brand-ink: #ffffff;
-  --accent-500: #a6771a;
-  --accent-600: #8a6212;
   --hero-from: #082b20;
   --hero-to: #0f6a4b;
-
-  --bg: #f4f7f5;
-  --bg-subtle: #eaf0ec;
-  --surface: #ffffff;
-  --surface-2: #f9fbfa;
-  --surface-3: #eef3f0;
-  --border: #dde6e0;
-  --border-strong: #b5c8bc;
-  --text: #10201a;
-  --text-2: #3b5448;
-  --text-3: #546e61;
-
-  --positive: #0d6a4a;
-  --negative: #bf3226;
-  --warning: #8a6100;
-
-  --series-1: #0d6a4a;
+  --series-1: #047857;
   --series-2: #b8821c;
   --series-3: #3a6fc4;
-  --series-4: #6c9a2c;
-  --series-5: #9552b8;
+  --series-4: #7a5ac8;
+  --series-5: #c2476d;
 }
-
-:root[data-palette='emerald'][data-mode='dark'] {
-  color-scheme: dark;
-  --signature: #e0b453;
-
+:root[data-mode='dark'][data-accent='emerald'] {
   --brand-50: #0b2019;
   --brand-100: #0f2d22;
   --brand-200: #164131;
-  --brand-500: #2fbf85;
-  --brand-600: #45d096;
-  --brand-700: #7be1b5;
+  --brand-500: #22b884;
+  --brand-600: #3dd49a;
+  --brand-700: #7ee6bb;
   --brand-ink: #03170f;
-  --accent-500: #e0b453;
-  --accent-600: #d2a23c;
   --hero-from: #06231a;
   --hero-to: #0e6448;
-
-  --bg: #060f0c;
-  --bg-subtle: #091612;
-  --surface: #0d1c17;
-  --surface-2: #12251f;
-  --surface-3: #172e26;
-  --border: #1e3a30;
-  --border-strong: #2c5445;
-  --text: #e3f0e9;
-  --text-2: #a5c3b3;
-  --text-3: #7d9d8c;
-
-  --positive: #45d096;
-  --negative: #ff8175;
-  --warning: #e5a944;
-
-  --series-1: #45d096;
+  --series-1: #3dd49a;
   --series-2: #e0b453;
   --series-3: #6d9bf0;
-  --series-4: #a8d45a;
-  --series-5: #c489ee;
+  --series-4: #b79cf5;
+  --series-5: #f07fa2;
 }
 
-/* ==================================================================
-   ROYAL — indigo + violet
-   ================================================================== */
-:root[data-palette='royal'] {
-  color-scheme: light;
-  --signature: #d99a2b;
-  --shadow-color: 30 24 72;
-
-  --brand-50: #f0effd;
-  --brand-100: #e1defb;
-  --brand-200: #c3bdf6;
-  --brand-500: #5a4fd4;
-  --brand-600: #4a3fbf;
-  --brand-700: #3a3199;
+/* ---- Violet ---- */
+:root[data-accent='violet'] {
+  --brand-50: #f4f0fe;
+  --brand-100: #e9e0fd;
+  --brand-200: #d4c1fb;
+  --brand-500: #7c3aed;
+  --brand-600: #6d28d9;
+  --brand-700: #5b21b6;
   --brand-ink: #ffffff;
-  --accent-500: #9b4bc4;
-  --accent-600: #823aa8;
-  --hero-from: #17123f;
-  --hero-to: #3f36a8;
-
-  --bg: #f6f5fb;
-  --bg-subtle: #eceaf6;
-  --surface: #ffffff;
-  --surface-2: #fbfbfe;
-  --surface-3: #f1f0f9;
-  --border: #e3e1f1;
-  --border-strong: #c3bfdc;
-  --text: #16132e;
-  --text-2: #464166;
-  --text-3: #6a648d;
-
-  --positive: #0d7a52;
-  --negative: #c0342a;
-  --warning: #8a6100;
-
-  --series-1: #4a3fbf;
-  --series-2: #d9722c;
-  --series-3: #2f8fbe;
-  --series-4: #12996b;
-  --series-5: #b23d86;
+  --hero-from: #1a1038;
+  --hero-to: #5b21b6;
+  --series-1: #6d28d9;
+  --series-2: #13897c;
+  --series-3: #d0772a;
+  --series-4: #2f6fd0;
+  --series-5: #c2476d;
+}
+:root[data-mode='dark'][data-accent='violet'] {
+  --brand-50: #1a1233;
+  --brand-100: #231848;
+  --brand-200: #33226a;
+  --brand-500: #9577f0;
+  --brand-600: #b39afb;
+  --brand-700: #d2c4fe;
+  --brand-ink: #120a2a;
+  --hero-from: #1a1040;
+  --hero-to: #4c1d95;
+  --series-1: #b39afb;
+  --series-2: #3cc4b2;
+  --series-3: #f0a05a;
+  --series-4: #6d9bf0;
+  --series-5: #f07fa2;
 }
 
-:root[data-palette='royal'][data-mode='dark'] {
-  color-scheme: dark;
-  --signature: #ecb65a;
-
-  --brand-50: #17143a;
-  --brand-100: #1f1b4d;
-  --brand-200: #2d276b;
-  --brand-500: #8a80f2;
-  --brand-600: #a198ff;
-  --brand-700: #c1bbff;
-  --brand-ink: #0e0b26;
-  --accent-500: #cd8cef;
-  --accent-600: #bd74e3;
-  --hero-from: #171241;
-  --hero-to: #3d34a0;
-
-  --bg: #0a0916;
-  --bg-subtle: #0e0d1f;
-  --surface: #131128;
-  --surface-2: #191732;
-  --surface-3: #201d3e;
-  --border: #29264c;
-  --border-strong: #3d3968;
-  --text: #e8e6f7;
-  --text-2: #b1add3;
-  --text-3: #8b86b0;
-
-  --positive: #35c98a;
-  --negative: #ff7d72;
-  --warning: #e5a944;
-
-  --series-1: #a198ff;
-  --series-2: #f0954e;
-  --series-3: #56b6e0;
-  --series-4: #21c48c;
-  --series-5: #e56ab5;
-}
-
-/* ==================================================================
-   GRAPHITE — charcoal + amber
-   ================================================================== */
-:root[data-palette='graphite'] {
-  color-scheme: light;
-  --signature: #e08a12;
-  --shadow-color: 40 32 24;
-
-  --brand-50: #fbf2e6;
-  --brand-100: #f6e2c7;
-  --brand-200: #ecc48f;
-  --brand-500: #b25e0a;
-  --brand-600: #964e07;
-  --brand-700: #783d05;
+/* ---- Amber ---- */
+:root[data-accent='amber'] {
+  --brand-50: #fdf4e7;
+  --brand-100: #fbe7c8;
+  --brand-200: #f5cd8e;
+  --brand-500: #d0680c;
+  --brand-600: #b04f08;
+  --brand-700: #8a3c0b;
   --brand-ink: #ffffff;
-  --accent-500: #4b5563;
-  --accent-600: #374151;
-  --hero-from: #1c1917;
-  --hero-to: #44403c;
-
-  --bg: #f7f6f4;
-  --bg-subtle: #efede9;
-  --surface: #ffffff;
-  --surface-2: #fbfaf9;
-  --surface-3: #f2f0ec;
-  --border: #e5e1db;
-  --border-strong: #c7c0b6;
-  --text: #1c1917;
-  --text-2: #4a443e;
-  --text-3: #6e665e;
-
-  --positive: #0a7a52;
-  --negative: #bf3226;
-  --warning: #8a6100;
-
-  --series-1: #964e07;
+  --hero-from: #1f160f;
+  --hero-to: #7c3d0c;
+  --series-1: #b04f08;
   --series-2: #3a6fc4;
-  --series-3: #12996b;
-  --series-4: #8a51c0;
-  --series-5: #b23f2c;
+  --series-3: #13897c;
+  --series-4: #7a5ac8;
+  --series-5: #c2476d;
+}
+:root[data-mode='dark'][data-accent='amber'] {
+  --brand-50: #261a0b;
+  --brand-100: #34230f;
+  --brand-200: #4a3317;
+  --brand-500: #e89a2c;
+  --brand-600: #f5b547;
+  --brand-700: #fcd98a;
+  --brand-ink: #1c1004;
+  --hero-from: #1c140e;
+  --hero-to: #6f370b;
+  --series-1: #f5b547;
+  --series-2: #6d9bf0;
+  --series-3: #3cc4b2;
+  --series-4: #b79cf5;
+  --series-5: #f07fa2;
 }
 
-:root[data-palette='graphite'][data-mode='dark'] {
-  color-scheme: dark;
-  --signature: #f5a85a;
-
-  --brand-50: #261a0e;
-  --brand-100: #342312;
-  --brand-200: #4a3219;
-  --brand-500: #f0983a;
-  --brand-600: #f5a85a;
-  --brand-700: #f9c48c;
-  --brand-ink: #1c1004;
-  --accent-500: #a8a29e;
-  --accent-600: #8f8a86;
-  --hero-from: #1c1917;
-  --hero-to: #3f3a36;
-
-  --bg: #0f0e0d;
-  --bg-subtle: #151311;
-  --surface: #1a1816;
-  --surface-2: #211f1c;
-  --surface-3: #292623;
-  --border: #33302c;
-  --border-strong: #4d4843;
-  --text: #f1ede8;
-  --text-2: #c2bab1;
-  --text-3: #9c948b;
-
-  --positive: #35c98a;
-  --negative: #ff8175;
-  --warning: #e5a944;
-
-  --series-1: #f5a85a;
-  --series-2: #6d9bf0;
-  --series-3: #21c48c;
-  --series-4: #bb90ee;
-  --series-5: #ef7a5e;
+/* ==================================================================
+   DENSITY — compact: tighter padding and rows, same type scale.
+   Touch screens keep full-size controls, so compact never makes a
+   target too small to tap.
+   ================================================================== */
+:root[data-density='compact'] {
+  --control-h: 36px;
+  --control-h-sm: 30px;
+  --input-py: 6px;
+  --pad-card: 12px;
+  --pad-card-head: 9px 12px;
+  --gap-stack: 9px;
+  --gap-fields: 10px 12px;
+  --field-label-gap: 4px;
+  --pad-stat: 8px 11px;
+  --gap-stat: 8px;
+  --pad-hero: 14px 16px;
+  --pad-tile: 8px 12px;
+  --tile-min-h: 54px;
+  --cell-py: 6px;
+  --cell-px: 12px;
+  --text-table: 0.83rem;
+  --section-gap: clamp(32px, 2vw + 22px, 56px);
+}
+@media (pointer: coarse) {
+  :root[data-density='compact'] {
+    --control-h: 42px;
+    --control-h-sm: 36px;
+  }
 }

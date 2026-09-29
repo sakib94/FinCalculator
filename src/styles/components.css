@@ -16,13 +16,13 @@
   box-shadow: var(--shadow-2);
 }
 .card-pad {
-  padding: 16px;
+  padding: var(--pad-card);
 }
 .card-head {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
+  padding: var(--pad-card-head);
   border-bottom: 1px solid var(--color-divider);
 }
 .card-head h2,
@@ -60,7 +60,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  min-height: 42px;
+  min-height: var(--control-h);
   padding: 0 18px;
   border-radius: var(--r-md);
   border: 1px solid var(--color-primary);
@@ -138,22 +138,24 @@
 .btn.danger {
   background: var(--color-danger);
   border-color: var(--color-danger);
-  color: #fff;
+  color: var(--color-on-danger);
 }
 .btn.danger:hover {
-  background: color-mix(in srgb, var(--color-danger) 86%, #000);
+  background: color-mix(in srgb, var(--color-danger) 86%, var(--color-text));
+  border-color: color-mix(in srgb, var(--color-danger) 86%, var(--color-text));
 }
 .btn.success {
   background: var(--color-success);
   border-color: var(--color-success);
-  color: #fff;
+  color: var(--color-on-success);
 }
 .btn.success:hover {
-  background: color-mix(in srgb, var(--color-success) 86%, #000);
+  background: color-mix(in srgb, var(--color-success) 86%, var(--color-text));
+  border-color: color-mix(in srgb, var(--color-success) 86%, var(--color-text));
 }
 
 .btn.sm {
-  min-height: 34px;
+  min-height: var(--control-h-sm);
   padding: 0 12px;
   font-size: var(--text-sm);
   border-radius: var(--r-sm);
@@ -200,7 +202,7 @@
 /* ---------- Form fields ---------- */
 .fields {
   display: grid;
-  gap: 14px 16px;
+  gap: var(--gap-fields);
   grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
 }
 .field {
@@ -227,7 +229,7 @@
   font-size: 0.8rem;
   font-weight: var(--weight-semibold);
   color: var(--color-text-secondary);
-  margin-bottom: 6px;
+  margin-bottom: var(--field-label-gap);
   line-height: 1.3;
 }
 
@@ -237,7 +239,7 @@
   position: relative;
   display: flex;
   align-items: center;
-  min-height: 42px;
+  min-height: var(--control-h);
   border: 1px solid var(--color-input-border);
   background: var(--color-input-bg);
   border-radius: var(--r-sm);
@@ -292,7 +294,7 @@
   border: 0;
   outline: none;
   background: transparent;
-  padding: 9px 11px;
+  padding: var(--input-py) 11px;
   color: var(--color-text);
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
@@ -440,7 +442,7 @@ input[type='date'].input {
 }
 .segmented button {
   flex: 1;
-  min-height: 36px;
+  min-height: calc(var(--control-h) - 6px);
   padding: 0 10px;
   /* Two-word options ("Increment %") were breaking across lines and
      growing the pill; keep every option on one line. */
@@ -579,7 +581,7 @@ input[type='date'].input {
   background: linear-gradient(145deg, var(--color-hero-from) 10%, var(--color-hero-to) 130%);
   color: var(--color-on-hero);
   border-radius: var(--r-lg);
-  padding: 18px 20px;
+  padding: var(--pad-hero);
   box-shadow: var(--shadow-2), inset 0 1px 0 rgb(255 255 255 / 0.08);
 }
 /* A fine top highlight and a faint ruled texture: depth without glare. */
@@ -660,7 +662,7 @@ input[type='date'].input {
    rests on colour alone. */
 .stat-grid {
   display: grid;
-  gap: 10px;
+  gap: var(--gap-stat);
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 }
 .stat {
@@ -668,7 +670,7 @@ input[type='date'].input {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--r-md);
-  padding: 11px 13px;
+  padding: var(--pad-stat);
   transition: border-color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
 }
 .stat:hover {
@@ -792,6 +794,35 @@ input[type='date'].input {
   color: var(--brand-700);
   border-color: var(--color-primary-border);
 }
+.badge.warning {
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+  border-color: color-mix(in srgb, var(--color-warning) 28%, transparent);
+}
+.badge.info {
+  background: var(--color-info-soft);
+  color: var(--color-info);
+  border-color: color-mix(in srgb, var(--color-info) 25%, transparent);
+}
+
+/* Money in a list or table: tabular, never faint, and signed with + / −
+   (formatSignedINR) so the colour is a second cue, not the only one. */
+.amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+  white-space: nowrap;
+}
+.amount.pos {
+  color: var(--color-success);
+}
+.amount.neg {
+  color: var(--color-danger);
+}
+.amount-status {
+  color: var(--color-text-muted);
+  font-weight: var(--weight-medium);
+}
 
 /* Notes: info by default, .warn for attention. A coloured edge and a
    coloured icon carry the tone; the text stays neutral and readable. */
@@ -831,11 +862,20 @@ input[type='date'].input {
 .note.success .i {
   color: var(--color-success);
 }
+.note.error {
+  background: var(--color-danger-soft);
+  border-color: color-mix(in srgb, var(--color-danger) 25%, var(--color-border));
+  border-left-color: var(--color-danger);
+}
+.note.error .i {
+  color: var(--color-danger);
+}
 
 /* ---------- Tables ----------
-   Built for long amortisation schedules: a sticky, sunken header; faint
-   zebra rows so the eye can follow a line across; a brand-tinted hover;
-   tabular right-aligned figures; and a totals row that reads as a total. */
+   Built for long amortisation schedules: a sticky, sunken header; hairline
+   rows (no zebra — the dividers and an accent-tinted hover carry the eye
+   across); a selected state; tabular right-aligned figures; and a totals
+   row that reads as a total. Row height follows the density setting. */
 .table-scroll {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -844,12 +884,12 @@ table.data {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-  font-size: 0.86rem;
+  font-size: var(--text-table);
   min-width: 520px;
 }
 table.data th,
 table.data td {
-  padding: 9px 14px;
+  padding: var(--cell-py) var(--cell-px);
   text-align: right;
   white-space: nowrap;
   border-bottom: 1px solid var(--color-divider);
@@ -885,11 +925,20 @@ table.data thead th:first-child {
 }
 /* The first column may be a row header (<th scope="row">), so rows are
    styled through both cell types. */
-table.data tbody tr:nth-child(even) > * {
-  background: var(--color-table-stripe);
+table.data tbody tr > * {
+  transition: background-color var(--dur) var(--ease);
 }
 table.data tbody tr:hover > * {
   background: var(--color-table-hover);
+}
+table.data tbody tr.is-selected > *,
+table.data tbody tr[aria-selected='true'] > * {
+  background: var(--color-table-selected);
+}
+table.data tbody tr.is-selected > :first-child,
+table.data tbody tr[aria-selected='true'] > :first-child {
+  box-shadow: inset 3px 0 0 var(--color-primary);
+  color: var(--color-text);
 }
 table.data tbody tr:last-child > * {
   border-bottom: 0;
@@ -1345,8 +1394,8 @@ table.data tfoot td:first-child {
   display: flex;
   gap: 12px;
   align-items: center;
-  padding: 11px 13px;
-  min-height: 64px;
+  padding: var(--pad-tile);
+  min-height: var(--tile-min-h);
   border-radius: var(--r-md);
   border: 1px solid var(--border);
   background: var(--surface);
@@ -1550,7 +1599,7 @@ table.data tfoot td:first-child {
 
 .stack {
   display: grid;
-  gap: 12px;
+  gap: var(--gap-stack);
 }
 .stack.sm {
   gap: 10px;

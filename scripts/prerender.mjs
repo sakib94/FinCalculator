@@ -98,7 +98,7 @@ function renderPage(path, { root, notFound = false } = {}) {
     title: meta.title,
     description: meta.description,
     canonical: notFound ? '' : ssr.canonicalUrlFor(path),
-    robots: notFound ? 'noindex' : 'index, follow',
+    robots: notFound || meta.noindex ? 'noindex' : 'index, follow',
     extra: [...meta.jsonLd.map(jsonLd), ...adsHead],
   });
   return html.replace(/<!--app-start-->[\s\S]*?<!--app-end-->/, `<!--app-start-->${app}<!--app-end-->`);
@@ -109,6 +109,10 @@ const routes = ssr.allRoutes();
 for (const path of routes) {
   const meta = ssr.metaForPath(path);
   if (meta.notFound) throw new Error(`Route ${path} is listed for pre-rendering but resolves to "not found"`);
+  await writePage(ssr.toUrlPath(path), renderPage(path));
+}
+// Settings and the like: a real page at a real address, kept out of the sitemap.
+for (const path of ssr.utilityRoutes()) {
   await writePage(ssr.toUrlPath(path), renderPage(path));
 }
 
@@ -169,7 +173,7 @@ if (SITE.adsenseClient) {
 
 await rm(ssrDir, { recursive: true, force: true });
 
-console.log(`\n✓ Pre-rendered ${routes.length} pages, ${ssr.aliasRoutes().length} redirects, 404.html and sitemap.xml`);
+console.log(`\n✓ Pre-rendered ${routes.length + ssr.utilityRoutes().length} pages, ${ssr.aliasRoutes().length} redirects, 404.html and sitemap.xml`);
 for (const p of ssr.PLACEHOLDER_SETTINGS) {
   console.warn(`⚠ src/data/site.ts → ${p.key} is still a placeholder: ${p.why}.`);
 }

@@ -32,6 +32,20 @@ export function formatINR(value: number, decimals = 0): string {
   return decimals ? inr2.format(abs) : inr0.format(Math.round(abs));
 }
 
+/**
+ * A change in money, with its direction spelled out: "+₹5,000", "−₹5,000",
+ * "₹0". Use it wherever a figure is a gain or a loss, so the sign — not
+ * only a green or red colour — carries the meaning. The minus is the true
+ * minus sign (U+2212), which lines up with the plus in tabular figures.
+ */
+export function formatSignedINR(value: number, decimals = 0): string {
+  if (!isFiniteNumber(value)) return '—';
+  const text = formatINR(Math.abs(value), decimals);
+  const rounded = decimals ? Math.abs(value) >= 0.5 * 10 ** -decimals : Math.round(Math.abs(value)) !== 0;
+  if (!rounded) return text;
+  return `${value > 0 ? '+' : '\u2212'}${text}`;
+}
+
 /** ₹1.24 Cr / ₹8.50 L / ₹45,000 — for headline figures and axis labels. */
 export function formatINRCompact(value: number, decimals = 2): string {
   if (!isFiniteNumber(value)) return '—';

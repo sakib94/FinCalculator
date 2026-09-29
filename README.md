@@ -41,7 +41,7 @@ npm run dev        # http://localhost:5173
 | `npm run preview` | Serve `dist/` the way a static host would (real 404s, trailing-slash redirects) |
 | `npm test` | Run the test suite (Vitest) |
 | `npm run typecheck` | TypeScript check with no emit |
-| `npm run check:contrast` | WCAG audit of every palette — run after changing any colour |
+| `npm run check:contrast` | WCAG audit of every mode × accent combination — run after changing any colour |
 
 Requires Node 18+.
 
@@ -107,9 +107,10 @@ src/
 │   └── taxRules.ts     # ⚠️ ALL tax slabs, rebates, surcharge bands and deduction caps
 ├── components/         # Shell (header, mega-menu, drawer, footer), form renderer,
 │                       # charts, tables, result cards, logo, article contents
-├── hooks/              # Theme, favourites, recents, media queries
+├── theme/              # Appearance: mode × accent × density, pre-paint boot script
+├── hooks/              # Preferences context: appearance, language, favourites, recents
 ├── lib/                # Formatting, validation, router + URLs, page metadata, storage
-├── pages/              # Dashboard, calculator, category, guides, info pages, 404
+├── pages/              # Dashboard, calculator, category, guides, info, settings, 404
 ├── entry-server.tsx    # Build-time renderer used by scripts/prerender.mjs
 ├── styles/             # tokens.css (design tokens), base, layout (shell), components,
 │                       # home, calc (calculator page), pages (guides, 404), charts, print
@@ -202,69 +203,112 @@ links, because the `file://` build keeps its route in the hash.
 ## Design system
 
 FinCalc's visual language is **calm, precise and trustworthy**: cool, faintly tinted neutrals
-do most of the work; one brand hue marks everything interactive; a deep "ink" ground is reserved
+do most of the work; one accent hue marks everything interactive; a deep "ink" ground is reserved
 for the one figure that matters (the headline result); and green, red and amber carry meaning
-only — growth, loss, attention. No gradient text, no shine effects, no animated backgrounds.
+only — gain, cost, attention. No gradient text, no shine effects, no animated backgrounds.
 
 **Brand.** The mark (`components/Logo.tsx`, `public/icons/`) is three rising bars on an ink
-tile, the tallest in the palette's *signature* colour (gold in Premium). Type is self-hosted —
+tile, the tallest in the brand's *signature* gold. The mark, wordmark and signature stay the same
+whatever accent is chosen, so FinCalc always looks like FinCalc. Type is self-hosted —
 **Plus Jakarta Sans** (variable) for display headings and **Inter** (variable) for everything
 else, including every figure, with tabular numerals. No third-party font requests; the three
 files nearly every page needs are preloaded by the pre-renderer.
 
-Tokens live in `src/styles/tokens.css` in two layers:
+### Appearance: mode × accent × density
 
-1. **Primitives**, declared per palette and per mode (`--brand-*`, `--bg`, `--surface*`,
-   `--border*`, `--text*`, `--positive`, `--negative`, `--warning`, `--hero-*`, `--series-*`).
-2. **Semantic tokens**, declared once and derived from the primitives — `--color-primary`,
-   `--color-primary-hover`, `--color-surface-elevated`, `--color-border`, `--color-text-muted`,
-   `--color-success` / `-danger` / `-warning` / `-info` (each with a `-bg`), `--color-focus`,
-   `--color-disabled-*`, `--color-input-*`, `--color-table-*`, `--color-tooltip-*`,
-   `--color-hero-*`, `--color-on-hero-muted`, `--color-signature`, `--color-chart-*`. Components
-   use these, so a palette or mode change never needs a per-component override.
+Appearance is three independent choices rather than a list of themes:
 
-Scale tokens sit alongside: type (`--fs-display`, `--fs-h1`, `--fs-h2`, `--text-*`), spacing
-(`--space-2xs` … `--space-3xl`, `--section-gap`), radius (`--r-xs` … `--r-2xl`), shadows
-(`--shadow-1…3`), motion (`--dur*`, `--ease`, `--ease-out`) and layout (`--maxw`,
-`--maxw-read`, `--gutter`, `--topbar-h`).
+| Setting | Options | Default | What it changes |
+| --- | --- | --- | --- |
+| **Theme** | Light · Dark · System | System | Neutrals, status colours, shadows. System follows the device, live. |
+| **Accent** | Blue · Indigo · Emerald · Violet · Amber | Blue | Buttons, links, active navigation, selected controls, focus rings, progress, the result card's tint and the chart palette. |
+| **Density** | Comfortable · Compact | Comfortable | Card padding, control heights, field gaps, stat and table row height. Touch screens keep full-size controls. |
 
-Five palettes ship, each a complete, separately tuned light **and** dark system:
+Status colours (success, danger, warning, info) belong to the mode, never the accent, so a gain
+is the same green and a cost the same red whichever accent is picked.
 
-| Palette | Character |
-| --- | --- |
-| **Premium** *(default)* | Ink & sapphire — banking-grade, neutral |
-| **Ocean** | Deep sea & cyan — cool, technical |
-| **Emerald** | Forest & gold — wealth, growth |
-| **Royal** | Indigo & violet — considered, editorial |
-| **Graphite** | Charcoal & amber — warm, understated |
+Change them from the header's quick menu (theme, accent, density) or **Settings › Appearance**
+(`/settings/`), which adds language, a reset, and a live preview built from the real components —
+result card, buttons (including disabled), an input, status badges, a table with signed amounts
+and a selected row, success/warning/error notes and the chart colours. Every change applies at
+once, without a reload; switching light ↔ dark cross-fades colours for 200 ms (off under
+reduced motion).
+
+How it is built:
+
+- `src/theme/appearance.ts` — the options, defaults, storage keys, migration of old saved
+  palettes, `resolveMode()` and `applyAppearance()`. Framework-free.
+- `src/theme/useAppearance.ts` — the React state, owned once by `PreferencesProvider` and read
+  with `useAppearance()`. It listens to the device's colour scheme so System stays in step.
+- `src/theme/boot.ts` — a small script that Vite inlines into every page's `<head>`
+  (`vite.config.ts` → `appearanceBoot`). It applies the saved choices before the first paint, so
+  a dark-mode reader never sees a white flash, even before the app's JavaScript loads.
+- Preferences are saved through an `AppearanceStore` — today `localStorage` (keys
+  `finora:mode`, `finora:accent`, `finora:density`). With sign-in, a store that reads and writes
+  `user.preferences.themeMode / accentColor / density` can replace it without touching anything
+  else.
+- The five palettes of earlier releases are gone as separate worlds; saved choices migrate
+  automatically (Premium and Ocean → Blue, Royal → Indigo, Emerald → Emerald, Graphite → Amber).
+  What each palette contributed that was worth keeping — its hue, its result-card tint, its
+  chart colours — lives on in the matching accent.
+
+### Tokens
+
+Everything lives in `src/styles/tokens.css`, in layers:
+
+1. **Scales** — type (`--fs-display`, `--fs-h1`, `--fs-h2`, `--text-*`), spacing
+   (`--space-2xs` … `--space-3xl`, `--section-gap`), radius (`--r-xs` … `--r-2xl`), shadows
+   (`--shadow-1…3`), motion (`--dur*`, `--dur-theme`, `--ease`, `--ease-out`) and layout
+   (`--maxw`, `--maxw-read`, `--gutter`, `--topbar-h`).
+2. **Semantic tokens** — what components use: `--color-bg`, `--color-surface`,
+   `--color-surface-secondary`, `--color-surface-elevated`, `--color-text-primary` /
+   `-secondary` / `-muted`, `--color-border` / `-strong`, `--color-accent` / `-hover` / `-soft`
+   (also available as `--color-primary*`), `--color-success` / `-danger` / `-warning` / `-info`
+   each with `-soft` and `--color-on-*`, `--color-selected`, `--focus-ring`, `--color-input-*`,
+   `--color-table-*`, `--color-tooltip-*`, `--color-hero-*`, `--color-chart-1…5`.
+3. **Mode primitives** — one set of neutrals and status colours for light, one for dark.
+4. **Accent primitives** — per accent and mode: the accent scale (`--brand-*`), the result
+   card's gradient and five chart colours (series 1 is the accent).
+5. **Density** — `--control-h`, `--pad-card`, `--gap-fields`, `--pad-stat`, `--cell-py`, … with a
+   compact block.
 
 Dark mode is designed, not inverted: elevation comes from lighter surfaces and hairlines rather
 than shadows, sunken wells (search, segmented tracks) are darker than cards, text is off-white,
-and accents are lifted just enough to read. Palettes saved by older builds (Harbor, Meridian,
-Evergreen, Iris, Ember) map to their closest successor automatically.
+and accents are lifted just enough to read.
 
 Component conventions:
 
-- **Buttons** — primary (solid brand), `.secondary`/`.subtle`, `.outline`, `.ghost`, `.danger`,
-  `.success`; `.sm`, `.block`, `.loading`; every state has hover, active, focus-ring and disabled.
-- **Inputs** — a visible resting border, darker on hover, brand border + ring on focus; errors
+- **Buttons** — primary (solid accent), `.secondary`/`.subtle`, `.outline`, `.ghost`, `.danger`,
+  `.success`; `.sm`, `.block`, `.loading`; every state has hover, active, focus-ring and
+  disabled, and the label on a solid status button stays readable in dark mode.
+- **Inputs** — a visible resting border, darker on hover, accent border + ring on focus; errors
   add a red border, a tinted fill, an icon and a message.
 - **Stats** — tone is shown by the value's colour *and* a marker shape (square, circle,
   diamond), so meaning never rests on colour alone. Chart legends and composition bars use the
   same idea: each series has its own marker shape as well as its colour.
-- **Tables** — sticky sunken header, zebra rows, brand-tinted hover, tabular right-aligned
-  figures and a totals row with a strong top rule.
+- **Money** — genuine gains and losses are signed with `formatSignedINR()` (`+₹5,000`,
+  `−₹5,000`); `.amount.pos` / `.amount.neg` add colour as a second cue, and important amounts
+  are never set in muted text.
+- **Badges** — neutral, `.positive`, `.negative`, `.warning`, `.info`, `.brand`, each with an
+  icon or word, not colour alone.
+- **Tables** — sticky sunken header, hairline rows (no zebra), accent-tinted hover, a selected
+  state (`tr.is-selected` or `aria-selected`), tabular right-aligned figures and a totals row
+  with a strong top rule. Row height follows density.
 - **Numbers** — tabular figures everywhere a value can change or line up.
 
-**Every palette is contrast-audited, not eyeballed.** `npm run check:contrast` walks all ten
-palette/mode combinations and checks 270 pairs — body, secondary and muted text on every ground,
-links, button labels (including hover), white and muted white on the result card, status colours
-and each chart series. Every text role meets WCAG AA (4.5:1) in all of them.
+**Every combination is contrast-audited, not eyeballed.** `npm run check:contrast` walks all ten
+mode × accent combinations and checks 370 pairs — body, secondary and muted text on every
+ground, accent links and button labels (including hover), text on selected rows and accent-soft
+grounds, white and muted white on the result card, each status colour as text on the page and
+on its own soft ground, labels on solid status buttons, and each chart series. Every text role
+meets WCAG AA (4.5:1) in all of them. `src/tests/appearance.test.ts` checks that every accent
+is defined completely in both modes, never redefines neutrals or status colours, and matches the
+swatches the settings page shows.
 
-Pick a theme from the header, cycle palettes with ⌘⇧L / Ctrl-Shift-L, or flip light/dark with
-⌘⇧D / Ctrl-Shift-D.
+Keyboard: ⌘⇧L / Ctrl-Shift-L steps through the accents, ⌘⇧D / Ctrl-Shift-D flips light/dark.
+Every appearance control is a radio group: one tab stop, arrow keys to choose.
 
-Chart series use a five-colour categorical palette per theme, each colour at least 3:1 against
+Chart series use a five-colour categorical palette per accent, each colour at least 3:1 against
 its surface. Charts are hand-built SVG (~250 lines) — they inherit theme tokens directly and add
 nothing to the bundle.
 

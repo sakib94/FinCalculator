@@ -21,7 +21,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
-  transition: background-color var(--dur-2) var(--ease), color var(--dur-2) var(--ease);
 }
 
 h1,

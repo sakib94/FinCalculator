@@ -1,18 +1,21 @@
 import { useEffect, useRef, useState } from 'react';
-import { MODES, PALETTES } from '@/hooks/usePreferences';
-import { useTheme } from '@/hooks/PreferencesContext';
+import { ACCENTS } from '@/theme/appearance';
+import { useAppearance, useT } from '@/hooks/PreferencesContext';
+import { Link } from '@/lib/router';
+import { AccentControl, DensityControl, ThemeModeControl } from './AppearanceControls';
 import { Icon } from './Icon';
 
 /**
- * Appearance picker. Two rows, because they are two separate decisions:
- * the mode (light / dark / auto) and the palette. Each palette shows a
- * three-band swatch — page, brand, accent — so the choice reads before
- * you commit to it.
+ * Quick appearance settings in the header: theme, accent and density, each
+ * applying instantly, plus a way to the full Settings › Appearance page
+ * with its live preview.
  */
 export function ThemeMenu() {
-  const { palette, setPalette, mode, resolvedMode, setMode } = useTheme();
+  const t = useT();
+  const { resolvedMode, accentColor } = useAppearance();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -20,7 +23,10 @@ export function ThemeMenu() {
       if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
     };
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key === 'Escape') {
+        setOpen(false);
+        btnRef.current?.focus();
+      }
     };
     document.addEventListener('pointerdown', onDown);
     document.addEventListener('keydown', onKey);
@@ -30,64 +36,44 @@ export function ThemeMenu() {
     };
   }, [open]);
 
-  const modeIcon = resolvedMode === 'dark' ? 'moon' : 'sun';
+  const accentLabel = ACCENTS.find((a) => a.id === accentColor)?.label ?? '';
 
   return (
     <div className="theme-menu" ref={wrapRef}>
       <button
+        ref={btnRef}
         type="button"
         className={`icon-btn${open ? ' active' : ''}`}
         onClick={() => setOpen((o) => !o)}
-        aria-haspopup="menu"
+        aria-haspopup="dialog"
         aria-expanded={open}
-        aria-label="Appearance settings"
-        title="Appearance"
+        aria-label={t('Appearance settings')}
+        title={t('Appearance')}
       >
-        <Icon name={modeIcon} size={18} />
+        <Icon name={resolvedMode === 'dark' ? 'moon' : 'sun'} size={18} />
       </button>
 
       {open && (
-        <div className="menu-pop wide" role="menu" aria-label="Appearance">
-          <div className="menu-title">Mode</div>
-          <div className="mode-row" role="group" aria-label="Colour mode">
-            {MODES.map((m) => (
-              <button
-                key={m.id}
-                type="button"
-                className={`mode-btn${mode === m.id ? ' on' : ''}`}
-                aria-pressed={mode === m.id}
-                onClick={() => setMode(m.id)}
-              >
-                <Icon name={m.icon} size={15} />
-                {m.label}
-              </button>
-            ))}
+        <div className="menu-pop appearance-pop" role="dialog" aria-label={t('Appearance')}>
+          <div className="ap-row">
+            <span className="menu-title">{t('Theme')}</span>
+            <ThemeModeControl />
           </div>
-
-          <div className="menu-title">Theme</div>
-          {PALETTES.map((p) => (
-            <button
-              key={p.id}
-              type="button"
-              role="menuitemradio"
-              aria-checked={palette === p.id}
-              className={`menu-item${palette === p.id ? ' on' : ''}`}
-              onClick={() => setPalette(p.id)}
-            >
-              <span className="palette-swatch" aria-hidden="true">
-                <span style={{ background: p.swatch[0] }} />
-                <span style={{ background: p.swatch[1] }} />
-                <span style={{ background: p.swatch[2] }} />
-              </span>
-              <span className="m-text">
-                <span className="m-label">{p.label}</span>
-                <span className="m-hint">{p.hint}</span>
-              </span>
-              {palette === p.id && (
-                <Icon name="check" size={15} strokeWidth={2.2} className="m-check" />
-              )}
-            </button>
-          ))}
+          <div className="ap-row">
+            <span className="menu-title">
+              {t('Accent')} <span className="ap-value">· {t(accentLabel)}</span>
+            </span>
+            <AccentControl />
+          </div>
+          <div className="ap-row">
+            <span className="menu-title">{t('Density')}</span>
+            <DensityControl />
+          </div>
+          <Link to="/settings" className="ap-more" onClick={() => setOpen(false)}>
+            <Icon name="sparkle" size={15} />
+            {t('All appearance settings')}
+            <Icon name="chevronRight" size={14} />
+          </Link>
         </div>
       )}
     </div>

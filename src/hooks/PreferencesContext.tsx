@@ -1,15 +1,15 @@
 import { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import { readLocal, writeLocal } from '@/lib/storage';
-import { useLangState, useThemeState } from './usePreferences';
+import { useLangState } from './usePreferences';
 import { translator, type Lang, type Translate } from '@/i18n';
-import type { Mode, Palette, PaletteId, ResolvedMode } from './usePreferences';
+import { useAppearanceState, type AppearanceState } from '@/theme/useAppearance';
 
 /**
- * Theme, favourites and recently-used live in one store shared by the whole
+ * Appearance, language, favourites and recently-used live in one store shared by the whole
  * app, so starring a calculator updates the menu, the home page and the
- * page header at once — and the theme picker, the topbar icon and the
- * keyboard shortcut all read the same value rather than separate copies.
+ * page header at once — and the header menu, the settings page and the
+ * keyboard shortcuts all read the same value rather than separate copies.
  * Everything is persisted locally — nothing leaves the browser.
  */
 
@@ -20,14 +20,7 @@ interface PreferencesValue {
   setLang: (l: Lang) => void;
   toggleLang: () => void;
   t: Translate;
-  palette: PaletteId;
-  paletteOption: Palette;
-  setPalette: (p: PaletteId) => void;
-  mode: Mode;
-  resolvedMode: ResolvedMode;
-  setMode: (m: Mode) => void;
-  cyclePalette: () => void;
-  toggleMode: () => void;
+  appearance: AppearanceState;
   favorites: string[];
   isFavorite: (id: string) => boolean;
   toggleFavorite: (id: string) => void;
@@ -43,16 +36,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
   // Rebuilt only when the language actually changes.
   const t = useMemo(() => translator(lang), [lang]);
 
-  const {
-    palette,
-    paletteOption,
-    setPalette,
-    mode,
-    resolvedMode,
-    setMode,
-    cyclePalette,
-    toggleMode,
-  } = useThemeState();
+  const appearance = useAppearanceState();
   const [favorites, setFavorites] = useState<string[]>(() => readLocal<string[]>('favorites', []));
   const [recents, setRecents] = useState<string[]>(() => readLocal<string[]>('recents', []));
 
@@ -84,14 +68,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       setLang,
       toggleLang,
       t,
-      palette,
-      paletteOption,
-      setPalette,
-      mode,
-      resolvedMode,
-      setMode,
-      cyclePalette,
-      toggleMode,
+      appearance,
       favorites,
       isFavorite: (id: string) => favorites.includes(id),
       toggleFavorite,
@@ -104,14 +81,7 @@ export function PreferencesProvider({ children }: { children: ReactNode }) {
       setLang,
       toggleLang,
       t,
-      palette,
-      paletteOption,
-      setPalette,
-      mode,
-      resolvedMode,
-      setMode,
-      cyclePalette,
-      toggleMode,
+      appearance,
       favorites,
       recents,
       toggleFavorite,
@@ -139,18 +109,9 @@ export function useLanguage() {
   return { lang, setLang, toggleLang };
 }
 
-export function useTheme() {
-  const {
-    palette,
-    paletteOption,
-    setPalette,
-    mode,
-    resolvedMode,
-    setMode,
-    cyclePalette,
-    toggleMode,
-  } = usePreferences();
-  return { palette, paletteOption, setPalette, mode, resolvedMode, setMode, cyclePalette, toggleMode };
+/** Theme mode, accent colour and density — see src/theme/. */
+export function useAppearance(): AppearanceState {
+  return usePreferences().appearance;
 }
 
 export function useFavorites() {

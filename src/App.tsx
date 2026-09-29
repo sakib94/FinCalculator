@@ -10,6 +10,7 @@ import { CalculatorPage } from '@/pages/CalculatorPage';
 import { CategoryPage } from '@/pages/CategoryPage';
 import { GuidePage, GuidesIndex } from '@/pages/GuidePages';
 import { InfoPage } from '@/pages/InfoPage';
+import { SettingsPage } from '@/pages/SettingsPage';
 import { NotFound } from '@/pages/NotFound';
 import { infoPageBySlug } from '@/content/pages';
 
@@ -30,6 +31,7 @@ export function Routes() {
   if (head === 'c' && id) return <CalculatorPage id={id} />;
   if (head === 'category' && id) return <CategoryPage id={id} />;
   if (head === 'guides') return id ? <GuidePage slug={id} /> : <GuidesIndex />;
+  if (head === 'settings' && !id) return <SettingsPage />;
   if (!id && infoPageBySlug(head)) return <InfoPage slug={head} />;
   return <NotFound />;
 }

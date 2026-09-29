@@ -5,6 +5,7 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath, URL } from 'node:url';
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { bootScript } from './src/theme/boot';
 
 /**
  * Make the emitted tags loadable over file://.
@@ -28,6 +29,24 @@ function fileProtocolFriendlyHtml(): Plugin {
       return html
         .replace(/<script type="module" crossorigin/g, '<script defer')
         .replace(/<link rel="stylesheet" crossorigin/g, '<link rel="stylesheet"');
+    },
+  };
+}
+
+/**
+ * Inlines the pre-paint appearance script (src/theme/boot.ts) right after
+ * the theme-color meta tag, so the saved light/dark mode, accent and
+ * density are on <html> before anything paints — no flash of the wrong
+ * theme. The pre-renderer copies it into every page along with the rest
+ * of index.html.
+ */
+function appearanceBoot(): Plugin {
+  return {
+    name: 'finora:appearance-boot',
+    transformIndexHtml(html) {
+      const tag = `<script>${bootScript()}</script>`;
+      const meta = /(<meta name="theme-color"[^>]*>)/;
+      return meta.test(html) ? html.replace(meta, `$1\n    ${tag}`) : html.replace('<head>', `<head>\n    ${tag}`);
     },
   };
 }
@@ -63,7 +82,7 @@ function staticHostPreview(): Plugin {
 }
 
 export default defineConfig(({ isSsrBuild, isPreview }) => ({
-  plugins: [react(), fileProtocolFriendlyHtml(), staticHostPreview()],
+  plugins: [react(), appearanceBoot(), fileProtocolFriendlyHtml(), staticHostPreview()],
   // The dev server has no pre-rendered pages, so it answers every path with
   // index.html and lets the router decide. `vite preview` serves dist/ the
   // way a static host does: real files, and 404.html for anything else.
@@ -106,5 +125,8 @@ export default defineConfig(({ isSsrBuild, isPreview }) => ({
     globals: true,
     environment: 'node',
     include: ['src/tests/**/*.test.ts'],
+    // Let the appearance tests read tokens.css as text (`?raw`); Vitest
+    // otherwise replaces CSS imports with an empty string.
+    css: { include: [/tokens\.css/] },
   },
 }));

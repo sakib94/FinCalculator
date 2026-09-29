@@ -5,7 +5,7 @@ import { GUIDES } from '@/content/guides';
 import { SITE } from '@/data/site';
 import { Link, useRouter } from '@/lib/router';
 import { useMediaQuery } from '@/hooks/usePreferences';
-import { useFavorites, useT, useTheme } from '@/hooks/PreferencesContext';
+import { useAppearance, useFavorites, useT } from '@/hooks/PreferencesContext';
 import { Icon } from './Icon';
 import { Logo } from './Logo';
 import { SearchDialog } from './SearchDialog';
@@ -53,7 +53,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const { cyclePalette, toggleMode } = useTheme();
+  const { cycleAccent, toggleDarkMode } = useAppearance();
   const { favorites } = useFavorites();
   const t = useT();
   const megaRef = useRef<HTMLDivElement>(null);
@@ -92,7 +92,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [megaOpen]);
 
   // Global shortcuts: ⌘K / Ctrl-K opens search, "/" focuses it,
-  // ⌘⇧L steps through palettes and ⌘⇧D flips light/dark.
+  // ⌘⇧L steps through the accent colours and ⌘⇧D flips light/dark.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -102,10 +102,10 @@ export function AppShell({ children }: { children: ReactNode }) {
         setSearchOpen(true);
       } else if ((e.key === 'l' || e.key === 'L') && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         e.preventDefault();
-        cyclePalette();
+        cycleAccent();
       } else if ((e.key === 'd' || e.key === 'D') && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         e.preventDefault();
-        toggleMode();
+        toggleDarkMode();
       } else if (e.key === '/' && !typing) {
         e.preventDefault();
         setSearchOpen(true);
@@ -119,7 +119,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [cyclePalette, toggleMode, megaOpen]);
+  }, [cycleAccent, toggleDarkMode, megaOpen]);
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen && !isDesktop ? 'hidden' : '';
@@ -327,6 +327,10 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Icon name="book" size={17} />
                 {t('Financial guides')}
               </Link>
+              <Link to="/settings" className="drawer-link" aria-current={path === '/settings' ? 'page' : undefined}>
+                <Icon name="sparkle" size={17} />
+                {t('Appearance settings')}
+              </Link>
             </div>
 
             {favCalcs.length > 0 && (
@@ -436,6 +440,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link to="/privacy-policy">{t('Privacy Policy')}</Link>
               <Link to="/terms">{t('Terms & Conditions')}</Link>
               <Link to="/disclaimer">{t('Disclaimer')}</Link>
+              <Link to="/settings">{t('Appearance settings')}</Link>
             </nav>
           </div>
 

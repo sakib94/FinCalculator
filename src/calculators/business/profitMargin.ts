@@ -1,6 +1,6 @@
 import type { CalculatorDef, Values } from '../types';
 import { calculateProfitMargin, type ProfitMarginResult } from '@/engines/businessPlus';
-import { formatINR, formatPercent } from '@/lib/format';
+import { formatINR, formatPercent, formatSignedINR } from '@/lib/format';
 import { num } from '@/lib/validate';
 
 const toInput = (v: Values) => ({
@@ -105,7 +105,7 @@ const profitMargin: CalculatorDef<ProfitMarginResult> = {
     { label: 'Gross profit', value: formatINR(r.grossProfit), tone: 'positive' },
     {
       label: 'Operating profit',
-      value: formatINR(r.operatingProfit),
+      value: formatSignedINR(r.operatingProfit),
       tone: r.operatingProfit >= 0 ? 'positive' : 'negative',
     },
     { label: 'Operating margin', value: formatPercent(r.operatingMarginPct, 2) },
@@ -113,7 +113,7 @@ const profitMargin: CalculatorDef<ProfitMarginResult> = {
     { label: 'Tax', value: formatINR(r.taxAmount), tone: 'negative' },
     {
       label: 'Net profit',
-      value: formatINR(r.netProfit),
+      value: formatSignedINR(r.netProfit),
       tone: r.profitable ? 'positive' : 'negative',
     },
     {

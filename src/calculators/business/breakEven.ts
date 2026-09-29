@@ -1,6 +1,6 @@
 import type { CalculatorDef, ValidationErrors, Values } from '../types';
 import { calculateBreakEven, type BreakEvenResult } from '@/engines/businessPlus';
-import { formatINR, formatNumber, formatPercent } from '@/lib/format';
+import { formatINR, formatNumber, formatPercent, formatSignedINR } from '@/lib/format';
 import { num } from '@/lib/validate';
 
 const toInput = (v: Values) => ({
@@ -102,7 +102,7 @@ const breakEven: CalculatorDef<BreakEvenResult> = {
     { label: 'Contribution margin', value: formatPercent(r.contributionMarginPct, 2), tone: 'accent' },
     {
       label: 'Expected profit',
-      value: formatINR(r.expectedProfit),
+      value: formatSignedINR(r.expectedProfit),
       tone: r.expectedProfit >= 0 ? 'positive' : 'negative',
       help: 'At the sales volume you entered.',
     },

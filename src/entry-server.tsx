@@ -1,7 +1,7 @@
 import { renderToString } from 'react-dom/server';
 import App from './App';
 import { configureRouting } from './lib/router';
-import { aliasRoutes, allRoutes, metaForPath } from './lib/pageMeta';
+import { aliasRoutes, allRoutes, metaForPath, utilityRoutes } from './lib/pageMeta';
 import { relativeRootFor, toUrlPath } from './lib/urls';
 import { canonicalUrlFor } from './lib/router';
 import { PLACEHOLDER_SETTINGS, SITE } from './data/site';
@@ -12,7 +12,7 @@ import { PLACEHOLDER_SETTINGS, SITE } from './data/site';
  * JavaScript runs — which is what search engines and slow phones see first.
  */
 
-export { aliasRoutes, allRoutes, metaForPath, toUrlPath, relativeRootFor, canonicalUrlFor, SITE, PLACEHOLDER_SETTINGS };
+export { aliasRoutes, allRoutes, utilityRoutes, metaForPath, toUrlPath, relativeRootFor, canonicalUrlFor, SITE, PLACEHOLDER_SETTINGS };
 
 /**
  * @param path    internal route, e.g. "/c/home-loan-emi"

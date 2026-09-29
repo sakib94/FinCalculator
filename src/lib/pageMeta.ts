@@ -20,6 +20,8 @@ export interface PageMeta {
   jsonLd: object[];
   /** Set for a route that does not exist. */
   notFound?: boolean;
+  /** A real page that should stay out of search results (settings). */
+  noindex?: boolean;
   /** An old address that forwards to another route. */
   redirect?: string;
 }
@@ -171,6 +173,15 @@ export function metaForPath(path: string): PageMeta {
     };
   }
 
+  if (head === 'settings' && !id) {
+    return {
+      title: withBrand('Appearance settings'),
+      description: 'Choose light, dark or system theme, an accent colour and interface density for FinCalc.',
+      noindex: true,
+      jsonLd: [],
+    };
+  }
+
   if (!id) {
     const page = infoPageBySlug(head);
     if (page) {
@@ -200,6 +211,11 @@ export function allRoutes(): string[] {
     ...GUIDES.map((g) => `/guides/${g.slug}`),
     ...INFO_PAGES.map((p) => `/${p.slug}`),
   ];
+}
+
+/** Pages that are pre-rendered (so their address works) but not listed in the sitemap. */
+export function utilityRoutes(): string[] {
+  return ['/settings'];
 }
 
 /** Retired calculator ids that should still resolve, with where they now point. */

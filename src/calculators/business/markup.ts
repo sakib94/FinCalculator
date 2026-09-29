@@ -1,6 +1,6 @@
 import type { CalculatorDef, Values } from '../types';
 import { calculateMarkup, type MarkupMode, type MarkupResult } from '@/engines/business';
-import { formatINR, formatPercent } from '@/lib/format';
+import { formatINR, formatPercent, formatSignedINR } from '@/lib/format';
 import { num, str } from '@/lib/validate';
 
 const toInput = (v: Values) => ({
@@ -87,7 +87,7 @@ const markup: CalculatorDef<MarkupResult> = {
   stats: (r) => [
     { label: 'Cost price', value: formatINR(r.cost, 2) },
     { label: 'Selling price', value: formatINR(r.sellingPrice, 2) },
-    { label: 'Profit per unit', value: formatINR(r.profit, 2), tone: r.profit >= 0 ? 'positive' : 'negative' },
+    { label: 'Profit per unit', value: formatSignedINR(r.profit, 2), tone: r.profit >= 0 ? 'positive' : 'negative' },
     { label: 'Markup', value: formatPercent(r.markupPct, 2) },
     { label: 'Margin', value: formatPercent(r.marginPct, 2), tone: 'accent' },
   ],

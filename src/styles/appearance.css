@@ -1,0 +1,393 @@
+/* ================================================================
+   Appearance: the theme cross-fade, the shared radio controls, and the
+   Settings › Appearance page with its live preview.
+   ================================================================ */
+
+/* Light <-> dark cross-fade. withThemeTransition() (src/theme) adds the
+   class for ~250 ms only when the mode flips, so everyday interactions keep
+   their own transitions. The one !important in the system: it has to beat
+   every component's own transition list for that brief moment. */
+.theme-transition,
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow !important;
+  transition-duration: var(--dur-theme) !important;
+  transition-timing-function: var(--ease) !important;
+  transition-delay: 0s !important;
+}
+
+/* ---------------- Segmented radio (theme, density, language) ----------------
+   One tab stop; arrow keys move the choice. The selected surface slides
+   between options (--seg-index / --seg-count are set by RadioGroup). */
+.choice-seg {
+  position: relative;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: 3px;
+  padding: 3px;
+  border-radius: var(--r-md);
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  isolation: isolate;
+}
+.choice-seg::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 3px;
+  bottom: 3px;
+  left: 3px;
+  width: calc((100% - 6px - (var(--seg-count, 2) - 1) * 3px) / var(--seg-count, 2));
+  border-radius: calc(var(--r-md) - 3px);
+  background: var(--color-surface-elevated);
+  box-shadow: var(--shadow-1), 0 0 0 1px var(--color-border);
+  transform: translateX(calc(var(--seg-index, 0) * (100% + 3px)));
+  transition: transform var(--dur-2) var(--ease-out);
+}
+.choice-seg > button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: calc(var(--control-h-sm) - 2px);
+  padding: 0 8px;
+  border: 0;
+  border-radius: calc(var(--r-md) - 3px);
+  background: transparent;
+  color: var(--color-text-muted);
+  font: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.choice-seg > button:hover {
+  color: var(--color-text);
+}
+.choice-seg > button[aria-checked='true'] {
+  color: var(--color-text);
+}
+.choice-seg > button[aria-checked='true'] svg {
+  color: var(--color-primary);
+}
+.choice-seg > button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.choice-seg.lg > button {
+  min-height: calc(var(--control-h) - 2px);
+  font-size: var(--text-md);
+  gap: 8px;
+}
+
+/* ---------------- Accent swatches ---------------- */
+.accent-dots,
+.accent-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.accent-dots > button,
+.accent-list > button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.accent-dots > button {
+  display: grid;
+  place-items: center;
+  padding: 3px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+.accent-dot {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  /* The tick sits on the swatch: white on the light-mode swatches, dark on
+     the lighter dark-mode ones — the same rule as text on a primary button. */
+  color: var(--color-on-primary);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.14);
+  transition: transform var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease);
+}
+.accent-dots > button:hover .accent-dot {
+  transform: scale(1.08);
+}
+.accent-dots > button[aria-checked='true'] .accent-dot {
+  box-shadow: 0 0 0 2px var(--color-surface-elevated), 0 0 0 4px var(--color-primary);
+}
+.accent-dots > button:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.accent-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(124px, 1fr));
+}
+.accent-list > button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--control-h);
+  padding: 0 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  text-align: left;
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease),
+    color var(--dur) var(--ease), box-shadow var(--dur) var(--ease);
+}
+.accent-list > button:hover {
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+.accent-list > button[aria-checked='true'] {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+  background: var(--color-primary-soft);
+  color: var(--color-text);
+}
+.accent-list > button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.accent-list .accent-dot {
+  width: 22px;
+  height: 22px;
+}
+
+/* ---------------- Density cards ---------------- */
+.choice-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.choice-cards > button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-md);
+  background: var(--color-surface);
+  color: var(--color-text-secondary);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), background-color var(--dur) var(--ease),
+    box-shadow var(--dur) var(--ease);
+}
+.choice-cards > button:hover {
+  border-color: var(--color-border-strong);
+}
+.choice-cards > button[aria-checked='true'] {
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+  background: var(--color-primary-soft);
+}
+.choice-cards > button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+.cc-text {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+.cc-name {
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+.cc-hint {
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+/* Three rules drawn at each density's own spacing. */
+.density-glyph {
+  display: grid;
+  align-content: center;
+  flex: none;
+  width: 34px;
+  height: 34px;
+  padding: 0 6px;
+  border-radius: 9px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+}
+.density-glyph span {
+  height: 3px;
+  border-radius: 2px;
+  background: var(--color-text-muted);
+}
+.density-glyph.comfortable {
+  gap: 5px;
+}
+.density-glyph.compact {
+  gap: 2px;
+}
+[aria-checked='true'] > .density-glyph span {
+  background: var(--color-primary);
+}
+
+/* ---------------- Settings page ---------------- */
+.settings-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+.settings-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+}
+.setting {
+  display: grid;
+  gap: 14px;
+  padding: 22px 24px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.setting-head h2 {
+  font-size: 1.08rem;
+  margin: 0;
+}
+.setting-head p {
+  margin: 3px 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+  max-width: 60ch;
+}
+.setting-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+.setting-note svg {
+  color: var(--color-primary);
+  flex: none;
+}
+.setting-foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 24px;
+}
+.setting-foot .small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.settings-preview {
+  position: sticky;
+  top: calc(var(--topbar-h) + var(--safe-t) + 20px);
+  display: grid;
+  gap: 10px;
+}
+
+/* ---------------- Preview ---------------- */
+.preview {
+  display: grid;
+  gap: var(--gap-stack);
+  padding: var(--pad-card);
+}
+.preview-hero .h-value {
+  font-size: clamp(1.6rem, 1.2rem + 1vw, 2rem);
+}
+.preview-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.preview-field {
+  display: block;
+}
+.preview-table {
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-md);
+}
+.preview-table table.data {
+  min-width: 0;
+}
+.preview-table table.data td {
+  text-align: right;
+}
+.preview-notes {
+  display: grid;
+  gap: 8px;
+}
+.preview-notes .note {
+  padding: 8px 12px;
+  font-size: var(--text-sm);
+}
+.preview-chart {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+}
+.preview-series {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.ps-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.ps-bar {
+  display: inline-block;
+  height: 8px;
+  border-radius: 4px;
+}
+
+@media (max-width: 960px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
+  .settings-preview {
+    position: static;
+  }
+}
+@media (max-width: 560px) {
+  .setting {
+    padding: 18px 16px;
+  }
+  .setting-foot {
+    padding: 12px 16px;
+  }
+  .choice-seg.lg > button {
+    padding: 0 6px;
+  }
+}
+@media (max-width: 480px) {
+  .choice-cards {
+    grid-template-columns: 1fr;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .choice-seg::before {
+    transition: none;
+  }
+}
