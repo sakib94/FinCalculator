@@ -1,12 +1,12 @@
 import {
-  ACCENTS,
   DEFAULT_APPEARANCE,
   DENSITIES,
-  LEGACY_PALETTE_TO_ACCENT,
+  LEGACY_TO_THEME,
   STORAGE_KEYS,
   STORAGE_PREFIX,
   THEME_COLOR,
   THEME_MODES,
+  THEMES,
 } from './appearance';
 
 /**
@@ -15,7 +15,7 @@ import {
  * Pages are pre-rendered HTML and the app's JavaScript is deferred, so
  * without this a reader who chose Dark would see a white page for a moment
  * before React set the theme. This runs inline in <head>, before anything
- * paints, reads the saved preferences and writes data-mode, data-accent and
+ * paints, reads the saved preferences and writes data-mode, data-theme and
  * data-density exactly as `applyAppearance` does later.
  *
  * Vite's `transformIndexHtml` (vite.config.ts) inlines `bootScript()` into
@@ -29,11 +29,11 @@ export interface BootConfig {
   prefix: string;
   keys: typeof STORAGE_KEYS;
   modes: string[];
-  accents: string[];
+  themes: string[];
   densities: string[];
   defaults: typeof DEFAULT_APPEARANCE;
   legacy: Record<string, string>;
-  themeColor: Record<string, string>;
+  themeColor: Record<string, Record<string, string>>;
 }
 
 export function boot(c: BootConfig): void {
@@ -46,12 +46,13 @@ export function boot(c: BootConfig): void {
       return null;
     }
   };
+  const legacy = (v: unknown): string =>
+    typeof v === 'string' && Object.prototype.hasOwnProperty.call(c.legacy, v) ? c.legacy[v] : '';
   let mode = read(c.keys.themeMode) as string;
   if (c.modes.indexOf(mode) < 0) mode = c.defaults.themeMode;
-  let accent = read(c.keys.accentColor) as string;
-  if (c.accents.indexOf(accent) < 0) {
-    const legacy = read(c.keys.legacyPalette) as string;
-    accent = (typeof legacy === 'string' && c.legacy[legacy]) || c.defaults.accentColor;
+  let theme = read(c.keys.theme) as string;
+  if (c.themes.indexOf(theme) < 0) {
+    theme = legacy(read(c.keys.legacyAccent)) || legacy(read(c.keys.legacyPalette)) || c.defaults.theme;
   }
   let density = read(c.keys.density) as string;
   if (c.densities.indexOf(density) < 0) density = c.defaults.density;
@@ -60,20 +61,20 @@ export function boot(c: BootConfig): void {
     (mode === 'system' && !!window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
   const resolved = dark ? 'dark' : 'light';
   root.setAttribute('data-mode', resolved);
-  root.setAttribute('data-accent', accent);
+  root.setAttribute('data-theme', theme);
   root.setAttribute('data-density', density);
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', c.themeColor[resolved]);
+  if (meta) meta.setAttribute('content', c.themeColor[theme][resolved]);
 }
 
 export const BOOT_CONFIG: BootConfig = {
   prefix: STORAGE_PREFIX,
   keys: STORAGE_KEYS,
   modes: THEME_MODES.map((m) => m.id),
-  accents: ACCENTS.map((a) => a.id),
+  themes: THEMES.map((t) => t.id),
   densities: DENSITIES.map((d) => d.id),
   defaults: DEFAULT_APPEARANCE,
-  legacy: LEGACY_PALETTE_TO_ACCENT,
+  legacy: LEGACY_TO_THEME,
   themeColor: THEME_COLOR,
 };
 

@@ -1,16 +1,16 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  ACCENTS,
   DEFAULT_APPEARANCE,
+  THEMES,
   applyAppearance,
   localAppearanceStore,
   resolveMode,
   withThemeTransition,
-  type AccentColor,
   type AppearancePreferences,
   type AppearanceStore,
   type Density,
   type ResolvedMode,
+  type ThemeId,
   type ThemeMode,
 } from './appearance';
 
@@ -18,14 +18,14 @@ const prefersDark = () =>
   typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-color-scheme: dark)').matches;
 
 export interface AppearanceState extends AppearancePreferences {
-  /** What the page is actually showing: System resolved against the device. */
+  /** What the page is actually showing: Auto resolved against the device. */
   resolvedMode: ResolvedMode;
   setThemeMode: (m: ThemeMode) => void;
-  setAccentColor: (a: AccentColor) => void;
+  setTheme: (t: ThemeId) => void;
   setDensity: (d: Density) => void;
   resetAppearance: () => void;
   /** Keyboard shortcuts. */
-  cycleAccent: () => void;
+  cycleTheme: () => void;
   toggleDarkMode: () => void;
 }
 
@@ -55,32 +55,33 @@ export function useAppearanceState(store: AppearanceStore = localAppearanceStore
   const resolvedMode = resolveMode(prefs.themeMode, systemDark);
 
   const firstRun = useRef(true);
-  const lastMode = useRef(resolvedMode);
+  const lastLook = useRef(`${resolvedMode}/${prefs.theme}`);
   useEffect(() => {
     const root = document.documentElement;
     const apply = () => applyAppearance(root, prefs, resolvedMode);
-    // Cross-fade only when light/dark actually flips — not on load, and not
-    // for an accent or density change, which should feel immediate.
-    if (!firstRun.current && lastMode.current !== resolvedMode) withThemeTransition(root, apply);
+    // Cross-fade only when the colours actually change — light/dark or the
+    // theme — not on load, and not for density, which should feel immediate.
+    const look = `${resolvedMode}/${prefs.theme}`;
+    if (!firstRun.current && lastLook.current !== look) withThemeTransition(root, apply);
     else apply();
     firstRun.current = false;
-    lastMode.current = resolvedMode;
+    lastLook.current = look;
     store.save(prefs);
   }, [prefs, resolvedMode, store]);
 
   const setThemeMode = useCallback((themeMode: ThemeMode) => setPrefs((p) => ({ ...p, themeMode })), []);
-  const setAccentColor = useCallback((accentColor: AccentColor) => setPrefs((p) => ({ ...p, accentColor })), []);
+  const setTheme = useCallback((theme: ThemeId) => setPrefs((p) => ({ ...p, theme })), []);
   const setDensity = useCallback((density: Density) => setPrefs((p) => ({ ...p, density })), []);
   const resetAppearance = useCallback(() => setPrefs(DEFAULT_APPEARANCE), []);
 
-  const cycleAccent = useCallback(() => {
+  const cycleTheme = useCallback(() => {
     setPrefs((p) => {
-      const i = ACCENTS.findIndex((a) => a.id === p.accentColor);
-      return { ...p, accentColor: ACCENTS[(i + 1) % ACCENTS.length].id };
+      const i = THEMES.findIndex((t) => t.id === p.theme);
+      return { ...p, theme: THEMES[(i + 1) % THEMES.length].id };
     });
   }, []);
 
-  // From System, the shortcut picks the opposite of what is showing.
+  // From Auto, the shortcut picks the opposite of what is showing.
   const toggleDarkMode = useCallback(() => {
     setPrefs((p) => ({ ...p, themeMode: resolveMode(p.themeMode, prefersDark()) === 'dark' ? 'light' : 'dark' }));
   }, []);
@@ -90,12 +91,12 @@ export function useAppearanceState(store: AppearanceStore = localAppearanceStore
       ...prefs,
       resolvedMode,
       setThemeMode,
-      setAccentColor,
+      setTheme,
       setDensity,
       resetAppearance,
-      cycleAccent,
+      cycleTheme,
       toggleDarkMode,
     }),
-    [prefs, resolvedMode, setThemeMode, setAccentColor, setDensity, resetAppearance, cycleAccent, toggleDarkMode],
+    [prefs, resolvedMode, setThemeMode, setTheme, setDensity, resetAppearance, cycleTheme, toggleDarkMode],
   );
 }

@@ -22,10 +22,19 @@ guides — built as a single coherent application rather than a collection of pa
 
 ## Quick start
 
-**Test it on your PC and phone (Windows).** Double-click
-[`local-testing/start-local-server.bat`](local-testing/README.md). It installs dependencies on
-first run, starts the dev server and prints the address to open on a phone connected to the
-same Wi-Fi. `local-testing/start-production-preview.bat` does the same for the finished build.
+**Test it on your PC and phone (Windows).** In the project folder one level up
+(`finora-calculator\`) double-click:
+
+| Launcher | Use it for |
+| --- | --- |
+| `TEST-FinCalc.bat` | Pre-deployment checks: type check, tests, colour-contrast audit and the production build, with a pass/fail summary |
+| `START-FinCalc.bat` | The finished site exactly as it will be deployed, on `http://localhost:4173` and your phone |
+| `DEV-FinCalc.bat` | Editing: hot reload on `http://localhost:5173` and your phone |
+
+Each checks for Node, installs dependencies when they change, opens your browser once the server
+answers and prints the `http://192.168.x.x:…` address for a phone on the same Wi-Fi. They wrap
+the scripts in [`local-testing/`](local-testing/README.md); `HOW-TO-TEST.md` beside them has the
+full PC + phone checklist.
 
 **Develop it:**
 
@@ -41,7 +50,7 @@ npm run dev        # http://localhost:5173
 | `npm run preview` | Serve `dist/` the way a static host would (real 404s, trailing-slash redirects) |
 | `npm test` | Run the test suite (Vitest) |
 | `npm run typecheck` | TypeScript check with no emit |
-| `npm run check:contrast` | WCAG audit of every mode × accent combination — run after changing any colour |
+| `npm run check:contrast` | WCAG audit of every mode × theme combination — run after changing any colour |
 
 Requires Node 18+.
 
@@ -107,7 +116,7 @@ src/
 │   └── taxRules.ts     # ⚠️ ALL tax slabs, rebates, surcharge bands and deduction caps
 ├── components/         # Shell (header, mega-menu, drawer, footer), form renderer,
 │                       # charts, tables, result cards, logo, article contents
-├── theme/              # Appearance: mode × accent × density, pre-paint boot script
+├── theme/              # Appearance: mode × theme × density, pre-paint boot script
 ├── hooks/              # Preferences context: appearance, language, favourites, recents
 ├── lib/                # Formatting, validation, router + URLs, page metadata, storage
 ├── pages/              # Dashboard, calculator, category, guides, info, settings, 404
@@ -206,54 +215,64 @@ links, because the `file://` build keeps its route in the hash.
 ## Design system
 
 FinCalc's visual language is **calm, precise and trustworthy**: cool, faintly tinted neutrals
-do most of the work; one accent hue marks everything interactive; a deep "ink" ground is reserved
+do most of the work; one theme hue marks everything interactive; a deep "ink" ground is reserved
 for the one figure that matters (the headline result); and green, red and amber carry meaning
 only — gain, cost, attention. No gradient text, no shine effects, no animated backgrounds.
 
 **Brand.** The mark (`components/Logo.tsx`, `public/icons/`) is three rising bars on an ink
-tile, the tallest in the brand's *signature* gold. The mark, wordmark and signature stay the same
-whatever accent is chosen, so FinCalc always looks like FinCalc. Type is self-hosted —
+tile, the tallest in the brand's gold. The mark and wordmark stay the same whatever theme is
+chosen, so FinCalc always looks like FinCalc. Type is self-hosted —
 **Plus Jakarta Sans** (variable) for display headings and **Inter** (variable) for everything
 else, including every figure, with tabular numerals. No third-party font requests; the three
 files nearly every page needs are preloaded by the pre-renderer.
 
-### Appearance: mode × accent × density
+### Appearance: mode × theme × density
 
-Appearance is three independent choices rather than a list of themes:
+Appearance is three independent choices:
 
 | Setting | Options | Default | What it changes |
 | --- | --- | --- | --- |
-| **Theme** | Light · Dark · System | System | Neutrals, status colours, shadows. System follows the device, live. |
-| **Accent** | Blue · Indigo · Emerald · Violet · Amber | Blue | Buttons, links, active navigation, selected controls, focus rings, progress, the result card's tint and the chart palette. |
+| **Mode** | Light · Dark · Auto | Auto | Text, status colours and shadows. Auto follows the device, live. |
+| **Theme** | Heritage · Parchment · Bordeaux · Verdigris · Graphite · Aubergine · Classic | Classic | The page grounds (faintly tinted), the accent — buttons, links, navigation, selections, focus rings, progress — its second tone, the result card's tint and the chart palette. |
 | **Density** | Comfortable · Compact | Comfortable | Card padding, control heights, field gaps, stat and table row height. Touch screens keep full-size controls. |
 
-Status colours (success, danger, warning, info) belong to the mode, never the accent, so a gain
-is the same green and a cost the same red whichever accent is picked.
+Each theme is a pair of tones with a light and a dark version:
 
-Change them from the header's quick menu (theme, accent, density) or **Settings › Appearance**
-(`/settings/`), which adds language, a reset, and a live preview built from the real components —
-result card, buttons (including disabled), an input, status badges, a table with signed amounts
-and a selected row, success/warning/error notes and the chart colours. Every change applies at
-once, without a reload; switching light ↔ dark cross-fades colours for 200 ms (off under
-reduced motion).
+| Theme | Tones | Theme | Tones |
+| --- | --- | --- | --- |
+| Heritage | Navy & brass | Graphite | Charcoal & gold |
+| Parchment | Sepia & sienna | Aubergine | Plum & antique rose |
+| Bordeaux | Wine & rosewood | Classic | Sapphire blue — the original FinCalc look |
+| Verdigris | Patina & copper | | |
+
+Status colours (success, danger, warning, info) belong to the mode, never the theme, so a gain
+is the same green and a cost the same red whichever theme is picked.
+
+Change them from the header's quick menu — a summary line ("Heritage · Auto, light now"), the
+mode switch and a card for each theme, drawn as a miniature in that theme's own colours — or
+**Settings › Appearance** (`/settings/`), which adds density, language, a reset, and a live
+preview built from the real components — result card, buttons (including disabled), an input,
+status badges, a table with signed amounts and a selected row, success/warning/error notes and
+the chart colours. Every change applies at once, without a reload; switching mode or theme
+cross-fades colours for 200 ms (off under reduced motion).
 
 How it is built:
 
-- `src/theme/appearance.ts` — the options, defaults, storage keys, migration of old saved
-  palettes, `resolveMode()` and `applyAppearance()`. Framework-free.
+- `src/theme/appearance.ts` — the options (with each card's preview colours), defaults, storage
+  keys, migration of old saved choices, `resolveMode()`, `describeAppearance()` and
+  `applyAppearance()`. Framework-free.
 - `src/theme/useAppearance.ts` — the React state, owned once by `PreferencesProvider` and read
-  with `useAppearance()`. It listens to the device's colour scheme so System stays in step.
+  with `useAppearance()`. It listens to the device's colour scheme so Auto stays in step.
 - `src/theme/boot.ts` — a small script that Vite inlines into every page's `<head>`
   (`vite.config.ts` → `appearanceBoot`). It applies the saved choices before the first paint, so
   a dark-mode reader never sees a white flash, even before the app's JavaScript loads.
 - Preferences are saved through an `AppearanceStore` — today `localStorage` (keys
-  `finora:mode`, `finora:accent`, `finora:density`). With sign-in, a store that reads and writes
-  `user.preferences.themeMode / accentColor / density` can replace it without touching anything
-  else.
-- The five palettes of earlier releases are gone as separate worlds; saved choices migrate
-  automatically (Premium and Ocean → Blue, Royal → Indigo, Emerald → Emerald, Graphite → Amber).
-  What each palette contributed that was worth keeping — its hue, its result-card tint, its
-  chart colours — lives on in the matching accent.
+  `finora:mode`, `finora:theme`, `finora:density`). With sign-in, a store that reads and writes
+  `user.preferences.themeMode / theme / density` can replace it without touching anything else.
+- Saved choices from earlier releases migrate automatically to the nearest theme: accents
+  (Blue → Classic, Indigo → Heritage, Emerald → Verdigris, Violet → Aubergine, Amber →
+  Parchment) and the palettes before them (Premium → Classic, Ocean → Verdigris, Royal →
+  Aubergine, Graphite → Graphite).
 
 ### Tokens
 
@@ -269,15 +288,17 @@ Everything lives in `src/styles/tokens.css`, in layers:
    (also available as `--color-primary*`), `--color-success` / `-danger` / `-warning` / `-info`
    each with `-soft` and `--color-on-*`, `--color-selected`, `--focus-ring`, `--color-input-*`,
    `--color-table-*`, `--color-tooltip-*`, `--color-hero-*`, `--color-chart-1…5`.
-3. **Mode primitives** — one set of neutrals and status colours for light, one for dark.
-4. **Accent primitives** — per accent and mode: the accent scale (`--brand-*`), the result
-   card's gradient and five chart colours (series 1 is the accent).
+3. **Mode primitives** — one set of text and status colours for light, one for dark.
+4. **Themes** — per theme and mode: the grounds (`--bg`, `--surface*`, `--border*`), the accent
+   scale (`--brand-*`), the second tone (`--signature`), the result card's gradient and five
+   chart colours (series 1 is the accent). Every theme defines the same set in both modes, so a
+   light block can never leak into dark.
 5. **Density** — `--control-h`, `--pad-card`, `--gap-fields`, `--pad-stat`, `--cell-py`, … with a
    compact block.
 
 Dark mode is designed, not inverted: elevation comes from lighter surfaces and hairlines rather
 than shadows, sunken wells (search, segmented tracks) are darker than cards, text is off-white,
-and accents are lifted just enough to read.
+and each theme's accent is lifted just enough to read.
 
 Component conventions:
 
@@ -299,19 +320,19 @@ Component conventions:
   with a strong top rule. Row height follows density.
 - **Numbers** — tabular figures everywhere a value can change or line up.
 
-**Every combination is contrast-audited, not eyeballed.** `npm run check:contrast` walks all ten
-mode × accent combinations and checks 370 pairs — body, secondary and muted text on every
-ground, accent links and button labels (including hover), text on selected rows and accent-soft
-grounds, white and muted white on the result card, each status colour as text on the page and
-on its own soft ground, labels on solid status buttons, and each chart series. Every text role
-meets WCAG AA (4.5:1) in all of them. `src/tests/appearance.test.ts` checks that every accent
-is defined completely in both modes, never redefines neutrals or status colours, and matches the
-swatches the settings page shows.
+**Every combination is contrast-audited, not eyeballed.** `npm run check:contrast` walks all
+fourteen mode × theme combinations and checks 518 pairs — body, secondary and muted text on
+every ground, accent links and button labels (including hover), text on selected rows and
+accent-soft grounds, white and muted white on the result card, each status colour as text on the
+page and on its own soft ground, labels on solid status buttons, and each chart series. Every
+text role meets WCAG AA (4.5:1) in all of them. `src/tests/appearance.test.ts` checks that every
+theme is defined completely and identically in both modes, never redefines text or status
+colours, and that each Appearance card is drawn in exactly the colours its theme uses.
 
-Keyboard: ⌘⇧L / Ctrl-Shift-L steps through the accents, ⌘⇧D / Ctrl-Shift-D flips light/dark.
+Keyboard: ⌘⇧L / Ctrl-Shift-L steps through the themes, ⌘⇧D / Ctrl-Shift-D flips light/dark.
 Every appearance control is a radio group: one tab stop, arrow keys to choose.
 
-Chart series use a five-colour categorical palette per accent, each colour at least 3:1 against
+Chart series use a five-colour categorical palette per theme, each colour at least 3:1 against
 its surface. Charts are hand-built SVG (~250 lines) — they inherit theme tokens directly and add
 nothing to the bundle.
 

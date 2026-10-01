@@ -377,12 +377,39 @@
   margin-left: auto;
   color: var(--brand-600);
 }
-/* Appearance quick menu: three labelled rows and a way to the full page. */
+/* Appearance quick menu: a heading with a live summary, the mode, the
+   theme cards and a way to the full page. Scrolls inside itself when the
+   window is short, so the last cards are never out of reach. */
 .appearance-pop {
-  width: 292px;
-  padding: 10px;
+  width: 340px;
+  max-height: calc(100dvh - var(--topbar-h) - var(--safe-t) - 20px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 12px;
   display: grid;
+  gap: 12px;
+}
+.ap-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
   gap: 10px;
+  padding: 0 2px;
+}
+.ap-title {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--color-text);
+}
+.ap-status {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .ap-row {
   display: grid;
@@ -390,12 +417,6 @@
 }
 .appearance-pop .menu-title {
   padding: 0 2px;
-}
-.ap-value {
-  text-transform: none;
-  letter-spacing: 0;
-  font-weight: var(--weight-semibold);
-  color: var(--color-text-secondary);
 }
 .ap-more {
   display: flex;
@@ -415,7 +436,7 @@
   text-decoration: none;
   color: var(--color-primary-hover);
 }
-@media (max-width: 400px) {
+@media (max-width: 420px) {
   .appearance-pop {
     position: fixed;
     top: calc(var(--topbar-h) + var(--safe-t) + 6px);

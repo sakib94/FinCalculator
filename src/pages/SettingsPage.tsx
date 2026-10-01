@@ -1,10 +1,10 @@
 import { LANGS } from '@/i18n';
-import { ACCENTS } from '@/theme/appearance';
+import { DEFAULT_APPEARANCE, describeAppearance, themeById } from '@/theme/appearance';
 import { useAppearance, useLanguage, useT } from '@/hooks/PreferencesContext';
 import { Link } from '@/lib/router';
 import { formatINR, formatSignedINR } from '@/lib/format';
 import { PageHeader } from '@/components/PageHeader';
-import { AccentControl, DensityControl, RadioGroup, ThemeModeControl } from '@/components/AppearanceControls';
+import { DensityControl, RadioGroup, ThemeControl, ThemeModeControl } from '@/components/AppearanceControls';
 import { Marker } from '@/components/Chart';
 import { Icon } from '@/components/Icon';
 import { useToast } from '@/components/Toast';
@@ -16,11 +16,14 @@ import { useToast } from '@/components/Toast';
  */
 export function SettingsPage() {
   const t = useT();
-  const { themeMode, resolvedMode, accentColor, density, resetAppearance } = useAppearance();
+  const { themeMode, resolvedMode, theme, density, resetAppearance } = useAppearance();
   const { lang, setLang } = useLanguage();
   const { notify } = useToast();
 
-  const isDefault = themeMode === 'system' && accentColor === 'blue' && density === 'comfortable';
+  const isDefault =
+    themeMode === DEFAULT_APPEARANCE.themeMode &&
+    theme === DEFAULT_APPEARANCE.theme &&
+    density === DEFAULT_APPEARANCE.density;
 
   return (
     <div className="page settings-page">
@@ -39,10 +42,13 @@ export function SettingsPage() {
 
       <div className="settings-layout">
         <div className="settings-panel">
-          <section className="setting" aria-labelledby="set-theme">
-            <div className="setting-head">
-              <h2 id="set-theme">{t('Theme')}</h2>
-              <p>{t('Light, dark, or match your device.')}</p>
+          <section className="setting" aria-labelledby="set-mode">
+            <div className="setting-head setting-head-row">
+              <div>
+                <h2 id="set-mode">{t('Mode')}</h2>
+                <p>{t('Light, dark, or Auto to match your device.')}</p>
+              </div>
+              <span className="setting-status">{describeAppearance({ theme, themeMode }, resolvedMode, t)}</span>
             </div>
             <ThemeModeControl size="lg" />
             {themeMode === 'system' && (
@@ -55,16 +61,16 @@ export function SettingsPage() {
             )}
           </section>
 
-          <section className="setting" aria-labelledby="set-accent">
+          <section className="setting" aria-labelledby="set-theme">
             <div className="setting-head">
-              <h2 id="set-accent">{t('Accent colour')}</h2>
+              <h2 id="set-theme">{t('Theme')}</h2>
               <p>
                 {t(
-                  'Used for buttons, links, selections and charts. Gains, costs and warnings always keep their own colours.',
+                  'Each theme pairs two tones and has a light and a dark version. Gains, costs and warnings always keep their own colours.',
                 )}
               </p>
             </div>
-            <AccentControl variant="list" />
+            <ThemeControl size="lg" />
           </section>
 
           <section className="setting" aria-labelledby="set-density">
@@ -113,7 +119,7 @@ export function SettingsPage() {
           <p className="section-label" id="preview-head">
             {t('Preview')}
           </p>
-          <AppearancePreview accentLabel={ACCENTS.find((a) => a.id === accentColor)?.label ?? ''} />
+          <AppearancePreview themeLabel={themeById(theme).label} />
         </aside>
       </div>
     </div>
@@ -125,7 +131,7 @@ export function SettingsPage() {
  * status badges, a table with signed amounts, notes and chart colours.
  * Real component classes, so it changes exactly as the app does.
  */
-function AppearancePreview({ accentLabel }: { accentLabel: string }) {
+function AppearancePreview({ themeLabel }: { themeLabel: string }) {
   const t = useT();
   const rows = [
     { label: t('Salary credited'), amount: formatSignedINR(85000), tone: 'pos', status: 'settled' },
@@ -139,7 +145,7 @@ function AppearancePreview({ accentLabel }: { accentLabel: string }) {
         <div className="h-label">{t('Available balance')}</div>
         <div className="h-value num">₹25,450</div>
         <div className="h-caption">
-          {t('Accent')}: {t(accentLabel)}
+          {t('Theme')}: {t(themeLabel)}
         </div>
       </div>
 

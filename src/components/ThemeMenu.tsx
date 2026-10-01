@@ -1,18 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
-import { ACCENTS } from '@/theme/appearance';
+import { describeAppearance } from '@/theme/appearance';
 import { useAppearance, useT } from '@/hooks/PreferencesContext';
 import { Link } from '@/lib/router';
-import { AccentControl, DensityControl, ThemeModeControl } from './AppearanceControls';
+import { ThemeControl, ThemeModeControl } from './AppearanceControls';
 import { Icon } from './Icon';
 
 /**
- * Quick appearance settings in the header: theme, accent and density, each
- * applying instantly, plus a way to the full Settings › Appearance page
- * with its live preview.
+ * Quick appearance settings in the header: mode (Light · Dark · Auto) and
+ * the theme cards, each applying instantly, with a one-line summary of
+ * what is showing and a way to the full Settings › Appearance page
+ * (density, language and the live preview).
  */
 export function ThemeMenu() {
   const t = useT();
-  const { resolvedMode, accentColor } = useAppearance();
+  const { resolvedMode, theme, themeMode } = useAppearance();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement>(null);
   const btnRef = useRef<HTMLButtonElement>(null);
@@ -36,8 +37,6 @@ export function ThemeMenu() {
     };
   }, [open]);
 
-  const accentLabel = ACCENTS.find((a) => a.id === accentColor)?.label ?? '';
-
   return (
     <div className="theme-menu" ref={wrapRef}>
       <button
@@ -54,20 +53,22 @@ export function ThemeMenu() {
       </button>
 
       {open && (
-        <div className="menu-pop appearance-pop" role="dialog" aria-label={t('Appearance')}>
+        <div className="menu-pop appearance-pop" role="dialog" aria-labelledby="ap-title">
+          <div className="ap-head">
+            <span className="ap-title" id="ap-title">
+              {t('Appearance')}
+            </span>
+            <span className="ap-status" aria-live="polite">
+              {describeAppearance({ theme, themeMode }, resolvedMode, t)}
+            </span>
+          </div>
           <div className="ap-row">
-            <span className="menu-title">{t('Theme')}</span>
+            <span className="menu-title">{t('Mode')}</span>
             <ThemeModeControl />
           </div>
           <div className="ap-row">
-            <span className="menu-title">
-              {t('Accent')} <span className="ap-value">· {t(accentLabel)}</span>
-            </span>
-            <AccentControl />
-          </div>
-          <div className="ap-row">
-            <span className="menu-title">{t('Density')}</span>
-            <DensityControl />
+            <span className="menu-title">{t('Theme')}</span>
+            <ThemeControl />
           </div>
           <Link to="/settings" className="ap-more" onClick={() => setOpen(false)}>
             <Icon name="sparkle" size={15} />

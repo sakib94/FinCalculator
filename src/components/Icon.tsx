@@ -74,7 +74,14 @@ const PATHS = {
   fileText: 'M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h7',
   mail: 'M4 5h16a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM3.5 6.5L12 13l8.5-6.5',
   link: 'M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1.2 1.2M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1.2-1.2',
+  /* Auto (follow the device): a circle, half light and half dark. */
+  contrast: 'M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 3v18',
 } as const;
+
+/** Parts of an icon that are always filled, drawn over the outline. */
+const SOLID: Partial<Record<keyof typeof PATHS, string>> = {
+  contrast: 'M12 3a9 9 0 0 1 0 18z',
+};
 
 export type IconName = keyof typeof PATHS;
 
@@ -102,6 +109,7 @@ export function Icon({ name, size = 18, className, strokeWidth = 1.7, filled }: 
       focusable="false"
     >
       <path d={PATHS[name]} />
+      {SOLID[name] && <path d={SOLID[name]} fill="currentColor" stroke="none" />}
     </svg>
   );
 }

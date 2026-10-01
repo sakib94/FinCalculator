@@ -1,5 +1,5 @@
 import { useRef, type ReactNode } from 'react';
-import { ACCENTS, DENSITIES, THEME_MODES } from '@/theme/appearance';
+import { DENSITIES, THEME_MODES, THEMES, themeById } from '@/theme/appearance';
 import { useAppearance, useT } from '@/hooks/PreferencesContext';
 import { Icon } from './Icon';
 
@@ -80,13 +80,13 @@ export function RadioGroup<T extends string>({
   );
 }
 
-/** Light · Dark · System. */
+/** Light · Dark · Auto. */
 export function ThemeModeControl({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
   const t = useT();
   const { themeMode, setThemeMode } = useAppearance();
   return (
     <RadioGroup
-      label={t('Theme')}
+      label={t('Mode')}
       value={themeMode}
       options={THEME_MODES}
       onChange={setThemeMode}
@@ -102,28 +102,51 @@ export function ThemeModeControl({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
 }
 
 /**
- * Accent colours. `swatches` is a row of dots for the quick menu (the
- * chosen name is shown beside the heading, so it is never colour alone);
- * `list` shows every name, for the settings page.
+ * The themes, as cards: a miniature of each one — header bar, a card with
+ * two lines of text, and its second-tone dot — drawn in that theme's own
+ * colours for the mode currently showing, then its name and its two tones.
+ * `lg` lays them out wider for the settings page.
  */
-export function AccentControl({ variant = 'swatches' }: { variant?: 'swatches' | 'list' }) {
+export function ThemeControl({ size = 'sm' }: { size?: 'sm' | 'lg' }) {
   const t = useT();
-  const { accentColor, setAccentColor, resolvedMode } = useAppearance();
+  const { theme, setTheme, resolvedMode } = useAppearance();
   return (
     <RadioGroup
-      label={t('Accent colour')}
-      value={accentColor}
-      options={ACCENTS}
-      onChange={setAccentColor}
-      className={variant === 'list' ? 'accent-list' : 'accent-dots'}
+      label={t('Theme')}
+      value={theme}
+      options={THEMES}
+      onChange={setTheme}
+      className={`theme-cards${size === 'lg' ? ' lg' : ''}`}
       render={(o, checked) => {
-        const swatch = ACCENTS.find((a) => a.id === o.id)!.swatch[resolvedMode];
+        const th = themeById(o.id);
+        const p = th.preview[resolvedMode];
         return (
           <>
-            <span className="accent-dot" style={{ background: swatch }} aria-hidden="true">
-              {checked && <Icon name="check" size={variant === 'list' ? 14 : 13} strokeWidth={2.6} />}
+            <span
+              className="tc-preview"
+              aria-hidden="true"
+              style={{
+                ['--tc-ground' as string]: p.ground,
+                ['--tc-card' as string]: p.card,
+                ['--tc-bar' as string]: p.bar,
+                ['--tc-line' as string]: p.line,
+                ['--tc-dot' as string]: p.dot,
+              }}
+            >
+              <span className="tc-bar" />
+              <span className="tc-card">
+                <span className="tc-lines">
+                  <span />
+                  <span />
+                </span>
+                <span className="tc-dot" />
+              </span>
             </span>
-            <span className={variant === 'list' ? 'accent-name' : 'sr-only'}>{t(o.label)}</span>
+            <span className="tc-name">
+              {t(th.label)}
+              {checked && <Icon name="check" size={15} strokeWidth={2.4} />}
+            </span>
+            <span className="tc-hint">{t(th.hint)}</span>
           </>
         );
       }}

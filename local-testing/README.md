@@ -1,5 +1,7 @@
 # Local testing (PC + phone)
 
+> **Easiest:** double-click `TEST-FinCalc.bat`, `START-FinCalc.bat` or `DEV-FinCalc.bat` in the `finora-calculator` folder (one level above `finora`). They wrap the scripts below, open your browser when the server is ready, and `HOW-TO-TEST.md` beside them has the full PC + phone checklist.
+
 For testing only — nothing in this folder is deployed.
 
 | File | Use it when | URL |

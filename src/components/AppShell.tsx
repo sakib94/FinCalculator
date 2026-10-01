@@ -55,7 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 1024px)');
-  const { cycleAccent, toggleDarkMode } = useAppearance();
+  const { cycleTheme, toggleDarkMode } = useAppearance();
   const { favorites } = useFavorites();
   const t = useT();
   const megaRef = useRef<HTMLDivElement>(null);
@@ -94,7 +94,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   }, [megaOpen]);
 
   // Global shortcuts: ⌘K / Ctrl-K opens search, "/" focuses it,
-  // ⌘⇧L steps through the accent colours and ⌘⇧D flips light/dark.
+  // ⌘⇧L steps through the themes and ⌘⇧D flips light/dark.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null;
@@ -104,7 +104,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         setSearchOpen(true);
       } else if ((e.key === 'l' || e.key === 'L') && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         e.preventDefault();
-        cycleAccent();
+        cycleTheme();
       } else if ((e.key === 'd' || e.key === 'D') && (e.metaKey || e.ctrlKey) && e.shiftKey) {
         e.preventDefault();
         toggleDarkMode();
@@ -121,7 +121,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [cycleAccent, toggleDarkMode, megaOpen]);
+  }, [cycleTheme, toggleDarkMode, megaOpen]);
 
   useEffect(() => {
     document.body.style.overflow = drawerOpen && !isDesktop ? 'hidden' : '';

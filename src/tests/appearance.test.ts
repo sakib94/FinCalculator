@@ -1,10 +1,12 @@
 import tokens from '../styles/tokens.css?raw';
 import {
-  ACCENTS,
   DEFAULT_APPEARANCE,
   DENSITIES,
-  LEGACY_PALETTE_TO_ACCENT,
+  LEGACY_TO_THEME,
+  THEME_COLOR,
   THEME_MODES,
+  THEMES,
+  describeAppearance,
   normalizeAppearance,
   resolveMode,
 } from '@/theme/appearance';
@@ -19,47 +21,76 @@ function block(selector: string): Record<string, string> {
   return Object.fromEntries([...body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)].map((m) => [m[1], m[2].trim()]));
 }
 
+const lightBlock = (id: string) => block(`:root[data-theme='${id}'] {`);
+const darkBlock = (id: string) => block(`:root[data-mode='dark'][data-theme='${id}'] {`);
+
 describe('appearance preferences', () => {
-  it('defaults to System, Blue and Comfortable', () => {
-    expect(DEFAULT_APPEARANCE).toEqual({ themeMode: 'system', accentColor: 'blue', density: 'comfortable' });
+  it('defaults to Auto, Classic and Comfortable — the original look', () => {
+    expect(DEFAULT_APPEARANCE).toEqual({ themeMode: 'system', theme: 'classic', density: 'comfortable' });
     expect(normalizeAppearance({})).toEqual(DEFAULT_APPEARANCE);
   });
 
   it('keeps valid stored values and drops anything else', () => {
-    expect(normalizeAppearance({ themeMode: 'dark', accentColor: 'violet', density: 'compact' })).toEqual({
+    expect(normalizeAppearance({ themeMode: 'dark', theme: 'bordeaux', density: 'compact' })).toEqual({
       themeMode: 'dark',
-      accentColor: 'violet',
+      theme: 'bordeaux',
       density: 'compact',
     });
-    expect(normalizeAppearance({ themeMode: 'auto', accentColor: 'pink', density: 42 })).toEqual(DEFAULT_APPEARANCE);
+    expect(normalizeAppearance({ themeMode: 'auto', theme: 'pink', density: 42 })).toEqual(DEFAULT_APPEARANCE);
   });
 
-  it('migrates every palette from earlier releases to an accent', () => {
-    for (const [palette, accent] of Object.entries(LEGACY_PALETTE_TO_ACCENT)) {
-      expect(normalizeAppearance({ legacyPalette: palette }).accentColor).toBe(accent);
+  it('migrates saved accents and palettes from earlier releases to a theme', () => {
+    for (const [old, theme] of Object.entries(LEGACY_TO_THEME)) {
+      expect(normalizeAppearance({ legacyAccent: old }).theme).toBe(theme);
+      expect(normalizeAppearance({ legacyPalette: old }).theme).toBe(theme);
     }
-    expect(normalizeAppearance({ legacyPalette: 'royal' }).accentColor).toBe('indigo');
-    expect(normalizeAppearance({ legacyPalette: 'graphite' }).accentColor).toBe('amber');
-    // A saved accent wins over a leftover palette.
-    expect(normalizeAppearance({ accentColor: 'emerald', legacyPalette: 'royal' }).accentColor).toBe('emerald');
+    expect(normalizeAppearance({ legacyAccent: 'blue' }).theme).toBe('classic');
+    expect(normalizeAppearance({ legacyAccent: 'amber' }).theme).toBe('parchment');
+    // A saved theme wins over leftovers, and the newer accent wins over a palette.
+    expect(normalizeAppearance({ theme: 'graphite', legacyAccent: 'violet' }).theme).toBe('graphite');
+    expect(normalizeAppearance({ legacyAccent: 'emerald', legacyPalette: 'royal' }).theme).toBe('verdigris');
+    // Inherited object keys are not themes.
+    expect(normalizeAppearance({ legacyAccent: 'toString' }).theme).toBe('classic');
   });
 
-  it('resolves System against the device and leaves explicit choices alone', () => {
+  it('resolves Auto against the device and leaves explicit choices alone', () => {
     expect(resolveMode('system', true)).toBe('dark');
     expect(resolveMode('system', false)).toBe('light');
     expect(resolveMode('light', true)).toBe('light');
     expect(resolveMode('dark', false)).toBe('dark');
   });
 
-  it('offers exactly three modes, five accents and two densities', () => {
+  it('offers Light · Dark · Auto, seven themes and two densities', () => {
+    expect(THEME_MODES.map((m) => m.label)).toEqual(['Light', 'Dark', 'Auto']);
     expect(THEME_MODES.map((m) => m.id)).toEqual(['light', 'dark', 'system']);
-    expect(ACCENTS.map((a) => a.id)).toEqual(['blue', 'indigo', 'emerald', 'violet', 'amber']);
+    expect(THEMES.map((t) => t.id)).toEqual([
+      'heritage',
+      'parchment',
+      'bordeaux',
+      'verdigris',
+      'graphite',
+      'aubergine',
+      'classic',
+    ]);
     expect(DENSITIES.map((d) => d.id)).toEqual(['comfortable', 'compact']);
+  });
+
+  it('summarises the choice the way the Appearance heading shows it', () => {
+    expect(describeAppearance({ theme: 'heritage', themeMode: 'system' }, 'light')).toBe('Heritage · Auto, light now');
+    expect(describeAppearance({ theme: 'graphite', themeMode: 'system' }, 'dark')).toBe('Graphite · Auto, dark now');
+    expect(describeAppearance({ theme: 'parchment', themeMode: 'dark' }, 'dark')).toBe('Parchment · Dark');
   });
 });
 
 describe('tokens.css', () => {
-  const ACCENT_VARS = [
+  const THEME_VARS = [
+    '--bg',
+    '--bg-subtle',
+    '--surface',
+    '--surface-2',
+    '--surface-3',
+    '--border',
+    '--border-strong',
     '--brand-50',
     '--brand-100',
     '--brand-200',
@@ -67,6 +98,7 @@ describe('tokens.css', () => {
     '--brand-600',
     '--brand-700',
     '--brand-ink',
+    '--signature',
     '--hero-from',
     '--hero-to',
     '--series-1',
@@ -76,31 +108,50 @@ describe('tokens.css', () => {
     '--series-5',
   ];
 
-  it('defines every accent completely, in both modes', () => {
-    for (const a of ACCENTS) {
-      const light = block(`:root[data-accent='${a.id}'] {`);
-      const dark = block(`:root[data-mode='dark'][data-accent='${a.id}'] {`);
-      expect(Object.keys(light).sort()).toEqual([...ACCENT_VARS].sort());
-      expect(Object.keys(dark).sort()).toEqual([...ACCENT_VARS].sort());
+  it('defines every theme completely and identically in both modes', () => {
+    // The same variables in light and dark, so a light block can never leak into dark.
+    for (const th of THEMES) {
+      expect(Object.keys(lightBlock(th.id)).sort()).toEqual([...THEME_VARS].sort());
+      expect(Object.keys(darkBlock(th.id)).sort()).toEqual([...THEME_VARS].sort());
     }
   });
 
-  it('keeps the settings swatches in step with the accent colours', () => {
-    for (const a of ACCENTS) {
-      expect(block(`:root[data-accent='${a.id}'] {`)['--brand-600']).toBe(a.swatch.light);
-      expect(block(`:root[data-mode='dark'][data-accent='${a.id}'] {`)['--brand-600']).toBe(a.swatch.dark);
+  it('draws every theme card with the colours the theme really uses', () => {
+    for (const th of THEMES) {
+      for (const [mode, vars] of [
+        ['light', lightBlock(th.id)],
+        ['dark', darkBlock(th.id)],
+      ] as const) {
+        expect({ theme: th.id, mode, ...th.preview[mode] }).toEqual({
+          theme: th.id,
+          mode,
+          ground: vars['--bg'],
+          card: vars['--surface'],
+          bar: mode === 'light' ? vars['--brand-600'] : vars['--hero-to'],
+          line: vars['--border-strong'],
+          dot: vars['--signature'],
+        });
+        expect(THEME_COLOR[th.id][mode]).toBe(vars['--surface']);
+      }
     }
   });
 
-  it('never lets an accent redefine neutrals or status colours', () => {
-    for (const a of ACCENTS) {
-      for (const sel of [`:root[data-accent='${a.id}'] {`, `:root[data-mode='dark'][data-accent='${a.id}'] {`]) {
-        const vars = Object.keys(block(sel));
-        for (const v of ['--bg', '--surface', '--text', '--positive', '--negative', '--warning', '--info']) {
-          expect(vars).not.toContain(v);
+  it('never lets a theme redefine text or status colours', () => {
+    for (const th of THEMES) {
+      for (const vars of [lightBlock(th.id), darkBlock(th.id)]) {
+        for (const v of ['--text', '--text-2', '--text-3', '--positive', '--negative', '--warning', '--info']) {
+          expect(Object.keys(vars)).not.toContain(v);
         }
       }
     }
+  });
+
+  it('keeps Classic exactly the original FinCalc blue, and the fallback', () => {
+    expect(lightBlock('classic')['--brand-600']).toBe('#2450c4');
+    expect(darkBlock('classic')['--brand-600']).toBe('#82a0ff');
+    // Before the boot script runs there is no data-theme: Classic applies.
+    expect(tokens).toMatch(/:root,\r?\n:root\[data-theme='classic'\] \{/);
+    expect(tokens).toMatch(/:root\[data-mode='dark'\]:not\(\[data-theme\]\),\r?\n:root\[data-mode='dark'\]\[data-theme='classic'\] \{/);
   });
 });
 
@@ -132,34 +183,37 @@ describe('pre-paint boot script', () => {
   }
 
   it('applies saved preferences before the app loads', () => {
-    expect(run({ mode: 'dark', accent: 'violet', density: 'compact' })).toEqual({
+    expect(run({ mode: 'dark', theme: 'aubergine', density: 'compact' })).toEqual({
       'data-mode': 'dark',
-      'data-accent': 'violet',
+      'data-theme': 'aubergine',
       'data-density': 'compact',
-      themeColor: '#0f1524',
+      themeColor: '#19111a',
     });
   });
 
   it('follows the device when nothing is saved', () => {
     expect(run({}, true)['data-mode']).toBe('dark');
     expect(run({}, false)['data-mode']).toBe('light');
-    expect(run({})['data-accent']).toBe('blue');
+    expect(run({})['data-theme']).toBe('classic');
     expect(run({})['data-density']).toBe('comfortable');
   });
 
-  it('migrates a legacy palette and ignores junk', () => {
-    expect(run({ palette: 'royal' })['data-accent']).toBe('indigo');
-    expect(run({ mode: 'sepia', accent: 'pink', density: 'huge' })).toMatchObject({
+  it('migrates a saved accent or palette and ignores junk', () => {
+    expect(run({ accent: 'amber' })['data-theme']).toBe('parchment');
+    expect(run({ palette: 'royal' })['data-theme']).toBe('aubergine');
+    expect(run({ accent: 'toString' })['data-theme']).toBe('classic');
+    expect(run({ mode: 'sepia', theme: 'pink', density: 'huge' })).toMatchObject({
       'data-mode': 'light',
-      'data-accent': 'blue',
+      'data-theme': 'classic',
       'data-density': 'comfortable',
     });
   });
 
   it('works as the serialised inline script', () => {
-    expect(run({ mode: 'light', accent: 'amber' }, true, true)).toMatchObject({
+    expect(run({ mode: 'light', theme: 'verdigris' }, true, true)).toMatchObject({
       'data-mode': 'light',
-      'data-accent': 'amber',
+      'data-theme': 'verdigris',
+      themeColor: '#ffffff',
     });
   });
 });

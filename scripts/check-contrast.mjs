@@ -1,11 +1,12 @@
 /**
  * Parses tokens.css and checks WCAG contrast for the pairs that carry
- * meaning on screen, for every mode × accent combination (2 × 5).
+ * meaning on screen, for every mode × theme combination (2 × 7).
  * Run with: node scripts/check-contrast.mjs src/styles/tokens.css
  *
- * Mode blocks hold the neutrals and status colours; accent blocks hold the
- * accent scale, the result-card tint and the chart palette. Each
- * combination is the mode's primitives overlaid with the accent's.
+ * Mode blocks hold text and status colours; theme blocks hold the grounds,
+ * the accent scale, the second tone, the result-card tint and the chart
+ * palette. Each combination is the mode's primitives overlaid with the
+ * theme's.
  */
 import { readFileSync } from 'node:fs';
 
@@ -55,7 +56,7 @@ const contrast = (a, b) => {
   return (l1 + 0.05) / (l2 + 0.05);
 };
 
-const ACCENTS = ['blue', 'indigo', 'emerald', 'violet', 'amber'];
+const THEMES = ['heritage', 'parchment', 'bordeaux', 'verdigris', 'graphite', 'aubergine', 'classic'];
 
 // Soft status grounds, as tokens.css mixes them: [token, primitive, % light, % dark].
 const SOFT = [
@@ -112,13 +113,13 @@ const report = [];
 
 for (const mode of ['light', 'dark']) {
   const modeTokens = block(":root[data-mode='" + mode + "'] {");
-  for (const accent of ACCENTS) {
-    const accentTokens = block(
+  for (const theme of THEMES) {
+    const themeTokens = block(
       mode === 'light'
-        ? ":root[data-accent='" + accent + "'] {"
-        : ":root[data-mode='dark'][data-accent='" + accent + "'] {",
+        ? ":root[data-theme='" + theme + "'] {"
+        : ":root[data-mode='dark'][data-theme='" + theme + "'] {",
     );
-    const t = { ...modeTokens, ...accentTokens };
+    const t = { ...modeTokens, ...themeTokens };
     const derived = {
       selected: mix(t['--brand-500'], mode === 'light' ? 10 : 14, t['--surface']),
     };
@@ -133,7 +134,7 @@ for (const mode of ['light', 'dark']) {
       const f = fg.startsWith('white@') && b ? mix('#ffffff', Number(fg.slice(6)) * 100, b) : get(fg);
       if (!f || !b || !f.startsWith('#') || !b.startsWith('#')) {
         failures++;
-        console.log('MISSING ' + mode + '/' + accent + '  ' + label + ' (' + fg + ' on ' + bg + ')');
+        console.log('MISSING ' + mode + '/' + theme + '  ' + label + ' (' + fg + ' on ' + bg + ')');
         continue;
       }
       checked++;
@@ -142,7 +143,7 @@ for (const mode of ['light', 'dark']) {
       if (ratio < min) {
         failures++;
         console.log(
-          'FAIL ' + mode + '/' + accent + '  ' + label.padEnd(34) + f + ' on ' + b +
+          'FAIL ' + mode + '/' + theme + '  ' + label.padEnd(34) + f + ' on ' + b +
             ' = ' + ratio.toFixed(2) + ' (need ' + min + ')',
         );
       }
@@ -154,18 +155,18 @@ for (const mode of ['light', 'dark']) {
       checked++;
       if (!c) {
         failures++;
-        console.log('MISSING ' + mode + '/' + accent + '  ' + s);
+        console.log('MISSING ' + mode + '/' + theme + '  ' + s);
         continue;
       }
       const ratio = contrast(c, t['--surface']);
       if (ratio < 3) {
         failures++;
-        console.log('FAIL ' + mode + '/' + accent + '  ' + s.padEnd(34) + c + ' on surface = ' + ratio.toFixed(2));
+        console.log('FAIL ' + mode + '/' + theme + '  ' + s.padEnd(34) + c + ' on surface = ' + ratio.toFixed(2));
       }
     }
 
     report.push(
-      '  ' + (mode + '/' + accent).padEnd(16) +
+      '  ' + (mode + '/' + theme).padEnd(16) +
         'body ' + contrast(t['--text'], t['--surface']).toFixed(1).padStart(5) + ':1' +
         '   accent ' + contrast(t['--brand-600'], t['--surface']).toFixed(1).padStart(4) + ':1' +
         '   weakest text ' + worst.ratio.toFixed(1) + ':1 (' + worst.label + ')',
@@ -173,7 +174,7 @@ for (const mode of ['light', 'dark']) {
   }
 }
 
-console.log('\nContrast summary (mode/accent)');
+console.log('\nContrast summary (mode/theme)');
 console.log(report.join('\n'));
 console.log('\n' + checked + ' pairs checked, ' + failures + ' below target.');
 process.exit(failures ? 1 : 0);
