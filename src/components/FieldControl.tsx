@@ -173,6 +173,9 @@ export function FieldControl({ field, value, error, onChange }: Props) {
           enterKeyHint="next"
           placeholder={field.placeholder}
           value={text}
+          // The figure always gets room for every digit it holds; the
+          // amount-in-words pill beside it gives way first (see .input).
+          style={{ ['--chars' as string]: Math.max(String(text ?? '').length, 3) }}
           onFocus={() => {
             focused.current = true;
           }}

@@ -429,6 +429,16 @@
   font-weight: var(--weight-semibold);
   color: var(--color-primary);
 }
+button.ap-more {
+  width: 100%;
+  border-width: 1px 0 0;
+  border-style: solid;
+  border-color: var(--color-divider);
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
 .ap-more svg:last-child {
   margin-left: auto;
 }
@@ -762,6 +772,13 @@
   font-weight: var(--weight-medium);
   cursor: pointer;
 }
+button.drawer-link {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font-family: inherit;
+  text-align: left;
+}
 .drawer-link > svg,
 .drawer-cat summary > svg {
   color: var(--color-text-muted);
@@ -895,8 +912,18 @@
 .footer-links a {
   color: var(--color-footer-muted);
 }
-.footer-links a:hover {
+.footer-links a:hover,
+.footer-link-btn:hover {
   color: #fff;
+}
+.footer-link-btn {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  color: var(--color-footer-muted);
+  cursor: pointer;
 }
 .footer-bar {
   display: flex;

@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { describeAppearance } from '@/theme/appearance';
 import { useAppearance, useT } from '@/hooks/PreferencesContext';
-import { Link } from '@/lib/router';
 import { ThemeControl, ThemeModeControl } from './AppearanceControls';
 import { Icon } from './Icon';
 
@@ -11,7 +10,7 @@ import { Icon } from './Icon';
  * what is showing and a way to the full Settings › Appearance page
  * (density, language and the live preview).
  */
-export function ThemeMenu() {
+export function ThemeMenu({ onOpenSettings }: { onOpenSettings: () => void }) {
   const t = useT();
   const { resolvedMode, theme, themeMode } = useAppearance();
   const [open, setOpen] = useState(false);
@@ -70,11 +69,18 @@ export function ThemeMenu() {
             <span className="menu-title">{t('Theme')}</span>
             <ThemeControl />
           </div>
-          <Link to="/settings" className="ap-more" onClick={() => setOpen(false)}>
+          <button
+            type="button"
+            className="ap-more"
+            onClick={() => {
+              setOpen(false);
+              onOpenSettings();
+            }}
+          >
             <Icon name="sparkle" size={15} />
             {t('All appearance settings')}
             <Icon name="chevronRight" size={14} />
-          </Link>
+          </button>
         </div>
       )}
     </div>

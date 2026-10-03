@@ -534,4 +534,7 @@ export const HI: Record<string, string> = {
   'Compact': 'कॉम्पैक्ट',
   'More breathing room': 'ज़्यादा खुली जगह',
   'More on screen': 'स्क्रीन पर ज़्यादा',
+  /* ---------------- Appearance dialog ---------------- */
+  Close: 'बंद करें',
+  'Changes apply instantly and are saved in this browser.': 'बदलाव तुरंत लागू होते हैं और इसी ब्राउज़र में सेव रहते हैं।',
 };

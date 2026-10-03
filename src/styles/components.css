@@ -241,6 +241,9 @@
   position: relative;
   display: flex;
   align-items: center;
+  /* A size container, so the amount-in-words pill can step aside in a
+     narrow field (three to a row in compact density, or a tight panel). */
+  container: field / inline-size;
   min-height: var(--control-h);
   border: 1px solid var(--color-input-border);
   background: var(--color-input-bg);
@@ -286,13 +289,22 @@
   flex: 0 1 auto;
   min-width: 0;
   overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Too narrow for both: show the whole number and drop the words. */
+@container field (max-width: 219px) {
+  .input-wrap .affix.words {
+    display: none;
+  }
 }
 .input-wrap .affix.left {
   padding-right: 0;
 }
 .input {
   flex: 1;
-  min-width: 0;
+  /* Never narrower than the figure it holds (--chars is set from the value
+     by FieldControl; 1ch is one tabular digit). */
+  min-width: min(100%, calc(var(--chars, 0) * 1ch + 24px));
   border: 0;
   outline: none;
   background: transparent;

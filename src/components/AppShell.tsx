@@ -9,6 +9,7 @@ import { useAppearance, useFavorites, useT } from '@/hooks/PreferencesContext';
 import { Icon } from './Icon';
 import { Logo } from './Logo';
 import { SearchDialog } from './SearchDialog';
+import { AppearanceDialog } from './AppearanceDialog';
 import { ThemeMenu } from './ThemeMenu';
 import { LanguageMenu } from './LanguageMenu';
 import { ScrollProgress } from './ScrollProgress';
@@ -54,6 +55,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const [megaOpen, setMegaOpen] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const { cycleTheme, toggleDarkMode } = useAppearance();
   const { favorites } = useFavorites();
@@ -205,7 +207,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
 
           <LanguageMenu />
-          <ThemeMenu />
+          <ThemeMenu onOpenSettings={() => setSettingsOpen(true)} />
 
           <button
             type="button"
@@ -329,10 +331,17 @@ export function AppShell({ children }: { children: ReactNode }) {
                 <Icon name="book" size={17} />
                 {t('Financial guides')}
               </Link>
-              <Link to="/settings" className="drawer-link" aria-current={path === '/settings' ? 'page' : undefined}>
+              <button
+                type="button"
+                className="drawer-link"
+                onClick={() => {
+                  setDrawerOpen(false);
+                  setSettingsOpen(true);
+                }}
+              >
                 <Icon name="sparkle" size={17} />
                 {t('Appearance settings')}
-              </Link>
+              </button>
             </div>
 
             {favCalcs.length > 0 && (
@@ -445,7 +454,9 @@ export function AppShell({ children }: { children: ReactNode }) {
               <Link to="/privacy-policy">{t('Privacy Policy')}</Link>
               <Link to="/terms">{t('Terms & Conditions')}</Link>
               <Link to="/disclaimer">{t('Disclaimer')}</Link>
-              <Link to="/settings">{t('Appearance settings')}</Link>
+              <button type="button" className="footer-link-btn" onClick={() => setSettingsOpen(true)}>
+                {t('Appearance settings')}
+              </button>
             </nav>
           </div>
 
@@ -461,6 +472,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </footer>
 
       <SearchDialog open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <AppearanceDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </div>
   );
 }
