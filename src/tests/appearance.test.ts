@@ -146,7 +146,7 @@ describe('tokens.css', () => {
     }
   });
 
-  it('keeps Classic exactly the original FinCalc blue, and the fallback', () => {
+  it('keeps Classic exactly the original PaiseWise blue, and the fallback', () => {
     expect(lightBlock('classic')['--brand-600']).toBe('#2450c4');
     expect(darkBlock('classic')['--brand-600']).toBe('#82a0ff');
     // Before the boot script runs there is no data-theme: Classic applies.

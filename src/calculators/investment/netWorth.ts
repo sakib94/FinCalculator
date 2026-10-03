@@ -130,7 +130,7 @@ const netWorth: CalculatorDef<NetWorthResult> = {
 
   table: (r) => ({
     title: 'Asset and liability breakdown',
-    csvName: 'fincalc-net-worth',
+    csvName: 'paisewise-net-worth',
     columns: [
       { key: 'item', label: 'Item', align: 'left' },
       { key: 'type', label: 'Type', align: 'left' },

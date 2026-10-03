@@ -43,7 +43,7 @@ const WHY: { icon: IconName; title: string; text: string }[] = [
 
 /**
  * The home page tells the story in the order a visitor needs it:
- * what FinCalc is → try it right now → the tools people use most →
+ * what PaiseWise is → try it right now → the tools people use most →
  * everything else by category → learn → why trust it → the full index.
  */
 export function Dashboard() {
@@ -69,6 +69,8 @@ export function Dashboard() {
           <h1 className="hh-title">
             {t('Every money decision,')} <span className="hh-accent">{t('calculated.')}</span>
           </h1>
+          {/* The brand line stays in English in both languages, like the name. */}
+          <p className="hh-tagline">{SITE.tagline}</p>
           <p className="hh-lead">
             {t(
               'Loans, investments, tax and salary — worked out to the rupee, explained in plain English, and private to your device.',
@@ -133,7 +135,7 @@ export function Dashboard() {
       ) : (
         <>
           {/* ---------------- Trust figures ---------------- */}
-          <section className="trust-band" aria-label={t('FinCalc in numbers')}>
+          <section className="trust-band" aria-label={t('PaiseWise in numbers')}>
             <div className="tb-item">
               <span className="tb-num num">{CALCULATORS.length}</span>
               <span className="tb-label">{t('free calculators')}</span>
@@ -144,7 +146,7 @@ export function Dashboard() {
             </div>
             <div className="tb-item">
               <span className="tb-num num">0</span>
-              <span className="tb-label">{t('bytes of your data sent')}</span>
+              <span className="tb-label">{t('bytes sent')}</span>
             </div>
             <div className="tb-item">
               <span className="tb-num">EN · हिं</span>

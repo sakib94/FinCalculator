@@ -159,7 +159,7 @@ const goalSip: CalculatorDef<GoalSipResult> = {
       : {
           title: 'Year-by-year plan',
           previewRows: 10,
-          csvName: 'fincalc-goal-sip-plan',
+          csvName: 'paisewise-goal-sip-plan',
           columns: [
             { key: 'year', label: 'Year', align: 'left' },
             { key: 'monthly', label: 'Monthly SIP' },

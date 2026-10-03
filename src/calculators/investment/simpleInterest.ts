@@ -157,7 +157,7 @@ const simpleInterest: CalculatorDef<SimpleInterestResult> = {
       ? {
           title: 'Year by year',
           previewRows: 10,
-          csvName: 'fincalc-simple-interest',
+          csvName: 'paisewise-simple-interest',
           columns: [
             { key: 'year', label: 'Year', align: 'left' },
             { key: 'simple', label: 'Simple interest balance' },

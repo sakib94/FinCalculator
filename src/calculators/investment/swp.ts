@@ -125,7 +125,7 @@ const swp: CalculatorDef<SwpResult> = {
   table: (r) => ({
     title: 'Year-wise withdrawal schedule',
     previewRows: 10,
-    csvName: 'fincalc-swp-schedule',
+    csvName: 'paisewise-swp-schedule',
     columns: [
       { key: 'year', label: 'Year', align: 'left' },
       { key: 'opening', label: 'Opening balance' },

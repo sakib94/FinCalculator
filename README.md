@@ -1,4 +1,6 @@
-# FinCalc — Financial Calculators for India
+# PaiseWise — Calculate. Compare. Plan Better.
+
+Financial calculators for India, at [paisewise.in](https://paisewise.in).
 
 A financial and utility calculator platform for India: 49 calculators covering loans, investment,
 retirement, tax, salary, business, construction and everyday maths, plus 22 long-form financial
@@ -27,9 +29,9 @@ guides — built as a single coherent application rather than a collection of pa
 
 | Launcher | Use it for |
 | --- | --- |
-| `TEST-FinCalc.bat` | Pre-deployment checks: type check, tests, colour-contrast audit and the production build, with a pass/fail summary |
-| `START-FinCalc.bat` | The finished site exactly as it will be deployed, on `http://localhost:4173` and your phone |
-| `DEV-FinCalc.bat` | Editing: hot reload on `http://localhost:5173` and your phone |
+| `TEST-PaiseWise.bat` | Pre-deployment checks: type check, tests, colour-contrast audit and the production build, with a pass/fail summary |
+| `START-PaiseWise.bat` | The finished site exactly as it will be deployed, on `http://localhost:4173` and your phone |
+| `DEV-PaiseWise.bat` | Editing: hot reload on `http://localhost:5173` and your phone |
 
 Each checks for Node, installs dependencies when they change, opens your browser once the server
 answers and prints the `http://192.168.x.x:…` address for a phone on the same Wi-Fi. They wrap
@@ -187,14 +189,14 @@ Rates currently configured: FY 2024-25, FY 2025-26 and FY 2026-27, with EPF at 8
 
 Every page answers the same questions in the same order.
 
-- **Header** — the FinCalc mark, a *Calculators* button that opens a mega-menu with all 49 tools
+- **Header** — the PaiseWise mark, a *Calculators* button that opens a mega-menu with all 49 tools
   by category, direct tabs for Loans, Investment and Tax & Salary, Guides, search (⌘K), language
   and theme. Below 1024px the menu becomes a drawer with one accordion per category (the current
   one open).
 - **Right-hand menu** — on screens 1200px and wider, every calculator is also listed down the
   right of every page, by category, with Dashboard, Financial guides and your favourites at the
   top. It scrolls on its own and keeps the current calculator in view.
-- **Home** — what FinCalc is and a *working* EMI calculator in the hero (three sliders, the
+- **Home** — what PaiseWise is and a *working* EMI calculator in the hero (three sliders, the
   answer, a principal/interest bar, then a hand-off to the full calculator with the same
   numbers); trust figures; favourites and recents; the six most-used tools; categories; featured
   guides; why it can be trusted; and a full directory.
@@ -214,14 +216,14 @@ links, because the `file://` build keeps its route in the hash.
 
 ## Design system
 
-FinCalc's visual language is **calm, precise and trustworthy**: cool, faintly tinted neutrals
+PaiseWise's visual language is **calm, precise and trustworthy**: cool, faintly tinted neutrals
 do most of the work; one theme hue marks everything interactive; a deep "ink" ground is reserved
 for the one figure that matters (the headline result); and green, red and amber carry meaning
 only — gain, cost, attention. No gradient text, no shine effects, no animated backgrounds.
 
 **Brand.** The mark (`components/Logo.tsx`, `public/icons/`) is three rising bars on an ink
 tile, the tallest in the brand's gold. The mark and wordmark stay the same whatever theme is
-chosen, so FinCalc always looks like FinCalc. Type is self-hosted —
+chosen, so PaiseWise always looks like PaiseWise. Type is self-hosted —
 **Plus Jakarta Sans** (variable) for display headings and **Inter** (variable) for everything
 else, including every figure, with tabular numerals. No third-party font requests; the three
 files nearly every page needs are preloaded by the pre-renderer.
@@ -242,7 +244,7 @@ Each theme is a pair of tones with a light and a dark version:
 | --- | --- | --- | --- |
 | Heritage | Navy & brass | Graphite | Charcoal & gold |
 | Parchment | Sepia & sienna | Aubergine | Plum & antique rose |
-| Bordeaux | Wine & rosewood | Classic | Sapphire blue — the original FinCalc look |
+| Bordeaux | Wine & rosewood | Classic | Sapphire blue — the original PaiseWise look |
 | Verdigris | Patina & copper | | |
 
 Status colours (success, danger, warning, info) belong to the mode, never the theme, so a gain

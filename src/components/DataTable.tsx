@@ -16,7 +16,7 @@ export function DataTable({ spec }: { spec: TableSpec }) {
 
   const exportCsv = () => {
     const csv = toCSV(spec.columns, (spec.csvRows ?? spec.rows) as Record<string, unknown>[]);
-    downloadCSV(spec.csvName ?? 'fincalc-projection', csv);
+    downloadCSV(spec.csvName ?? 'paisewise-projection', csv);
     notify('CSV downloaded');
   };
 

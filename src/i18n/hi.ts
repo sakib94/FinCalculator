@@ -392,7 +392,7 @@ export const HI: Record<string, string> = {
   'calculated.': 'सटीक हिसाब के साथ।',
   'Explore': 'देखें',
   'FAQ': 'सवाल-जवाब',
-  'FinCalc in numbers': 'आंकड़ों में FinCalc',
+  'PaiseWise in numbers': 'आंकड़ों में PaiseWise',
   'Financial calculators': 'वित्तीय कैलकुलेटर',
   'Formula': 'फॉर्मूला',
   'Formulas checked against published figures': 'फॉर्मूले प्रकाशित आंकड़ों से जांचे गए',
@@ -489,7 +489,7 @@ export const HI: Record<string, string> = {
   'Appearance settings': 'रूप-रंग सेटिंग्स',
   'Available balance': 'उपलब्ध बैलेंस',
   'Chart colours': 'चार्ट के रंग',
-  'Choose how FinCalc looks on this device. Changes apply instantly and are saved in this browser.': 'चुनें कि इस डिवाइस पर FinCalc कैसा दिखे। बदलाव तुरंत लागू होते हैं और इसी ब्राउज़र में सेव रहते हैं।',
+  'Choose how PaiseWise looks on this device. Changes apply instantly and are saved in this browser.': 'चुनें कि इस डिवाइस पर PaiseWise कैसा दिखे। बदलाव तुरंत लागू होते हैं और इसी ब्राउज़र में सेव रहते हैं।',
   'Compact tightens cards, fields and table rows to fit more on screen.': 'कॉम्पैक्ट में कार्ड, फ़ील्ड और टेबल की पंक्तियां सघन होती हैं, ताकि स्क्रीन पर ज़्यादा दिखे।',
   'Could not save — try again.': 'सेव नहीं हो सका — फिर कोशिश करें।',
   'Density': 'सघनता',
@@ -508,8 +508,8 @@ export const HI: Record<string, string> = {
   'Saved on this device only.': 'सिर्फ़ इसी डिवाइस पर सेव।',
   'Settings': 'सेटिंग्स',
   'Settled': 'पूरा हुआ',
-  'Your device is set to dark, so FinCalc is dark too.': 'आपका डिवाइस डार्क पर है, इसलिए FinCalc भी डार्क है।',
-  'Your device is set to light, so FinCalc is light too.': 'आपका डिवाइस लाइट पर है, इसलिए FinCalc भी लाइट है।',
+  'Your device is set to dark, so PaiseWise is dark too.': 'आपका डिवाइस डार्क पर है, इसलिए PaiseWise भी डार्क है।',
+  'Your device is set to light, so PaiseWise is light too.': 'आपका डिवाइस लाइट पर है, इसलिए PaiseWise भी लाइट है।',
   'Light, dark, or Auto to match your device.': 'लाइट, डार्क, या डिवाइस के अनुसार ऑटो।',
   'Each theme pairs two tones and has a light and a dark version. Gains, costs and warnings always keep their own colours.':
     'हर थीम दो रंगों की जोड़ी है, और हर थीम का लाइट और डार्क रूप है। लाभ, लागत और चेतावनियों के रंग हमेशा अपने ही रहते हैं।',
@@ -537,4 +537,5 @@ export const HI: Record<string, string> = {
   /* ---------------- Appearance dialog ---------------- */
   Close: 'बंद करें',
   'Changes apply instantly and are saved in this browser.': 'बदलाव तुरंत लागू होते हैं और इसी ब्राउज़र में सेव रहते हैं।',
+  'bytes sent': 'बाइट भेजे गए',
 };

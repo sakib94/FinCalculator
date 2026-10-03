@@ -124,7 +124,7 @@ const stockAverage: CalculatorDef<StockAverageResult> = {
       price: price(l.price),
       cost: formatINR(l.cost),
     })),
-    csvName: 'fincalc-stock-average',
+    csvName: 'paisewise-stock-average',
     footer: {
       lot: 'Total / average',
       qty: formatNumber(r.totalQuantity),

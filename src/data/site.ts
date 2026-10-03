@@ -10,6 +10,8 @@ export type AdPlacement = 'after-results' | 'article-end';
 
 interface SiteConfig {
   name: string;
+  /** The brand line, shown on the home page and in its title. */
+  tagline: string;
   url: string;
   contactEmail: string;
   adsenseClient: string;
@@ -18,20 +20,21 @@ interface SiteConfig {
 }
 
 export const SITE: SiteConfig = {
-  name: 'FinCalc',
+  name: 'PaiseWise',
+  tagline: 'Calculate. Compare. Plan Better.',
 
   /**
    * The production origin, with no trailing slash. Canonical URLs, the
    * sitemap, robots.txt and Open Graph links are built from it — set it to
    * the domain the site is actually served from.
    */
-  url: 'https://finora.app',
+  url: 'https://paisewise.in',
 
   /**
    * Shown on the Contact, Privacy and Terms pages. Use an inbox you read:
    * AdSense reviewers and visitors both expect a working contact address.
    */
-  contactEmail: 'contact@finora.app',
+  contactEmail: 'contact@paisewise.in',
 
   /**
    * Google AdSense publisher id, e.g. "ca-pub-1234567890123456".
@@ -60,6 +63,6 @@ export const SITE: SiteConfig = {
 
 /** Values above that are still the shipped placeholders. */
 export const PLACEHOLDER_SETTINGS: { key: keyof SiteConfig; why: string }[] =
-  SITE.contactEmail === 'contact@finora.app'
+  SITE.contactEmail === 'contact@paisewise.in'
     ? [{ key: 'contactEmail', why: 'replace with an inbox you actually read' }]
     : [];

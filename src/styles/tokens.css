@@ -1,7 +1,7 @@
 /* ------------------------------------------------------------------
    Design tokens — the single source of truth for the visual system.
 
-   FinCalc's visual language: calm, precise, trustworthy.
+   PaiseWise's visual language: calm, precise, trustworthy.
      · Neutrals do most of the work — cool, faintly tinted greys.
      · One theme hue marks everything interactive; its second tone
        (brass, sienna, copper…) marks brand moments only.
@@ -234,7 +234,7 @@
   /* Brand. The signature is each theme's second tone (brass, sienna,
      rosewood, copper, gold, antique rose) and marks brand moments only —
      the result card's rule, eyebrow dots — never status. The wordmark and
-     logo stay constant so a theme never makes FinCalc look like a
+     logo stay constant so a theme never makes PaiseWise look like a
      different product. */
   --color-signature: var(--signature);
   --color-brand-word: var(--brand-word);
@@ -359,7 +359,7 @@
 /* ==================================================================
    THEMES — two tones each, as named on the Appearance cards.
    Every theme defines the same variables in both modes, so a light
-   block can never leak into dark. Classic is the original FinCalc
+   block can never leak into dark. Classic is the original PaiseWise
    look and the fallback before the boot script has run.
    Generated from one palette table and audited by check-contrast;
    the Appearance cards' preview colours are tested against it.

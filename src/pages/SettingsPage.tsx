@@ -37,7 +37,7 @@ export function SettingsPage() {
         eyebrow={t("Settings")}
         title={t("Appearance")}
         lead={t(
-          "Choose how FinCalc looks on this device. Changes apply instantly and are saved in this browser.",
+          "Choose how PaiseWise looks on this device. Changes apply instantly and are saved in this browser.",
         )}
       />
 
@@ -82,8 +82,8 @@ export function AppearanceSettings() {
             <p className="setting-note">
               <Icon name="monitor" size={14} />
               {resolvedMode === "dark"
-                ? t("Your device is set to dark, so FinCalc is dark too.")
-                : t("Your device is set to light, so FinCalc is light too.")}
+                ? t("Your device is set to dark, so PaiseWise is dark too.")
+                : t("Your device is set to light, so PaiseWise is light too.")}
             </p>
           )}
         </section>

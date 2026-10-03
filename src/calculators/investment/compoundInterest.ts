@@ -144,7 +144,7 @@ const compoundInterest: CalculatorDef<CompoundResult> = {
   table: (r) => ({
     title: 'Year-wise breakdown',
     previewRows: 10,
-    csvName: 'fincalc-compound-interest',
+    csvName: 'paisewise-compound-interest',
     columns: [
       { key: 'year', label: 'Year', align: 'left' },
       { key: 'opening', label: 'Opening' },

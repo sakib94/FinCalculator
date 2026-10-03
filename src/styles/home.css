@@ -46,6 +46,15 @@
   opacity: 0.55;
   pointer-events: none;
 }
+/* The brand line under the headline. */
+.hh-tagline {
+  margin: 12px 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.02rem, 0.92rem + 0.4vw, 1.2rem);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--color-primary);
+}
 .hh-title {
   font-size: var(--fs-display);
   font-weight: 800;
@@ -64,7 +73,7 @@
 }
 .hh-lead {
   max-width: 52ch;
-  margin: 18px 0 0;
+  margin: 10px 0 0;
   font-size: clamp(1rem, 0.94rem + 0.3vw, 1.14rem);
   line-height: 1.6;
   color: var(--color-text-secondary);
@@ -307,35 +316,40 @@
 }
 
 /* ---------------- Trust band ---------------- */
+/* A slim strip of facts — one line, number and label side by side. */
 .trust-band {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  margin-top: clamp(20px, 3vw, 36px);
+  margin-top: clamp(16px, 2vw, 24px);
   border: 1px solid var(--color-border);
-  border-radius: var(--r-lg);
+  border-radius: var(--r-md);
   background: var(--color-surface);
-  box-shadow: var(--shadow-1);
 }
 .tb-item {
   display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 18px 22px;
+  align-items: baseline;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 14px;
+  min-width: 0;
 }
 .tb-item + .tb-item {
   border-left: 1px solid var(--color-divider);
 }
 .tb-num {
   font-family: var(--font-display);
-  word-spacing: var(--display-word-gap);
-  font-size: clamp(1.4rem, 1.1rem + 1vw, 1.9rem);
+  font-size: 1.05rem;
   font-weight: 800;
-  letter-spacing: -0.03em;
+  letter-spacing: -0.02em;
   color: var(--color-text);
+  white-space: nowrap;
 }
 .tb-label {
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* ---------------- Sections ---------------- */
@@ -615,7 +629,8 @@
     border-top: 1px solid var(--color-divider);
   }
   .tb-item {
-    padding: 14px 16px;
+    padding: 8px 10px;
+    justify-content: flex-start;
   }
   /* Phones: categories become a compact two-up grid of icon + name, so
      all eight fit in about one screen instead of eight. */

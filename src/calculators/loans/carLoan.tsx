@@ -101,7 +101,7 @@ const carLoan: CalculatorDef<LoanEmiResult> = {
 
   charts: (r) => emiCharts(r),
 
-  table: (r) => emiTable(r, 'fincalc-car-loan-schedule'),
+  table: (r) => emiTable(r, 'paisewise-car-loan-schedule'),
 
   summary: (r) => emiSummary('Car loan', r),
 

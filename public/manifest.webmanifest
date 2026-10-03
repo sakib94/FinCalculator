@@ -1,7 +1,7 @@
 {
-  "name": "FinCalc — Financial Calculators",
-  "short_name": "FinCalc",
-  "description": "Accurate financial, tax, loan, salary and everyday calculators for India.",
+  "name": "PaiseWise — Calculate. Compare. Plan Better.",
+  "short_name": "PaiseWise",
+  "description": "Calculate. Compare. Plan Better. Accurate financial, tax, loan, salary and everyday calculators for India.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

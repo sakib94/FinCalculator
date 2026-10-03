@@ -250,7 +250,7 @@ const epf: CalculatorDef<EpfResult> = {
   table: (r) => ({
     title: 'Year-wise projection',
     previewRows: 10,
-    csvName: 'fincalc-epf-projection',
+    csvName: 'paisewise-epf-projection',
     columns: [
       { key: 'age', label: 'Age', align: 'left' },
       { key: 'salary', label: 'Monthly Salary' },

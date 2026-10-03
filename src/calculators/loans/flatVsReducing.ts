@@ -101,7 +101,7 @@ const flatVsReducing: CalculatorDef<FlatRateResult> = {
 
   table: (r) => ({
     title: 'True amortisation of the flat-rate loan',
-    csvName: 'fincalc-flat-rate-schedule',
+    csvName: 'paisewise-flat-rate-schedule',
     columns: [
       { key: 'year', label: 'Year', align: 'left' },
       { key: 'principal', label: 'Principal repaid' },

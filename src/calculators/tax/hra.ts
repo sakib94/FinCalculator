@@ -139,7 +139,7 @@ const hra: CalculatorDef<HraResult> = {
 
   table: (r) => ({
     title: 'Statutory limits under rule 2A',
-    csvName: 'fincalc-hra-exemption',
+    csvName: 'paisewise-hra-exemption',
     columns: [
       { key: 'limit', label: 'Limit', align: 'left' },
       { key: 'amount', label: 'Amount' },

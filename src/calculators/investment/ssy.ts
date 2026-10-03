@@ -131,7 +131,7 @@ const ssy: CalculatorDef<SsyResult> = {
   table: (r) => ({
     title: 'Year-wise account statement',
     previewRows: 12,
-    csvName: 'fincalc-ssy-projection',
+    csvName: 'paisewise-ssy-projection',
     columns: [
       { key: 'year', label: 'Year', align: 'left' },
       { key: 'calendar', label: 'Financial year', align: 'left' },

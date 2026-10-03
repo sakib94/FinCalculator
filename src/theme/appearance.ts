@@ -27,7 +27,7 @@ export interface AppearancePreferences {
   density: Density;
 }
 
-/** Classic is the original FinCalc look, so nobody's page changes unasked. */
+/** Classic is the original PaiseWise look, so nobody's page changes unasked. */
 export const DEFAULT_APPEARANCE: AppearancePreferences = {
   themeMode: 'system',
   theme: 'classic',

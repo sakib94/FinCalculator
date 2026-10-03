@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Finora - All-in-One Financial & Utility Calculator Platform",
+  "description": "PaiseWise - Calculate. Compare. Plan Better. Financial calculators for India",
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build && vite build --ssr src/entry-server.tsx && node scripts/prerender.mjs",

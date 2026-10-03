@@ -224,7 +224,7 @@ const mutualFund: CalculatorDef<MfResult> = {
       ? {
           title: 'Year-wise growth',
           previewRows: 10,
-          csvName: 'fincalc-sip-projection',
+          csvName: 'paisewise-sip-projection',
           columns: [
             { key: 'year', label: 'Year', align: 'left' },
             { key: 'monthly', label: 'Monthly SIP' },
@@ -250,7 +250,7 @@ const mutualFund: CalculatorDef<MfResult> = {
       : {
           title: 'Year-wise value',
           previewRows: 10,
-          csvName: 'fincalc-lumpsum-projection',
+          csvName: 'paisewise-lumpsum-projection',
           columns: [
             { key: 'year', label: 'Year', align: 'left' },
             { key: 'opening', label: 'Opening' },

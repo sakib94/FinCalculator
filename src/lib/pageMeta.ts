@@ -26,7 +26,7 @@ export interface PageMeta {
   redirect?: string;
 }
 
-const HOME_TITLE = `${SITE.name} — Free Financial Calculators for India: EMI, SIP, Tax & More`;
+const HOME_TITLE = `${SITE.name} — ${SITE.tagline} Free Financial Calculators for India`;
 const HOME_DESCRIPTION =
   'Free, accurate Indian financial calculators with detailed guides: home, car, bike, personal and education loan EMI, SIP, EPF, PPF, NPS, FD, income tax, salary, GST and more.';
 
@@ -176,7 +176,7 @@ export function metaForPath(path: string): PageMeta {
   if (head === 'settings' && !id) {
     return {
       title: withBrand('Appearance settings'),
-      description: 'Choose light, dark or system theme, an accent colour and interface density for FinCalc.',
+      description: 'Choose light, dark or system theme, an accent colour and interface density for PaiseWise.',
       noindex: true,
       jsonLd: [],
     };

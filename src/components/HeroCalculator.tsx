@@ -58,7 +58,7 @@ const PRESETS: Preset[] = [
 
 /**
  * A working EMI calculator on the home page: three sliders, an instant
- * answer and a breakdown bar. It shows what FinCalc does in the time it
+ * answer and a breakdown bar. It shows what PaiseWise does in the time it
  * takes to drag a slider, then hands off — with the same numbers — to the
  * full calculator for the schedule, charts and explanation.
  */

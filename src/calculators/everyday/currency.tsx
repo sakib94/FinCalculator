@@ -95,7 +95,7 @@ const currency: CalculatorDef<CurrencyResult> = {
 
   extra: () => (
     <Note>
-      FinCalc never fetches live rates — it works entirely offline, so the rate is yours to supply. Use the
+      PaiseWise never fetches live rates — it works entirely offline, so the rate is yours to supply. Use the
       mid-market rate from a source you trust, then add your bank’s markup to see what you will actually
       receive.
     </Note>
@@ -157,7 +157,7 @@ Cost          = amount × mid-market rate − converted`,
     faqs: [
       {
         q: 'Why does the calculator not fetch live rates?',
-        a: 'FinCalc runs entirely in your browser with no network calls, which is what lets it work offline and keeps your figures private. Enter the rate from any source you trust.',
+        a: 'PaiseWise runs entirely in your browser with no network calls, which is what lets it work offline and keeps your figures private. Enter the rate from any source you trust.',
       },
       {
         q: 'What is the mid-market rate?',

@@ -118,7 +118,7 @@ const fd: CalculatorDef<FdResult> = {
   table: (r) => ({
     title: 'Year-wise interest',
     previewRows: 10,
-    csvName: 'fincalc-fd-projection',
+    csvName: 'paisewise-fd-projection',
     columns: [
       { key: 'year', label: 'Year', align: 'left' },
       { key: 'opening', label: 'Opening' },

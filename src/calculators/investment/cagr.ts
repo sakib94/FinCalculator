@@ -157,7 +157,7 @@ const cagr: CalculatorDef<CagrResult> = {
       ? {
           title: 'Year-wise value at this CAGR',
           previewRows: 12,
-          csvName: 'fincalc-cagr',
+          csvName: 'paisewise-cagr',
           columns: [
             { key: 'year', label: 'Year', align: 'left' },
             { key: 'value', label: 'Value' },

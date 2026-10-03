@@ -1,7 +1,7 @@
 import { SITE } from '@/data/site';
 
 /**
- * The FinCalc mark: three ascending bars on an ink tile — calculation and
+ * The PaiseWise mark: three ascending bars on an ink tile — calculation and
  * growth in one glyph. The tallest bar carries the palette's signature
  * colour; the tile uses the same ink as the headline result card, so the
  * brand and the answer share one visual root.
