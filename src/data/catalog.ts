@@ -827,6 +827,33 @@ export const CALCULATORS: CalculatorMeta[] = [
     seoDescription:
       'Work out your home connected load, the kVA connection to sanction, monthly units and electricity bill, plus inverter and battery sizing.',
   },
+  {
+    id: 'tile-marble-flooring',
+    name: 'Tile & Marble Flooring Cost Calculator',
+    shortName: 'Tile & Marble Flooring',
+    tagline: 'Estimate your complete flooring, marble staircase, material and labour cost.',
+    category: 'everyday',
+    icon: 'grid',
+    isNew: true,
+    keywords: [
+      'tile',
+      'marble',
+      'flooring',
+      'floor cost',
+      'tiles per sq ft',
+      'marble staircase',
+      'skirting',
+      'cement sand',
+      'tile adhesive',
+      'grout',
+      'labour',
+      'house flooring',
+    ],
+    related: ['construction-material', 'home-loan-emi', 'gst'],
+    seoTitle: 'Tile & Marble Flooring Cost Calculator – Room-wise Estimate',
+    seoDescription:
+      'Estimate tile and marble flooring cost room by room: material with wastage, labour, marble staircase, cement, sand, skirting and polishing, with cost per sq ft.',
+  },
 ];
 
 /**

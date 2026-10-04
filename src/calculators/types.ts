@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 
 /* ------------------------------------------------------------------ *
  * The contract every calculator implements.
@@ -163,6 +163,14 @@ export interface Content {
   faqs?: FAQ[];
 }
 
+/** What the page hands a calculator that draws its own workspace. */
+export interface WorkspaceProps {
+  /** Attach to the headline result, so the page can tell when it has scrolled out of view. */
+  heroRef: (el: HTMLDivElement | null) => void;
+  /** The headline figure for the sticky jump bar and the phone result dock. */
+  onHero: (hero: Hero | null) => void;
+}
+
 export interface CalculatorDef<R = unknown> {
   id: string;
   fields: Field[];
@@ -179,6 +187,16 @@ export interface CalculatorDef<R = unknown> {
   extra?: (result: R, values: Values) => ReactNode;
   /** One-line plain-text summary used by copy & share. */
   summary?: (result: R, values: Values) => string;
+  /**
+   * A calculator whose inputs do not fit a flat list of fields — rooms that
+   * come and go, sections switched on and off — draws its own inputs and
+   * results here. The page still supplies the header, jump bar, guide, FAQs
+   * and next steps, so it looks and reads like every other calculator.
+   * `fields`, `compute` and `hero` then describe the opening example.
+   */
+  workspace?: ComponentType<WorkspaceProps>;
+  /** Extra "On this page" entries for sections inside the workspace. */
+  workspaceSections?: { id: string; label: string }[];
   content: Content;
 }
 

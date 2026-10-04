@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { Field, Values } from '@/calculators/types';
+import type { Field, Hero, Values } from '@/calculators/types';
 import { defaults } from '@/calculators/types';
 import type { AnyCalculator } from '@/calculators';
 import type { CalculatorMeta } from '@/data/catalog';
@@ -54,6 +54,8 @@ export function CalculatorView({ meta, def }: Props) {
     touchedFor(valuesFromSearch(def.fields, search)),
   );
   const [heroEl, setHeroEl] = useState<HTMLDivElement | null>(null);
+  const [workspaceHero, setWorkspaceHero] = useState<Hero | null>(null);
+  const Workspace = def.workspace;
   const resultPos = useResultPosition(heroEl);
   const t = useT();
   const { notify } = useToast();
@@ -147,18 +149,19 @@ export function CalculatorView({ meta, def }: Props) {
   const ungrouped = visibleFields.filter((f) => !f.group);
   const category = CATEGORIES.find((c) => c.id === meta.category);
 
-  const heroValue = result ? def.hero(result, values) : null;
+  const heroValue = Workspace ? workspaceHero : result ? def.hero(result, values) : null;
   const heroes = heroValue == null ? [] : Array.isArray(heroValue) ? heroValue : [heroValue];
-  const stats = result && def.stats ? def.stats(result, values) : [];
-  const charts = result && def.charts ? def.charts(result, values) : [];
-  const table = result && def.table ? def.table(result, values) : null;
-  const extra = result && def.extra ? def.extra(result, values) : null;
+  const stats = !Workspace && result && def.stats ? def.stats(result, values) : [];
+  const charts = !Workspace && result && def.charts ? def.charts(result, values) : [];
+  const table = !Workspace && result && def.table ? def.table(result, values) : null;
+  const extra = !Workspace && result && def.extra ? def.extra(result, values) : null;
   const related = relatedTo(meta);
   const guides = (def.content.guides ?? []).map(guideBySlug).filter((g): g is NonNullable<typeof g> => !!g);
   const composition = charts.find((c): c is Extract<typeof c, { kind: 'donut' }> => c.kind === 'donut');
 
   const jumps: JumpItem[] = [
     { id: 'calc-tool', label: t('Calculator') },
+    ...(Workspace ? (def.workspaceSections ?? []).map((s) => ({ id: s.id, label: t(s.label) })) : []),
     ...(charts.length ? [{ id: 'calc-charts', label: t('Charts') }] : []),
     ...(table ? [{ id: 'calc-table', label: t('Table') }] : []),
     { id: 'calc-guide', label: t('Guide') },
@@ -203,38 +206,24 @@ export function CalculatorView({ meta, def }: Props) {
         </div>
       </header>
 
-      <CalcJumpBar items={jumps} hero={heroes[0]} showHero={!!result && resultPos === 'above'} />
+      <CalcJumpBar items={jumps} hero={heroes[0]} showHero={!!heroes[0] && resultPos === 'above'} />
 
-      <div className="calc-grid" id="calc-tool">
-        {/* ---------------- Inputs ---------------- */}
-        <div className="card accent-top lift panel-input">
-          <div className="card-head">
-            <span className="step-dot" aria-hidden="true">
-              1
-            </span>
-            <span className="section-label">{t('Inputs')}</span>
-          </div>
-          <div className="card-pad stack">
-            {ungrouped.length > 0 && (
-              <div className="fields">
-                {ungrouped.map((f) => (
-                  <FieldControl
-                    key={f.name}
-                    field={f}
-                    value={values[f.name]}
-                    error={errorFor(f)}
-                    onChange={onChange}
-                  />
-                ))}
-              </div>
-            )}
-
-            {groups.map((g) => {
-              const groupFields = visibleFields.filter((f) => f.group === g.id);
-              if (!groupFields.length) return null;
-              const body = (
+      {Workspace ? (
+        <Workspace heroRef={setHeroEl} onHero={setWorkspaceHero} />
+      ) : (
+        <div className="calc-grid" id="calc-tool">
+          {/* ---------------- Inputs ---------------- */}
+          <div className="card accent-top lift panel-input">
+            <div className="card-head">
+              <span className="step-dot" aria-hidden="true">
+                1
+              </span>
+              <span className="section-label">{t('Inputs')}</span>
+            </div>
+            <div className="card-pad stack">
+              {ungrouped.length > 0 && (
                 <div className="fields">
-                  {groupFields.map((f) => (
+                  {ungrouped.map((f) => (
                     <FieldControl
                       key={f.name}
                       field={f}
@@ -244,98 +233,116 @@ export function CalculatorView({ meta, def }: Props) {
                     />
                   ))}
                 </div>
-              );
-              return g.collapsible ? (
-                <details className="acc" key={g.id} open={g.defaultOpen}>
-                  <summary>{t(g.title)}</summary>
-                  <div className="acc-body">{body}</div>
-                </details>
-              ) : (
-                <fieldset key={g.id} style={{ border: 0, padding: 0, margin: 0 }}>
-                  <legend className="section-label" style={{ marginBottom: 10 }}>
-                    {t(g.title)}
-                  </legend>
-                  {body}
-                </fieldset>
-              );
-            })}
+              )}
 
-            <div className="btn-row no-print live-row">
-              <span className="live-note">
-                <Icon name="refresh" size={14} />
-                {t('Results update as you type')}
+              {groups.map((g) => {
+                const groupFields = visibleFields.filter((f) => f.group === g.id);
+                if (!groupFields.length) return null;
+                const body = (
+                  <div className="fields">
+                    {groupFields.map((f) => (
+                      <FieldControl
+                        key={f.name}
+                        field={f}
+                        value={values[f.name]}
+                        error={errorFor(f)}
+                        onChange={onChange}
+                      />
+                    ))}
+                  </div>
+                );
+                return g.collapsible ? (
+                  <details className="acc" key={g.id} open={g.defaultOpen}>
+                    <summary>{t(g.title)}</summary>
+                    <div className="acc-body">{body}</div>
+                  </details>
+                ) : (
+                  <fieldset key={g.id} style={{ border: 0, padding: 0, margin: 0 }}>
+                    <legend className="section-label" style={{ marginBottom: 10 }}>
+                      {t(g.title)}
+                    </legend>
+                    {body}
+                  </fieldset>
+                );
+              })}
+
+              <div className="btn-row no-print live-row">
+                <span className="live-note">
+                  <Icon name="refresh" size={14} />
+                  {t('Results update as you type')}
+                </span>
+                <button type="button" className="btn ghost sm" onClick={reset}>
+                  <Icon name="refresh" size={15} />
+                  {t('Reset')}
+                </button>
+              </div>
+
+              {!valid && (
+                <div className="error" role="alert">
+                  <Icon name="alert" size={14} strokeWidth={2} />
+                  {t('Please fix the highlighted fields to see your result.')}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ---------------- Results ---------------- */}
+          {/* Mirrors the inputs card: same shape, same numbered header, its own
+              tint — so the two halves read as two labelled steps rather than a
+              form on the left and loose tiles on the right. */}
+          <div className="card accent-top lift panel-result" id="calc-result">
+            <div className="card-head">
+              <span className="step-dot" aria-hidden="true">
+                2
               </span>
-              <button type="button" className="btn ghost sm" onClick={reset}>
-                <Icon name="refresh" size={15} />
-                {t('Reset')}
-              </button>
+              <span className="section-label">{t('Results')}</span>
             </div>
 
-            {!valid && (
-              <div className="error" role="alert">
-                <Icon name="alert" size={14} strokeWidth={2} />
-                {t('Please fix the highlighted fields to see your result.')}
-              </div>
-            )}
+            <div className="card-pad stack">
+              {result ? (
+                <>
+                  <div className="anim-zoom" ref={setHeroEl}>
+                    <HeroResult heroes={heroes} />
+                  </div>
+
+                  {composition && <CompositionBar spec={composition} />}
+
+                  {stats.length > 0 && <StatGrid stats={stats} />}
+
+                  {extra}
+
+                  <div className="btn-row no-print" style={{ justifyContent: 'flex-start' }}>
+                    <button type="button" className="btn subtle sm" onClick={onCopy}>
+                      <Icon name="copy" size={15} />
+                      {t('Copy')}
+                    </button>
+                    <button type="button" className="btn subtle sm" onClick={onShare}>
+                      <Icon name="share" size={15} />
+                      {t('Share')}
+                    </button>
+                    <button type="button" className="btn subtle sm" onClick={onCopyLink}>
+                      <Icon name="link" size={15} />
+                      {t('Copy link')}
+                    </button>
+                    <button type="button" className="btn subtle sm" onClick={printPage}>
+                      <Icon name="printer" size={15} />
+                      {t('Print / PDF')}
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div className="result-placeholder">
+                  <span className="p-ring">
+                    <Icon name="calculator" size={26} />
+                  </span>
+                  <span className="p-title">{t('Your result appears here')}</span>
+                  <p className="p-text">{t('Fill in the details on the left to see your result.')}</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-
-        {/* ---------------- Results ---------------- */}
-        {/* Mirrors the inputs card: same shape, same numbered header, its own
-            tint — so the two halves read as two labelled steps rather than a
-            form on the left and loose tiles on the right. */}
-        <div className="card accent-top lift panel-result" id="calc-result">
-          <div className="card-head">
-            <span className="step-dot" aria-hidden="true">
-              2
-            </span>
-            <span className="section-label">{t('Results')}</span>
-          </div>
-
-          <div className="card-pad stack">
-            {result ? (
-              <>
-                <div className="anim-zoom" ref={setHeroEl}>
-                  <HeroResult heroes={heroes} />
-                </div>
-
-                {composition && <CompositionBar spec={composition} />}
-
-                {stats.length > 0 && <StatGrid stats={stats} />}
-
-                {extra}
-
-                <div className="btn-row no-print" style={{ justifyContent: 'flex-start' }}>
-                  <button type="button" className="btn subtle sm" onClick={onCopy}>
-                    <Icon name="copy" size={15} />
-                    {t('Copy')}
-                  </button>
-                  <button type="button" className="btn subtle sm" onClick={onShare}>
-                    <Icon name="share" size={15} />
-                    {t('Share')}
-                  </button>
-                  <button type="button" className="btn subtle sm" onClick={onCopyLink}>
-                    <Icon name="link" size={15} />
-                    {t('Copy link')}
-                  </button>
-                  <button type="button" className="btn subtle sm" onClick={printPage}>
-                    <Icon name="printer" size={15} />
-                    {t('Print / PDF')}
-                  </button>
-                </div>
-              </>
-            ) : (
-              <div className="result-placeholder">
-                <span className="p-ring">
-                  <Icon name="calculator" size={26} />
-                </span>
-                <span className="p-title">{t('Your result appears here')}</span>
-                <p className="p-text">{t('Fill in the details on the left to see your result.')}</p>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
+      )}
 
       {charts.length > 0 && (
         <section className="calc-block chart-grid" id="calc-charts" aria-label={t('Charts')}>
@@ -411,7 +418,7 @@ export function CalculatorView({ meta, def }: Props) {
         </span>
       </p>
 
-      <ResultDock hero={heroes[0]} show={!!result && resultPos === 'below'} />
+      <ResultDock hero={heroes[0]} show={!!heroes[0] && resultPos === 'below'} />
     </article>
   );
 }

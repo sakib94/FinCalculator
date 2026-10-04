@@ -62,6 +62,7 @@ import bmi from './everyday/bmi';
 import currency from './everyday/currency';
 import construction from './everyday/construction';
 import electrical from './everyday/electrical';
+import flooring from './everyday/flooring';
 
 // Each module owns its own result shape; the shared view is shape-agnostic.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -121,6 +122,7 @@ export const REGISTRY: Record<string, AnyCalculator> = {
   currency,
   'construction-material': construction,
   'electrical-load': electrical,
+  'tile-marble-flooring': flooring,
 };
 
 export const REGISTERED_IDS = Object.keys(REGISTRY);

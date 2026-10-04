@@ -2,8 +2,8 @@
 
 Financial calculators for India, at [paisewise.in](https://paisewise.in).
 
-A financial and utility calculator platform for India: 49 calculators covering loans, investment,
-retirement, tax, salary, business, construction and everyday maths, plus 22 long-form financial
+A financial and utility calculator platform for India: 50 calculators covering loans, investment,
+retirement, tax, salary, business, construction, flooring and everyday maths, plus 22 long-form financial
 guides — built as a single coherent application rather than a collection of pages.
 
 - **Accurate first.** Every calculation uses the real formula — EPFO's monthly-running-balance
@@ -74,7 +74,8 @@ Increment · Leave Encashment · HRA Exemption · TDS · Capital Gains Tax
 **Date & Age** — Age · Date Difference
 **Business & General** — GST · ROI · Percentage · Markup · Commission · Profit Margin ·
 Break-Even · Depreciation
-**Everyday** — BMI · Currency · Construction Material · Electrical Load
+**Everyday** — BMI · Currency · Construction Material · Electrical Load · Tile & Marble Flooring
+Cost
 
 Each one ships real calculation logic, inline validation, charts, a year-wise table where it
 makes sense, CSV export, and an explanatory section covering how it works, the formula, a
@@ -128,7 +129,7 @@ src/
 └── tests/              # Vitest suites for the engines
 ```
 
-The data flow is the same for every calculator, which is what keeps 49 modules feeling like one
+The data flow is the same for every calculator, which is what keeps 50 modules feeling like one
 product:
 
 ```
@@ -155,6 +156,15 @@ Charts & tables (components/Chart.tsx, DataTable.tsx)
 
 Navigation, search, the dashboard, favourites, its URL (`/<id>-calculator/`), the pre-rendered
 page, the sitemap, SEO metadata, CSV export and print styling all pick it up automatically.
+
+A calculator whose inputs are not a flat list of fields can draw its own inputs and results
+instead: set `workspace` on its `CalculatorDef` to a component (and `workspaceSections` for
+extra "On this page" links). The page still supplies the header, jump bar, guide, FAQs and next
+steps. The Tile & Marble Flooring Cost Calculator works this way — rooms are added and removed,
+whole sections switch on and off, and the estimate is a written bill rather than a single
+figure. Its maths is in `src/engines/flooring.ts`, its example and saved-state handling in
+`src/calculators/everyday/flooringModel.ts`, its workings and CSV in `flooringReport.ts`, and
+the screen in `src/components/FlooringWorkspace.tsx`.
 
 ### Adding a guide
 
