@@ -35,6 +35,7 @@ import { FieldControl } from './FieldControl';
 import { CompositionBar } from './CalcPageParts';
 import { CalcPopup } from './CalcPopup';
 import { Icon } from './Icon';
+import { Tooltip } from './Tooltip';
 import { useToast } from './Toast';
 
 /** v3: automatic skirting and two marble areas. Saves from earlier versions are not read. */
@@ -792,12 +793,13 @@ function SkirtingToggle({ checked, onChange, label, q }: { checked: boolean; onC
         <span className="fl-toggle-label">
           {label}
           {checked && q.skirtingBase > 0 && <strong className="num"> + {sqft(q.skirting)}</strong>}
-        </span>
-        <span className="fl-toggle-hint">
-          {t('Worked out for you: 6-inch skirting along the walls, estimated from {side} × {side} ft rooms (area ÷ 6).').replace(
-            /\{side\}/g,
-            String(SKIRTING.roomSideFt),
-          )}
+          {/* A button inside a label does not toggle the checkbox when clicked. */}
+          <Tooltip
+            text={t('Worked out for you: 6-inch skirting along the walls, estimated from {side} × {side} ft rooms (area ÷ 6).').replace(
+              /\{side\}/g,
+              String(SKIRTING.roomSideFt),
+            )}
+          />
         </span>
       </span>
     </label>

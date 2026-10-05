@@ -35,6 +35,16 @@ export function Tooltip({ text }: { text: string }) {
   const id = useId();
   const anchorRef = useRef<HTMLButtonElement>(null);
   const bubbleRef = useRef<HTMLDivElement>(null);
+  // A tap fires mouseenter/focus (open) and then click in one gesture; the
+  // click must not immediately close what the same tap just opened.
+  const openedAt = useRef(0);
+  // Touch browsers also send mouseleave straight after the tap; only a
+  // real mouse leaving should close the bubble. A tap elsewhere closes it.
+  const pointerType = useRef('mouse');
+  const show = () => {
+    if (!open) openedAt.current = Date.now();
+    setOpen(true);
+  };
 
   const place = useCallback(() => {
     const anchor = anchorRef.current?.getBoundingClientRect();
@@ -99,12 +109,21 @@ export function Tooltip({ text }: { text: string }) {
         className={`tip${open ? ' on' : ''}`}
         aria-label={text}
         aria-describedby={open ? id : undefined}
-        onMouseEnter={() => setOpen(true)}
-        onMouseLeave={() => setOpen(false)}
-        onFocus={() => setOpen(true)}
+        onPointerDown={(e) => {
+          pointerType.current = e.pointerType;
+        }}
+        onMouseEnter={show}
+        onMouseLeave={() => {
+          if (pointerType.current !== 'touch') setOpen(false);
+        }}
+        onFocus={show}
         onBlur={() => setOpen(false)}
         onClick={(e) => {
           e.preventDefault();
+          if (Date.now() - openedAt.current < 400) {
+            setOpen(true);
+            return;
+          }
           setOpen((o) => !o);
         }}
       >

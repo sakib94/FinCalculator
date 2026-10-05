@@ -976,6 +976,12 @@
   font-size: 0.9rem;
   color: var(--color-text);
 }
+.fl-toggle-label {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
 .fl-toggle-label strong {
   color: var(--color-primary);
 }
