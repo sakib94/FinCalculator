@@ -35,6 +35,9 @@ export const SKIRTING = {
 /** Wastage is fixed at the usual allowances: 5% for tile, 7% for marble. */
 export const WASTAGE = { tile: 5, marble: 7 } as const;
 
+/** Extra expenses — transport, loading, breakage, small items — fixed at 4% of the project. */
+export const EXTRA_EXPENSE_PCT = 4;
+
 /**
  * How much of each setting material one square foot takes. These are
  * planning assumptions — real consumption depends on the surface, the
@@ -42,14 +45,14 @@ export const WASTAGE = { tile: 5, marble: 7 } as const;
  * in one place, where they can be tuned.
  */
 export const CONSUMPTION = {
-  /** Cubic feet of sand per sq ft — roughly a one-inch mortar bed. */
-  sand: { perSqft: 0.1, appliesTo: 'all', unit: 'CFT' },
-  /** 50 kg bags of cement per sq ft — about one bag for every 50 sq ft. */
-  cement: { perSqft: 0.02, appliesTo: 'all', unit: 'bags' },
-  /** Kilograms of white cement per sq ft of marble, for joints and finishing. */
-  whiteCement: { perSqft: 0.05, appliesTo: 'marble', unit: 'kg' },
-  /** Kilograms of grout per sq ft of tile, for 2–3 mm joints. */
-  grout: { perSqft: 0.025, appliesTo: 'tile', unit: 'kg' },
+  /** Cubic feet of sand per sq ft — a one-inch mortar bed plus about 15% for bulking, levelling and loss. */
+  sand: { perSqft: 0.115, appliesTo: 'all', unit: 'CFT' },
+  /** 50 kg bags of cement per sq ft — one bag for every 40 sq ft, the upper end of the usual 40–50. */
+  cement: { perSqft: 0.025, appliesTo: 'all', unit: 'bags' },
+  /** Kilograms of white cement per sq ft of marble, for joints and finishing, with a margin. */
+  whiteCement: { perSqft: 0.06, appliesTo: 'marble', unit: 'kg' },
+  /** Kilograms of grout per sq ft of tile, for 2–3 mm joints, with a margin. */
+  grout: { perSqft: 0.03, appliesTo: 'tile', unit: 'kg' },
 } as const satisfies Record<SupportingKey, { perSqft: number; appliesTo: 'all' | 'tile' | 'marble'; unit: string }>;
 
 export type SupportingKey = 'sand' | 'cement' | 'whiteCement' | 'grout';
@@ -80,7 +83,6 @@ export interface FlooringInput {
   tile: TileInput;
   marble: MarbleInput;
   rates: Record<SupportingKey, number>;
-  extraPct: number;
 }
 
 /* ------------------------------------------------------------------ */
@@ -276,7 +278,7 @@ export function calculateFlooringEstimate(input: FlooringInput): FlooringResult 
   const labour = calculateTotalLabourCost({ tile: tileLabour, marbleFloor: floorLabour, marbleTrim: trimLabour });
 
   const subtotal = material.total + labour.total;
-  const extraPct = clean(input.extraPct);
+  const extraPct = EXTRA_EXPENSE_PCT;
   const extra = calculateExtraExpenses(subtotal, extraPct);
   const grandTotal = calculateGrandTotal(subtotal, extra);
   const baseArea = tq.area + mq.area;
@@ -324,7 +326,7 @@ export interface FlooringIssue {
   message: string;
 }
 
-const MAX = { area: 10000000, rate: 10000000, pct: 100 };
+const MAX = { area: 10000000, rate: 10000000 };
 
 /**
  * Anything that would make the estimate wrong rather than merely
@@ -364,7 +366,6 @@ export function validateFlooring(input: FlooringInput): FlooringIssue[] {
   check('rates.cement', input.rates.cement, 'Cement rate', MAX.rate);
   check('rates.whiteCement', input.rates.whiteCement, 'White cement rate', MAX.rate);
   check('rates.grout', input.rates.grout, 'Grout rate', MAX.rate);
-  check('extraPct', input.extraPct, 'Extra expenses', MAX.pct);
 
   return issues;
 }

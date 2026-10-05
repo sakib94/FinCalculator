@@ -13,9 +13,6 @@ export interface FlooringState {
   projectName: string;
 }
 
-/** Suggested default — editable on the page. */
-export const DEFAULTS = { extraPct: 3 } as const;
-
 /**
  * Two rooms, a hall, a kitchen and bathrooms, worked out by the owner as
  * 660 sq ft of tile; 250 sq ft of marble on the kitchen floor and platform
@@ -26,17 +23,15 @@ export function defaultInput(): FlooringInput {
     tile: { area: 660, skirting: true, rate: 60, labourRate: 20 },
     marble: { floorArea: 250, floorLabourRate: 160, skirting: true, trimArea: 50, trimLabourRate: 180, rate: 120 },
     rates: { sand: 60, cement: 450, whiteCement: 80, grout: 100 },
-    extraPct: DEFAULTS.extraPct,
   };
 }
 
-/** Every area and price cleared; skirting and the extra-expenses default kept. */
+/** Every area and price cleared; skirting kept on. */
 export function blankInput(): FlooringInput {
   return {
     tile: { area: 0, skirting: true, rate: 0, labourRate: 0 },
     marble: { floorArea: 0, floorLabourRate: 0, skirting: true, trimArea: 0, trimLabourRate: 0, rate: 0 },
     rates: { sand: 0, cement: 0, whiteCement: 0, grout: 0 },
-    extraPct: DEFAULTS.extraPct,
   };
 }
 
@@ -77,7 +72,6 @@ export function restoreState(raw: unknown): FlooringState {
       tile: fields(v.tile, di.tile),
       marble: fields(v.marble, di.marble),
       rates: fields(v.rates, di.rates),
-      extraPct: numOr(v.extraPct, di.extraPct),
     },
   };
 }

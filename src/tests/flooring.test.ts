@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   CONSUMPTION,
+  EXTRA_EXPENSE_PCT,
   SKIRTING,
   WASTAGE,
   calculateAverageCostPerSqFt,
@@ -97,15 +98,16 @@ describe('marble quantity', () => {
 
 describe('supporting materials', () => {
   it('uses the configured consumption and rounds up to what you buy', () => {
-    expect(CONSUMPTION.cement.perSqft).toBe(0.02);
-    expect(calculateCementRequirement(660, 300, 450)).toMatchObject({ area: 960, quantity: 20, cost: 9000 });
-    expect(calculateSandRequirement(660, 300, 60)).toMatchObject({ area: 960, quantity: 96, cost: 5760 });
-    expect(calculateWhiteCementRequirement(660, 300, 80)).toMatchObject({ area: 300, quantity: 15, cost: 1200 });
-    expect(calculateGroutRequirement(660, 300, 100)).toMatchObject({ area: 660, quantity: 17, cost: 1700 });
+    expect(CONSUMPTION.cement.perSqft).toBe(0.025);
+    // Upper end of the usual ranges, so the estimate is not on the low side.
+    expect(calculateSandRequirement(660, 300, 60)).toMatchObject({ area: 960, quantity: 111, cost: 6660 });
+    expect(calculateCementRequirement(660, 300, 450)).toMatchObject({ area: 960, quantity: 24, cost: 10800 });
+    expect(calculateWhiteCementRequirement(660, 300, 80)).toMatchObject({ area: 300, quantity: 18, cost: 1440 });
+    expect(calculateGroutRequirement(660, 300, 100)).toMatchObject({ area: 660, quantity: 20, cost: 2000 });
   });
 
   it('does not round a whole quantity up because of float dust', () => {
-    expect(calculateCementRequirement(1000, 0, 450).quantity).toBe(20);
+    expect(calculateCementRequirement(800, 0, 450).quantity).toBe(20);
   });
 });
 
@@ -114,9 +116,10 @@ describe('totals', () => {
     expect(calculateTotalLabourCost({ tile: 13200, marbleFloor: 40000, marbleTrim: 9000 }).total).toBe(62200);
   });
 
-  it('works extra expenses on the subtotal: 3% of ₹5,00,000 = ₹15,000', () => {
-    expect(calculateExtraExpenses(500000, 3)).toBe(15000);
-    expect(calculateGrandTotal(500000, 15000)).toBe(515000);
+  it('fixes extra expenses at 4% of the subtotal: 4% of ₹5,00,000 = ₹20,000', () => {
+    expect(EXTRA_EXPENSE_PCT).toBe(4);
+    expect(calculateExtraExpenses(500000, EXTRA_EXPENSE_PCT)).toBe(20000);
+    expect(calculateGrandTotal(500000, 20000)).toBe(520000);
   });
 
   it('averages over the areas entered', () => {
@@ -137,13 +140,14 @@ describe('the example', () => {
   });
 
   it('combines both tabs into one project total', () => {
-    expect(r.material).toEqual({ flooring: 92380, supporting: 17660, total: 110040 });
+    expect(r.material).toEqual({ flooring: 92380, supporting: 20900, total: 113280 });
     expect(r.labour.total).toBe(62200);
-    expect(r.subtotal).toBe(172240);
-    expect(r.extra).toBe(5167);
-    expect(r.grandTotal).toBe(177407);
+    expect(r.subtotal).toBe(175480);
+    expect(r.extraPct).toBe(4);
+    expect(r.extra).toBe(7019);
+    expect(r.grandTotal).toBe(182499);
     expect(r.baseArea).toBe(960);
-    expect(r.averagePerSqft).toBeCloseTo(184.799, 3);
+    expect(r.averagePerSqft).toBeCloseTo(190.103, 3);
     expect(r.tile.total + r.marble.total + r.material.supporting + r.extra).toBe(r.grandTotal);
   });
 });
@@ -167,10 +171,9 @@ describe('validation', () => {
         i.marble.trimArea = NaN;
         i.marble.floorLabourRate = -1;
         i.rates.sand = Infinity;
-        i.extraPct = -3;
       }),
     ).map((x) => x.path);
-    expect(paths).toEqual(expect.arrayContaining(['tile.area', 'marble.trimArea', 'marble.floorLabourRate', 'rates.sand', 'extraPct']));
+    expect(paths).toEqual(expect.arrayContaining(['tile.area', 'marble.trimArea', 'marble.floorLabourRate', 'rates.sand']));
   });
 
   it('never produces NaN, Infinity or a negative total from bad input', () => {
@@ -179,7 +182,6 @@ describe('validation', () => {
         i.tile.area = NaN;
         i.marble.rate = Infinity;
         i.marble.trimArea = -5;
-        i.extraPct = -10;
       }),
     );
     for (const v of [r.tile.total, r.marble.total, r.material.total, r.labour.total, r.extra, r.grandTotal]) {
@@ -217,20 +219,20 @@ describe('report', () => {
       '808.5 sq ft × ₹60 = ₹48,510',
     ]);
     const all = workings(r);
-    expect(all[all.length - 1].total).toBe(177407);
+    expect(all[all.length - 1].total).toBe(182499);
   });
 
   it('summarises and exports the whole estimate', () => {
-    expect(summaryText(r, 'Sharma residence')).toContain('TOTAL PROJECT COST: ₹1,77,407');
+    expect(summaryText(r, 'Sharma residence')).toContain('TOTAL PROJECT COST: ₹1,82,499');
     const rows = estimateCsvRows(r, '', '2026-10-05');
-    expect(rows.find((x) => x.item === 'Total project cost')?.cost).toBe(177407);
+    expect(rows.find((x) => x.item === 'Total project cost')?.cost).toBe(182499);
     expect(rows.find((x) => x.item === 'Total tile required')?.quantity).toBe(808.5);
   });
 
   it('is registered with its own workspace', () => {
     const def = REGISTRY['tile-marble-flooring'];
     expect(def.workspace).toBeDefined();
-    expect(def.hero(def.compute({}), {})).toMatchObject({ value: '₹1,77,407' });
+    expect(def.hero(def.compute({}), {})).toMatchObject({ value: '₹1,82,499' });
   });
 });
 
@@ -244,6 +246,6 @@ describe('explanatory text', () => {
     }
     expect(content).toContain(`₹${(Math.round((r.averagePerSqft ?? 0) * 100) / 100).toFixed(2)} per sq ft`);
     expect(content).toContain('808.5 sq ft');
-    expect(r.supporting.map((s) => s.quantity)).toEqual([96, 20, 15, 17]);
+    expect(r.supporting.map((s) => s.quantity)).toEqual([111, 24, 18, 20]);
   });
 });

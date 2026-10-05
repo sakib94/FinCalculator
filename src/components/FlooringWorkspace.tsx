@@ -11,7 +11,6 @@ import {
   type SupportingKey,
 } from '@/engines/flooring';
 import {
-  DEFAULTS,
   blankInput,
   defaultState,
   restoreState,
@@ -400,18 +399,10 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
               <span className="fl-card-sum num">{formatINR(r.extra)}</span>
             </div>
             <div className="card-pad fl-panel">
-              <div className="fields">
-                <Pct
-                  path="extraPct"
-                  label="Extra expenses"
-                  value={input.extraPct}
-                  presets={[2, 3, 5]}
-                  suggested={DEFAULTS.extraPct}
-                  error={err('extraPct')}
-                  onChange={(v) => setInput((i) => ({ ...i, extraPct: v }))}
-                  help="Transport, loading, breakage and small items — a share of the whole project cost."
-                />
-              </div>
+              <p className="fl-fine">
+                <Icon name="info" size={13} />
+                {t('A fixed {pct} of the project cost for transport, loading, breakage and the small items every job needs.').replace('{pct}', formatPercent(r.extraPct, 2))}
+              </p>
               <p className="fl-calc-line num">
                 {t('Subtotal')} {formatINR(r.subtotal)} × {formatPercent(r.extraPct, 2)} = <strong>{formatINR(r.extra)}</strong>
               </p>
@@ -963,56 +954,6 @@ function AreaField({
         onUse={onChange}
         onClose={() => setCalcOpen(false)}
       />
-    </div>
-  );
-}
-
-/** A percentage with one-tap presets; typing any other figure is the custom option. */
-function Pct({
-  path,
-  label,
-  value,
-  presets,
-  suggested,
-  error,
-  help,
-  onChange,
-}: {
-  path: string;
-  label: string;
-  value: number;
-  presets: number[];
-  suggested: number;
-  error?: string;
-  help?: string;
-  onChange: (v: number) => void;
-}) {
-  const t = useT();
-  const field = useMemo<Field>(() => ({ name: path, label, type: 'percent', default: 0, help, placeholder: '0' }), [path, label, help]);
-  const custom = !presets.includes(value);
-  return (
-    <div className="fl-pct">
-      <FieldControl field={field} value={value} error={error} onChange={(_, v) => onChange(v === '' ? 0 : Number(v) || 0)} />
-      <div className="fl-chips" role="group" aria-label={`${t(label)} — ${t('presets')}`}>
-        {presets.map((p) => (
-          <button key={p} type="button" className="fl-chip" aria-pressed={value === p} onClick={() => onChange(p)}>
-            {p}%
-          </button>
-        ))}
-        <button
-          type="button"
-          className="fl-chip"
-          aria-pressed={custom}
-          onClick={(e) => {
-            const el = e.currentTarget.closest('.fl-pct')?.querySelector<HTMLInputElement>('input');
-            el?.focus();
-            el?.select();
-          }}
-        >
-          {t('Custom')}
-        </button>
-      </div>
-      <span className="fl-tag">{t('Suggested default — editable ({n}%)').replace('{n}', String(suggested))}</span>
     </div>
   );
 }
