@@ -628,4 +628,12 @@ export const HI_CALCULATORS: Record<string, string> = {
   'Suggested default — editable ({n}%)': 'सुझाया गया डिफ़ॉल्ट — बदल सकते हैं ({n}%)',
   'Fix these to see your project total': 'प्रोजेक्ट कुल देखने के लिए इन्हें ठीक करें',
   'Needs attention': 'ध्यान दें',
+  Calculator: 'कैलकुलेटर',
+  'Open calculator for {field}': '{field} के लिए कैलकुलेटर खोलें',
+  'Type or tap a sum': 'जोड़-घटाना लिखें या दबाएँ',
+  'Incomplete or invalid': 'अधूरा या गलत',
+  'An area cannot be negative.': 'क्षेत्रफल ऋणात्मक नहीं हो सकता।',
+  Use: 'लगाएँ',
+  'Use result': 'परिणाम लगाएँ',
+  Backspace: 'मिटाएँ',
 };

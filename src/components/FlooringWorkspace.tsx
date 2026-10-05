@@ -33,6 +33,7 @@ import { readLocal, writeLocal } from '@/lib/storage';
 import { useT } from '@/hooks/PreferencesContext';
 import { FieldControl } from './FieldControl';
 import { CompositionBar } from './CalcPageParts';
+import { CalcPopup } from './CalcPopup';
 import { Icon } from './Icon';
 import { useToast } from './Toast';
 
@@ -993,10 +994,32 @@ function AreaField({
   onChange: (v: number) => void;
 }) {
   const t = useT();
+  const [calcOpen, setCalcOpen] = useState(false);
   return (
     <div className="fl-area-field">
-      <Num path={path} label={label} unit="sq ft" value={value} error={error} onChange={onChange} wide />
+      <div className="fl-area-row">
+        <Num path={path} label={label} unit="sq ft" value={value} error={error} onChange={onChange} />
+        <button
+          type="button"
+          className="fl-calc-btn"
+          onClick={() => setCalcOpen(true)}
+          aria-haspopup="dialog"
+          aria-label={t('Open calculator for {field}').replace('{field}', t(label))}
+          title={t('Calculator')}
+        >
+          <Icon name="calculator" size={19} />
+          <span>{t('Calculator')}</span>
+        </button>
+      </div>
       <p className="fl-help">{t(help)}</p>
+      <CalcPopup
+        open={calcOpen}
+        title={t(label)}
+        unit="sq ft"
+        initial={value}
+        onUse={onChange}
+        onClose={() => setCalcOpen(false)}
+      />
     </div>
   );
 }
