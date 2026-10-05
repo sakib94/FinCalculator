@@ -5,6 +5,7 @@ import { scrollToSection } from '@/lib/scroll';
 import { useT } from '@/hooks/PreferencesContext';
 import { Marker, seriesColor } from './Chart';
 import { Icon } from './Icon';
+import { TweenedText } from '@/lib/tween';
 
 /* ------------------------------------------------------------------ */
 /* Jump bar                                                            */
@@ -52,7 +53,7 @@ export function CalcJumpBar({ items, hero, showHero }: { items: JumpItem[]; hero
             onClick={() => scrollToSection('calc-result')}
           >
             <span className="jb-r-label">{t(hero.label)}</span>
-            <span className="jb-r-value num">{hero.value}</span>
+            <span className="jb-r-value num"><TweenedText value={hero.value} /></span>
           </button>
         )}
       </div>
@@ -156,7 +157,7 @@ export function ResultDock({ hero, show }: { hero?: Hero; show: boolean }) {
     <div className={`result-dock no-print${show ? ' show' : ''}`} aria-hidden={!show}>
       <div className="rd-text">
         <span className="rd-label">{t(hero.label)}</span>
-        <span className="rd-value num">{hero.value}</span>
+        <span className="rd-value num"><TweenedText value={hero.value} /></span>
       </div>
       <button type="button" className="btn sm rd-btn" tabIndex={show ? 0 : -1} onClick={() => scrollToSection('calc-result')}>
         {t('Details')}

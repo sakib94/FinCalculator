@@ -1,5 +1,6 @@
 import type { Hero, Stat } from '@/calculators/types';
 import { Tooltip } from './Tooltip';
+import { TweenedText } from '@/lib/tween';
 import { Icon } from './Icon';
 import { useT } from '@/hooks/PreferencesContext';
 
@@ -19,7 +20,7 @@ export function HeroResult({ heroes }: { heroes: Hero[] }) {
     return (
       <div className="hero-result">
         <div className="h-label">{t(h.label)}</div>
-        <div className={`h-value num value-in${fitClass(h.value)}`}>{h.value}</div>
+        <div className={`h-value num value-in${fitClass(h.value)}`}><TweenedText value={h.value} /></div>
         {h.caption && <div className="h-caption">{t(h.caption)}</div>}
       </div>
     );
@@ -30,7 +31,7 @@ export function HeroResult({ heroes }: { heroes: Hero[] }) {
         i === 0 ? (
           <div className="hero-result" key={h.label} style={{ ['--i' as string]: i }}>
             <div className="h-label">{t(h.label)}</div>
-            <div className={`h-value num value-in${fitClass(h.value)}`}>{h.value}</div>
+            <div className={`h-value num value-in${fitClass(h.value)}`}><TweenedText value={h.value} /></div>
             {h.caption && <div className="h-caption">{t(h.caption)}</div>}
           </div>
         ) : (
@@ -38,7 +39,7 @@ export function HeroResult({ heroes }: { heroes: Hero[] }) {
             <div className="s-label" style={{ color: 'var(--text-3)', fontSize: '0.78rem', fontWeight: 600 }}>
               {t(h.label)}
             </div>
-            <div className={`num h-alt${fitClass(h.value)}`}>{h.value}</div>
+            <div className={`num h-alt${fitClass(h.value)}`}><TweenedText value={h.value} /></div>
             {h.caption && (
               <div className="small muted" style={{ marginTop: 2 }}>
                 {t(h.caption)}

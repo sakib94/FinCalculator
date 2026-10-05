@@ -4,6 +4,7 @@ import { formatINR, formatINRCompact, toIndianWords } from '@/lib/format';
 import { Link } from '@/lib/router';
 import { useT } from '@/hooks/PreferencesContext';
 import { Icon } from './Icon';
+import { TweenedText } from '@/lib/tween';
 
 interface Preset {
   id: string;
@@ -143,7 +144,7 @@ export function HeroCalculator() {
 
       <div className="hc-result" aria-live="polite">
         <div className="hc-result-label">{t('Monthly EMI')}</div>
-        <div className="hc-result-value num">{formatINR(emi)}</div>
+        <div className="hc-result-value num"><TweenedText value={formatINR(emi)} /></div>
         <div className="hc-bar" aria-hidden="true">
           <span className="hc-bar-p" style={{ width: `${principalPct}%` }} />
           <span className="hc-bar-i" />

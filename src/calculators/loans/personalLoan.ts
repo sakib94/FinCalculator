@@ -51,9 +51,9 @@ const personalLoan: CalculatorDef<LoanEmiResult> = {
     }),
     ...tenureFields({
       defaultYears: 3,
-      maxYears: 7,
+      maxYears: 20,
       defaultMonths: 36,
-      help: 'Most personal loans run for 1 to 5 years; some lenders go up to 7.',
+      help: 'Most personal loans run for 1 to 5 years and some lenders go to 7. Up to 20 years can be entered, so this also works as a general EMI calculator.',
     }),
     feeField({
       default: 2,

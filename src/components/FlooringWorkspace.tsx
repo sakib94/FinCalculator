@@ -35,6 +35,7 @@ import { FieldControl } from './FieldControl';
 import { CompositionBar } from './CalcPageParts';
 import { CalcPopup } from './CalcPopup';
 import { Icon } from './Icon';
+import { TweenedText } from '@/lib/tween';
 import { Tooltip } from './Tooltip';
 import { useToast } from './Toast';
 
@@ -433,7 +434,7 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
                   <div ref={heroRef} className="anim-zoom">
                     <div className="hero-result">
                       <div className="h-label">{t('Total project cost')}</div>
-                      <div className={`h-value num value-in${fit(formatINR(r.grandTotal))}`}>{formatINR(r.grandTotal)}</div>
+                      <div className={`h-value num value-in${fit(formatINR(r.grandTotal))}`}><TweenedText value={formatINR(r.grandTotal)} /></div>
                       <div className="h-caption">
                         {r.averagePerSqft != null
                           ? `${rate(round2(r.averagePerSqft))} ${t('average per sq ft')} · ${sqft(r.baseArea)}`
