@@ -391,22 +391,7 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
               </p>
             </div>
 
-            <div className="card-head fl-head-split">
-              <span className="fl-head-icon" aria-hidden="true">
-                <Icon name="receipt" size={16} />
-              </span>
-              <h2 className="fl-card-title">{t('Extra Expenses')}</h2>
-              <span className="fl-card-sum num">{formatINR(r.extra)}</span>
-            </div>
-            <div className="card-pad fl-panel">
-              <p className="fl-fine">
-                <Icon name="info" size={13} />
-                {t('A fixed {pct} of the project cost for transport, loading, breakage and the small items every job needs.').replace('{pct}', formatPercent(r.extraPct, 2))}
-              </p>
-              <p className="fl-calc-line num">
-                {t('Subtotal')} {formatINR(r.subtotal)} × {formatPercent(r.extraPct, 2)} = <strong>{formatINR(r.extra)}</strong>
-              </p>
-
+            <div className="card-pad fl-panel fl-card-foot">
               <TextField
                 id="fl-project"
                 label={t('Name this estimate (optional)')}

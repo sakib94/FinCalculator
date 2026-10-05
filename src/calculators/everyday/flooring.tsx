@@ -41,7 +41,7 @@ const flooring: CalculatorDef<FlooringResult> = {
       'Skirting is worked out for you. It runs along the walls, so what matters is the wall length, not the floor area: a 12 × 12 ft room is 144 sq ft but has only 4 × 12 = 48 ft of wall, and 6-inch skirting along it is 48 × 0.5 = 24 sq ft. That is one-sixth of the floor, so the calculator adds area ÷ 6 — 110 sq ft for 660 sq ft of tile. Untick the box if you do not want skirting.',
       'Wastage is added on the area plus skirting at the standard allowance — 5% for tile and 7% for marble. 660 sq ft of tile becomes 660 + 110 = 770 sq ft, plus 38.5 sq ft of wastage: 808.5 sq ft to buy. The material cost is that quantity times your rate.',
       'Labour is charged on the area you entered, never on skirting or wastage. Each marble section has its own labour rate per sq ft — windows and stairs take more finishing work than a floor.',
-      'Sand, cement, white cement and grout are estimated from consumption per sq ft and rounded up to whole bags, kilograms and CFT. Extra expenses are a fixed 4% of everything before them. The setting-material quantities lean to the upper end of the usual ranges, so the estimate is not on the low side.',
+      'Sand, cement, white cement and grout are estimated from consumption per sq ft and rounded up to whole bags, kilograms and CFT. Extra expenses are a fixed 3% of everything before them. The setting-material quantities lean to the upper end of the usual ranges, so the estimate is not on the low side.',
     ],
     sections: [
       {
@@ -59,8 +59,8 @@ const flooring: CalculatorDef<FlooringResult> = {
             ['Marble floor & platform labour', '250 sq ft × ₹160', '₹40,000'],
             ['Marble window & stair labour', '50 sq ft × ₹180', '₹9,000'],
             ['Sand, cement, white cement, grout', '111 CFT, 24 bags, 18 kg, 20 kg', '₹20,900'],
-            ['Extra expenses', '4% of ₹1,75,480', '₹7,019'],
-            ['Total project cost', '₹1,82,499 ÷ 960 sq ft', '₹190.10 per sq ft'],
+            ['Extra expenses', '3% of ₹1,75,480', '₹5,264'],
+            ['Total project cost', '₹1,80,744 ÷ 960 sq ft', '₹188.28 per sq ft'],
           ],
         },
       },
@@ -105,13 +105,13 @@ White cement (kg) = Marble area × 0.06, rounded up
 Grout (kg)        = Tile area × 0.03, rounded up
 
 Subtotal          = Material + Labour + Supporting materials
-Extra expenses    = Subtotal × 4%
+Extra expenses    = Subtotal × 3%
 Total             = Subtotal + Extra expenses
 Average per sq ft = Total ÷ (Tile area + Marble areas)`,
     example: [
       '660 sq ft of tile at ₹60 (₹20 labour); marble at ₹120 — 250 sq ft of floor and platform (₹160 labour) and 50 sq ft of windows and stairs (₹180 labour).',
       'Tile material ₹48,510 and marble material ₹43,870; labour ₹62,200 in all; supporting materials ₹20,900.',
-      'Subtotal ₹1,75,480 plus 4% extra expenses ₹7,019 gives a total project cost of ₹1,82,499 — about ₹190 per sq ft.',
+      'Subtotal ₹1,75,480 plus 3% extra expenses ₹5,264 gives a total project cost of ₹1,80,744 — about ₹188 per sq ft.',
     ],
     assumptions: [
       'Every rate is the one you enter. Nothing is assumed about the brand, grade or quality of the tile or marble.',
@@ -148,7 +148,7 @@ Average per sq ft = Total ÷ (Tile area + Marble areas)`,
       },
       {
         q: 'What do extra expenses cover?',
-        a: 'Transport, loading and unloading, breakage, spacers, chemicals and the small purchases every job needs. The calculator adds a fixed 4% of the project cost for them.',
+        a: 'Transport, loading and unloading, breakage, spacers, chemicals and the small purchases every job needs. The calculator adds a fixed 3% of the project cost for them.',
       },
       {
         q: 'Can I use only tile or only marble?',

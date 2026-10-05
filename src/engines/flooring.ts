@@ -35,8 +35,8 @@ export const SKIRTING = {
 /** Wastage is fixed at the usual allowances: 5% for tile, 7% for marble. */
 export const WASTAGE = { tile: 5, marble: 7 } as const;
 
-/** Extra expenses — transport, loading, breakage, small items — fixed at 4% of the project. */
-export const EXTRA_EXPENSE_PCT = 4;
+/** Extra expenses — transport, loading, breakage, small items — fixed at 3% of the project. */
+export const EXTRA_EXPENSE_PCT = 3;
 
 /**
  * How much of each setting material one square foot takes. These are

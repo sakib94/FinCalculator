@@ -984,3 +984,8 @@
   line-height: 1.4;
   color: var(--color-text-muted);
 }
+
+/* Estimate name and reset, under the supporting materials. */
+.fl-card-foot {
+  border-top: 1px solid var(--color-divider);
+}

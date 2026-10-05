@@ -116,10 +116,10 @@ describe('totals', () => {
     expect(calculateTotalLabourCost({ tile: 13200, marbleFloor: 40000, marbleTrim: 9000 }).total).toBe(62200);
   });
 
-  it('fixes extra expenses at 4% of the subtotal: 4% of ₹5,00,000 = ₹20,000', () => {
-    expect(EXTRA_EXPENSE_PCT).toBe(4);
-    expect(calculateExtraExpenses(500000, EXTRA_EXPENSE_PCT)).toBe(20000);
-    expect(calculateGrandTotal(500000, 20000)).toBe(520000);
+  it('fixes extra expenses at 3% of the subtotal: 3% of ₹5,00,000 = ₹15,000', () => {
+    expect(EXTRA_EXPENSE_PCT).toBe(3);
+    expect(calculateExtraExpenses(500000, EXTRA_EXPENSE_PCT)).toBe(15000);
+    expect(calculateGrandTotal(500000, 15000)).toBe(515000);
   });
 
   it('averages over the areas entered', () => {
@@ -143,11 +143,11 @@ describe('the example', () => {
     expect(r.material).toEqual({ flooring: 92380, supporting: 20900, total: 113280 });
     expect(r.labour.total).toBe(62200);
     expect(r.subtotal).toBe(175480);
-    expect(r.extraPct).toBe(4);
-    expect(r.extra).toBe(7019);
-    expect(r.grandTotal).toBe(182499);
+    expect(r.extraPct).toBe(3);
+    expect(r.extra).toBe(5264);
+    expect(r.grandTotal).toBe(180744);
     expect(r.baseArea).toBe(960);
-    expect(r.averagePerSqft).toBeCloseTo(190.103, 3);
+    expect(r.averagePerSqft).toBeCloseTo(188.275, 3);
     expect(r.tile.total + r.marble.total + r.material.supporting + r.extra).toBe(r.grandTotal);
   });
 });
@@ -219,20 +219,20 @@ describe('report', () => {
       '808.5 sq ft × ₹60 = ₹48,510',
     ]);
     const all = workings(r);
-    expect(all[all.length - 1].total).toBe(182499);
+    expect(all[all.length - 1].total).toBe(180744);
   });
 
   it('summarises and exports the whole estimate', () => {
-    expect(summaryText(r, 'Sharma residence')).toContain('TOTAL PROJECT COST: ₹1,82,499');
+    expect(summaryText(r, 'Sharma residence')).toContain('TOTAL PROJECT COST: ₹1,80,744');
     const rows = estimateCsvRows(r, '', '2026-10-05');
-    expect(rows.find((x) => x.item === 'Total project cost')?.cost).toBe(182499);
+    expect(rows.find((x) => x.item === 'Total project cost')?.cost).toBe(180744);
     expect(rows.find((x) => x.item === 'Total tile required')?.quantity).toBe(808.5);
   });
 
   it('is registered with its own workspace', () => {
     const def = REGISTRY['tile-marble-flooring'];
     expect(def.workspace).toBeDefined();
-    expect(def.hero(def.compute({}), {})).toMatchObject({ value: '₹1,82,499' });
+    expect(def.hero(def.compute({}), {})).toMatchObject({ value: '₹1,80,744' });
   });
 });
 
