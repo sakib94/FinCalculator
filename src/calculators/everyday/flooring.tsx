@@ -5,156 +5,152 @@ import { FlooringWorkspace } from '@/components/FlooringWorkspace';
 import { defaultInput } from './flooringModel';
 
 /**
- * Tile & Marble Flooring Cost Calculator.
+ * Tile & Marble Cost Calculator.
  *
- * Rooms come and go and whole sections switch on and off, which a flat
- * field list cannot express, so the inputs and results live in their own
- * workspace (src/components/FlooringWorkspace.tsx). `compute` and `hero`
- * describe the example the page opens with.
+ * Two tabs over one project, with a staircase, window and door finishing
+ * and supporting materials — more than a flat field list can express — so
+ * the inputs and results live in their own workspace
+ * (src/components/FlooringWorkspace.tsx). `compute` and `hero` describe the
+ * example the page opens with.
  */
 const flooring: CalculatorDef<FlooringResult> = {
   id: 'tile-marble-flooring',
   fields: [],
   compute: () => calculateFlooringEstimate(defaultInput()),
   hero: (r) => ({
-    label: 'Grand total',
+    label: 'Total project cost',
     value: formatINR(r.grandTotal),
-    caption: `${formatNumber(r.totalArea)} sq ft of flooring`,
+    caption: `${formatNumber(r.baseArea)} sq ft of tile and marble`,
   }),
   workspace: FlooringWorkspace,
   workspaceSections: [
-    { id: 'fl-estimate', label: 'Estimate' },
+    { id: 'fl-summary', label: 'Project summary' },
     { id: 'fl-working', label: 'Workings' },
   ],
 
   content: {
     intro: {
-      heading: 'What does tile or marble flooring cost?',
+      heading: 'What will my tile and marble work cost?',
       paragraphs: [
-        'The price of tile or marble per square foot is only the start. A real flooring budget also has to cover the extra material bought for cutting and breakage, the laying charge, the cement and sand of the mortar bed, white cement or grout for the joints, skirting along the walls, a marble staircase if there is one, polishing, transport and a cushion for surprises.',
-        'This calculator puts all of it in one place. Measure each room, hall, kitchen and any other space in feet or metres, say how much of the floor is tile and how much is marble, and enter the rates your supplier and contractor actually quote you. It works out the quantities, prices every item and shows the grand total and the average cost per square foot — with the arithmetic behind every figure.',
+        'You know roughly how much tile and marble you need — the rooms, hall and bathrooms in tile, the kitchen floor and platform in marble. What is harder to add up is everything around it: the extra pieces for skirting, wastage from cutting, the laying labour, a marble staircase, finishing around windows and doors, the sand and cement under the floor, grout and white cement for the joints, and the small expenses that always turn up.',
+        'This calculator does that adding up. Enter your total tile area and total marble area, the rates you have been quoted and the labour charges; skirting, wastage, setting materials and an extra-expenses allowance are added automatically. Both tabs feed one project total, with the arithmetic behind every figure.',
       ],
     },
     howItWorks: [
-      'Every space is measured as length × width or entered directly as an area. Metric entries are worked in m² first and converted at 1 m² = 10.7639 sq ft, so a 5 m × 4 m room is 20 m², or 215.28 sq ft. The rooms, hall, kitchen and other areas add up to the total flooring area.',
-      'With one material, it covers the whole floor. With both, you decide how many square feet are tile and how many are marble; the two together cannot exceed the total floor area.',
-      'Wastage is added to the material you buy, not to the labour: 1,200 sq ft of tile with 5% wastage means buying 1,260 sq ft, while the laying charge is paid on the 1,200 sq ft actually laid. Polishing is also charged on the marble area alone.',
-      'A marble staircase is priced per step and kept out of the floor area. The per-step price is quoted for a base width — usually 3 ft — and scaled to the real width of your steps: ₹1,000 for a 3 ft step becomes ₹4,000 for a 12 ft step. Risers and nosing can be added separately.',
-      'Cement, sand and white cement are estimated from consumption per square foot of flooring; cement and adhesive are rounded up to whole bags. Contingency is a percentage of every cost before it, and the average cost per sq ft divides the grand total by the actual floor area — not the larger purchase area.',
+      'Enter the tile and marble areas you have worked out yourself — there is no need to measure room by room. These areas never change: labour and the average cost per sq ft are based on them.',
+      'To find what to buy, the calculator adds skirting (5% of the area by default) and then wastage on the area plus skirting (5% for tile, 7% for marble). 660 sq ft of tile becomes 660 + 33 = 693 sq ft, plus 34.65 sq ft of wastage: 727.65 sq ft to buy. The material cost is that quantity times your rate.',
+      'Labour is charged on the area you entered, never on skirting or wastage. Marble labour per sq ft covers the marble floor and kitchen platform; the staircase, windows and doors are priced separately so nothing is counted twice.',
+      'The marble staircase keeps the usual per-step pricing: the labour quoted for a base width — say ₹1,000 for a 3 ft step — is scaled to the real width of your steps. A 12 ft step costs ₹1,000 × 12 ÷ 3 = ₹4,000, and three of them ₹12,000. The number of steps and the width are separate inputs, so “12 ft” is never mistaken for 12 steps.',
+      'Sand, cement, white cement and grout are estimated from consumption per sq ft and rounded up to whole bags, kilograms and CFT. Extra expenses are a percentage of everything before them, 3% by default.',
     ],
     sections: [
       {
-        heading: 'A worked example: a 2,000 sq ft home',
+        heading: 'A worked example: tile in the rooms, marble in the kitchen',
         paragraphs: [
-          'Three rooms, a hall, a kitchen and a dining area add up to 2,000 sq ft. Of that, 1,200 sq ft is tile at ₹60 a sq ft with ₹40 labour and 5% wastage, and 800 sq ft is marble at ₹120 with ₹65 labour and 7% wastage. There is also a 20-step marble staircase at ₹1,000 a step for 3 ft wide steps.',
+          'Two rooms, a hall, a kitchen and bathrooms, measured by the owner as 660 sq ft of tile and 300 sq ft of marble. Tile is ₹60 a sq ft with ₹20 labour; marble is ₹120 with ₹200 labour for the floor and platform. There are three 12 ft marble steps at ₹1,000 per 3 ft step, three windows at ₹1,000 and three doors at ₹1,500.',
         ],
         table: {
           caption: 'The calculator’s opening example',
           columns: ['Item', 'Working', 'Cost'],
           rows: [
-            ['Tile', '1,200 + 5% = 1,260 sq ft × ₹60', '₹75,600'],
-            ['Tile labour', '1,200 sq ft × ₹40', '₹48,000'],
-            ['Marble', '800 + 7% = 856 sq ft × ₹120', '₹1,02,720'],
-            ['Marble labour', '800 sq ft × ₹65', '₹52,000'],
-            ['Staircase', '20 steps × ₹1,000', '₹20,000'],
-            ['Cement', '2,000 × 0.02 = 40 bags × ₹450', '₹18,000'],
-            ['Sand', '2,000 × 0.1 = 200 CFT × ₹60', '₹12,000'],
-            ['White cement', '2,000 × 0.03 = 60 kg × ₹80', '₹4,800'],
-            ['Contingency', '5% of ₹3,33,120', '₹16,656'],
-            ['Grand total', '₹3,49,776 ÷ 2,000 sq ft', '₹174.89 per sq ft'],
+            ['Tile material', '660 + 5% skirting + 5% wastage = 727.65 sq ft × ₹60', '₹43,659'],
+            ['Marble material', '300 + 5% skirting + 7% wastage = 337.05 sq ft × ₹120', '₹40,446'],
+            ['Tile labour', '660 sq ft × ₹20', '₹13,200'],
+            ['Marble floor & platform labour', '300 sq ft × ₹200', '₹60,000'],
+            ['Staircase labour', '3 steps × ₹1,000 × 12 ÷ 3', '₹12,000'],
+            ['Window & door finishing', '3 × ₹1,000 + 3 × ₹1,500', '₹7,500'],
+            ['Sand, cement, white cement, grout', '96 CFT, 20 bags, 15 kg, 17 kg', '₹17,660'],
+            ['Extra expenses', '3% of ₹1,94,465', '₹5,834'],
+            ['Total project cost', '₹2,00,299 ÷ 960 sq ft', '₹208.64 per sq ft'],
           ],
         },
       },
       {
-        heading: 'Why the calculator asks for your rate, not a tile or marble type',
+        heading: 'Why you enter a rate, not a tile or marble type',
         paragraphs: [
-          'Two vitrified tiles can differ in price by five times, and Indian marble ranges from under ₹60 to several hundred rupees a square foot depending on the quarry, grade, thickness and city. A list of types with a built-in price would be wrong for most people.',
-          'Enter the rate on your supplier’s quotation instead. The estimate then reflects the exact material you are buying, wherever you are buying it.',
+          'Two vitrified tiles can differ in price by five times, and marble ranges from under ₹60 to several hundred rupees a sq ft depending on the stone, grade, thickness and city. A list of types with built-in prices would be wrong for most people.',
+          'Enter the rate on your supplier’s quotation and the estimate reflects exactly what you are buying, wherever you are buying it.',
         ],
       },
       {
-        heading: 'How much wastage to allow',
+        heading: 'How much skirting and wastage to allow',
         table: {
-          columns: ['Situation', 'Typical wastage'],
+          columns: ['Allowance', 'Typical', 'Use more when'],
           rows: [
-            ['Large rectangular rooms, straight laying', '3–5%'],
-            ['Normal homes with a few cuts', '5–7%'],
-            ['Marble slabs, veined or matched patterns', '7–10%'],
-            ['Diagonal or herringbone laying, many small rooms', '10% or more'],
+            ['Tile skirting', '5% of the area', 'Many small rooms or long passages'],
+            ['Marble skirting', '5% of the area', 'Tall skirting or a lot of wall length'],
+            ['Tile wastage', '3–7%', 'Large tiles, diagonal laying, many cuts'],
+            ['Marble wastage', '5–10%', 'Veined slabs that must match, fragile stone'],
           ],
         },
-        after: [
-          'The defaults — 5% for tile and 7% for marble — are suggestions you can change. Bigger tiles and slabs, complex layouts and fragile material all push wastage up.',
-        ],
+        after: ['The suggested defaults are editable. Set skirting to 0% if your skirting is priced separately or you are not fitting any.'],
       },
     ],
-    formula: `Area (ft)          = Length × Width
-Area (m)           = Length × Width = m²;  sq ft = m² × 10.7639
-Total floor area   = Rooms + Hall + Kitchen + Other areas
+    formula: `Tile / marble quantity
+  Skirting        = Area × Skirting %
+  Subtotal        = Area + Skirting
+  Wastage         = Subtotal × Wastage %
+  Total required  = Subtotal + Wastage
+  Material        = Total required × Rate
+  Labour          = Area × Labour rate        (no skirting, no wastage)
 
-Purchase area      = Area × (1 + Wastage ÷ 100)
-Material cost      = Purchase area × Rate
-Labour cost        = Area × Labour rate          (no wastage)
-Polishing          = Marble area × Polishing rate (no wastage)
+Staircase labour  = Steps × Base cost × (Step width ÷ Base width)
+Windows           = Windows × Cost per window
+Doors             = Doors × Cost per door
 
-Cost per step      = Base cost × (Step width ÷ Base width)
-Staircase          = Cost per step × Number of steps
-Riser area         = Risers × Height × Width
-Nosing             = Steps × Length per step × Rate per running ft
+Sand (CFT)        = (Tile + Marble area) × 0.1
+Cement (bags)     = (Tile + Marble area) × 0.02, rounded up
+White cement (kg) = Marble area × 0.05, rounded up
+Grout (kg)        = Tile area × 0.025, rounded up
 
-Cement (bags)      = Area × bags per sq ft, rounded up
-Sand (CFT)         = Area × CFT per sq ft
-Adhesive (bags)    = Tile area ÷ Coverage per bag, rounded up
-Skirting (rft)     = Σ 2 × (Length + Width) − Openings
-
-Contingency        = Eligible cost × Contingency %
-Grand total        = Every item + Contingency
-Average per sq ft  = Grand total ÷ Total floor area`,
+Subtotal          = Material + Labour + Supporting materials
+Extra expenses    = Subtotal × Extra %
+Total             = Subtotal + Extra expenses
+Average per sq ft = Total ÷ (Tile area + Marble area)`,
     example: [
-      'A 2,000 sq ft home: 1,200 sq ft of tile at ₹60 (₹40 labour, 5% wastage) and 800 sq ft of marble at ₹120 (₹65 labour, 7% wastage).',
-      'Tile ₹75,600 + labour ₹48,000; marble ₹1,02,720 + labour ₹52,000; a 20-step staircase ₹20,000; cement, sand and white cement ₹34,800.',
-      'Subtotal ₹3,33,120 plus 5% contingency ₹16,656 gives a grand total of ₹3,49,776 — about ₹175 per sq ft.',
+      '660 sq ft of tile at ₹60 (₹20 labour) and 300 sq ft of marble at ₹120 (₹200 labour), three 12 ft marble steps, three windows and three doors.',
+      'Tile material ₹43,659 and marble material ₹40,446; labour ₹92,700 in all; supporting materials ₹17,660.',
+      'Subtotal ₹1,94,465 plus 3% extra expenses ₹5,834 gives a total project cost of ₹2,00,299 — about ₹209 per sq ft of tile and marble.',
     ],
     assumptions: [
       'Every rate is the one you enter. Nothing is assumed about the brand, grade or quality of the tile or marble.',
-      'The floor is laid on a cement–sand mortar bed. The default consumption — 0.02 bag of cement, 0.1 CFT of sand and 0.03 kg of white cement per sq ft — suits a bed of roughly an inch; change it in Advanced mode for your site.',
-      'Wastage applies to the material bought, never to labour or polishing.',
-      'The staircase is not part of the floor area, so it raises the grand total and the average cost per sq ft without changing the area.',
-      'Each line is rounded to the nearest rupee, so the lines always add up to the total shown.',
+      'Skirting is a share of the area; wastage is a share of the area plus skirting.',
+      'Labour is paid on the area entered. Marble labour per sq ft covers the floor and kitchen platform; the staircase, windows and doors are separate.',
+      'Setting materials use per-sq-ft consumption suited to a mortar-bed floor of about an inch. Real consumption depends on the site, so treat the quantities as a guide.',
+      'Each line is rounded to the nearest rupee, so the lines add up exactly to the totals shown.',
     ],
     notes: [
-      'Use Advanced mode for skirting, adhesive, grout, polishing, risers, nosing, transport, loading, other expenses and contingency.',
-      'Automatic skirting uses the perimeter of every space measured by length and width. A space entered as an area only has no known perimeter, so it is listed and left out.',
-      'Your inputs are saved in this browser, so the estimate is still there when you come back. Use Print / PDF or CSV to keep or share a copy.',
+      'The required quantity is shown to two decimals for checking, with a whole number to order alongside. Tiles are sold by the box, so round up to whole boxes when you order.',
+      'Your inputs are saved in this browser, so the estimate is still here when you come back. Use Print / PDF or CSV to keep or share a copy.',
     ],
     faqs: [
       {
-        q: 'How do I calculate the flooring area of my house?',
-        a: 'Measure each room wall to wall and multiply length by width. Add the hall, kitchen, dining, passage and any other area you are flooring. In metres, multiply to get m² and then multiply by 10.7639 for square feet. The calculator does all of this as you type.',
+        q: 'Do I need to measure every room?',
+        a: 'No. Add up the areas yourself — or take them from your contractor or plan — and enter one total for tile and one for marble. The calculator adds skirting and wastage on top.',
       },
       {
-        q: 'Should wastage be added to labour?',
-        a: 'No. You buy extra material to allow for cutting and breakage, but the mason is paid for the area actually laid. The calculator adds wastage to the material only.',
+        q: 'Why is labour worked on a smaller area than the material?',
+        a: 'Because you buy extra material for skirting and for cutting losses, but the mason is paid for the floor actually laid. Labour uses the area you entered; the material uses the larger required quantity.',
       },
       {
-        q: 'How is a marble staircase priced?',
-        a: 'Usually per step, for a standard width such as 3 ft. Wider steps cost proportionally more: at ₹1,000 for a 3 ft step, a 6 ft step is ₹2,000 and a 12 ft step ₹4,000. Enter the number of steps and the step width separately — a “12 ft staircase” means 12 ft wide steps, not 12 steps.',
+        q: 'Does the marble labour rate include the staircase, windows and doors?',
+        a: 'No. Marble labour per sq ft covers the marble floor and kitchen platform. The staircase is priced per step, and window and door finishing per piece, so each is counted once.',
       },
       {
-        q: 'Are the cement and sand quantities exact?',
-        a: 'No. They come from consumption assumptions per square foot. Real consumption depends on the floor level, mortar thickness, joint width, the installation method and the contractor. Treat them as a planning estimate and confirm with your contractor before buying.',
+        q: 'How is the marble staircase priced?',
+        a: 'Per step, for a base width such as 3 ft, scaled to the real width. At ₹1,000 for a 3 ft step, a 12 ft step is ₹4,000; three such steps are ₹12,000. Enter the number of steps and the step width separately.',
       },
       {
-        q: 'Can I use tile in some rooms and marble in others?',
-        a: 'Yes. Tick both, then enter the tile area and the marble area. The calculator checks that the two fit inside the total floor area and shows how much floor is left over.',
+        q: 'Are the sand, cement and grout quantities exact?',
+        a: 'No. They come from consumption assumptions per sq ft. Real consumption depends on the surface, mortar thickness, joint width, installation method and the contractor. Confirm quantities before buying.',
       },
       {
-        q: 'What should the contingency be?',
-        a: 'Five per cent is a common starting point for flooring. Use more for old floors that need levelling, fragile or imported material, or when prices are rising.',
+        q: 'What do extra expenses cover?',
+        a: 'Transport, loading and unloading, breakage, spacers, chemicals and the small purchases every job needs. 3% of the project cost is a sensible default; use 5% for a complicated job or rising prices.',
       },
       {
-        q: 'Why is the average cost per sq ft higher than my tile rate?',
-        a: 'Because it includes everything: wastage, labour, mortar, joints, the staircase, transport and contingency, all divided by the floor area. It is the true all-in cost of each square foot.',
+        q: 'Can I use only tile or only marble?',
+        a: 'Yes. Leave the other area at zero, and set the staircase, windows or doors to zero if you have none. The total and the average cost per sq ft then cover only what you entered.',
       },
     ],
   },

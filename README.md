@@ -74,8 +74,7 @@ Increment · Leave Encashment · HRA Exemption · TDS · Capital Gains Tax
 **Date & Age** — Age · Date Difference
 **Business & General** — GST · ROI · Percentage · Markup · Commission · Profit Margin ·
 Break-Even · Depreciation
-**Everyday** — BMI · Currency · Construction Material · Electrical Load · Tile & Marble Flooring
-Cost
+**Everyday** — BMI · Currency · Construction Material · Electrical Load · Tile & Marble Cost
 
 Each one ships real calculation logic, inline validation, charts, a year-wise table where it
 makes sense, CSV export, and an explanatory section covering how it works, the formula, a
@@ -160,10 +159,11 @@ page, the sitemap, SEO metadata, CSV export and print styling all pick it up aut
 A calculator whose inputs are not a flat list of fields can draw its own inputs and results
 instead: set `workspace` on its `CalculatorDef` to a component (and `workspaceSections` for
 extra "On this page" links). The page still supplies the header, jump bar, guide, FAQs and next
-steps. The Tile & Marble Flooring Cost Calculator works this way — rooms are added and removed,
-whole sections switch on and off, and the estimate is a written bill rather than a single
-figure. Its maths is in `src/engines/flooring.ts`, its example and saved-state handling in
-`src/calculators/everyday/flooringModel.ts`, its workings and CSV in `flooringReport.ts`, and
+steps. The Tile & Marble Cost Calculator works this way — two tabs (Tile, Marble) feed one
+project total, with the staircase, window and door finishing and supporting materials alongside.
+Its maths, including the sand/cement/white-cement/grout consumption assumptions (`CONSUMPTION`),
+is in `src/engines/flooring.ts`; its example and saved-state handling in
+`src/calculators/everyday/flooringModel.ts`; its workings and CSV in `flooringReport.ts`; and
 the screen in `src/components/FlooringWorkspace.tsx`.
 
 ### Adding a guide

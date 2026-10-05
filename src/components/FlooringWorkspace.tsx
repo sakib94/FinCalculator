@@ -1,37 +1,28 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import type { KeyboardEvent, ReactNode } from 'react';
 import type { Field, WorkspaceProps } from '@/calculators/types';
 import {
-  MAX_ROOMS,
   calculateFlooringEstimate,
-  calculateRoomArea,
   validateFlooring,
-  type AppliesTo,
-  type AreaEntry,
   type FlooringInput,
   type FlooringResult,
-  type LengthUnit,
-  type RiserUnit,
+  type Quantity,
+  type SupportingKey,
 } from '@/engines/flooring';
 import {
+  DEFAULTS,
   blankInput,
-  canAddOtherArea,
   defaultState,
-  newOtherArea,
-  resizeRooms,
   restoreState,
-  type FlooringMode,
   type FlooringState,
+  type FlooringTab,
 } from '@/calculators/everyday/flooringModel';
 import {
   ESTIMATE_CSV_COLUMNS,
-  KIND_LABEL,
-  areaSource,
+  SUPPORTING_META,
   estimateCsvRows,
-  lineLabel,
-  lineQuantity,
-  lineRate,
-  metricNote,
+  rate,
+  reqQuantity,
   sqft,
   summaryText,
   workings,
@@ -43,26 +34,26 @@ import { useT } from '@/hooks/PreferencesContext';
 import { FieldControl } from './FieldControl';
 import { CompositionBar } from './CalcPageParts';
 import { Icon } from './Icon';
-import { Tooltip } from './Tooltip';
 import { useToast } from './Toast';
 
-const STORAGE_KEY = 'flooring-estimate';
+/** v2: the area-only calculator. Saves from the old room-by-room version are not read. */
+const STORAGE_KEY = 'flooring-estimate-v2';
 
 /**
- * Tile & Marble Flooring Cost Calculator — inputs on the left in numbered
- * sections, the running estimate on the right, and the full written
- * estimate (summary, tables, workings) underneath.
+ * Tile & Marble Cost Calculator.
  *
- * Everything is live: each change re-validates and re-prices the whole
- * job. The inputs are kept in this browser so an estimate survives a
- * reload; nothing is sent anywhere.
+ * Two tabs — Tile and Marble — over one project. The homeowner enters the
+ * areas they have worked out and today's rates; skirting, wastage, labour,
+ * the staircase, window and door finishing, setting materials and an
+ * extra-expenses allowance are added automatically. A running project
+ * total sits beside the inputs, and the combined summary, with the
+ * working behind every figure, follows underneath.
  */
 export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
   const t = useT();
   const { notify } = useToast();
   const [state, setState] = useState<FlooringState>(() => restoreState(readLocal<unknown>(STORAGE_KEY, null)));
-  const { input, mode, projectName } = state;
-  const advanced = mode === 'advanced';
+  const { input, tab, projectName } = state;
 
   useEffect(() => {
     const timer = window.setTimeout(() => writeLocal(STORAGE_KEY, state), 300);
@@ -73,6 +64,7 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
   function patch<K extends PatchKey>(key: K, part: Partial<FlooringInput[K]>) {
     setInput((i) => ({ ...i, [key]: { ...i[key], ...part } }));
   }
+  const setTab = (next: FlooringTab) => setState((s) => ({ ...s, tab: next }));
 
   const issues = useMemo(() => validateFlooring(input), [input]);
   const errors = useMemo(() => {
@@ -82,100 +74,44 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
   }, [issues]);
   const err = (path: string) => (errors[path] ? t(errors[path]) : undefined);
   const valid = issues.length === 0;
-  // Always priced, so section totals keep moving while one field is wrong;
-  // the estimate itself is shown only when every input is valid.
+  // Always priced, so the tab totals keep moving while one field is wrong;
+  // the project total is shown only when every input is valid.
   const r = useMemo(() => calculateFlooringEstimate(input), [input]);
 
   useEffect(() => {
     onHero(
       valid
         ? {
-            label: 'Grand total',
+            label: 'Total project cost',
             value: formatINR(r.grandTotal),
-            caption: r.averagePerSqft != null ? `${formatINR(r.averagePerSqft)} per sq ft` : undefined,
+            caption: r.averagePerSqft != null ? `${rate(round2(r.averagePerSqft))} per sq ft` : undefined,
           }
         : null,
     );
   }, [valid, r.grandTotal, r.averagePerSqft, onHero]);
 
   const today = useMemo(() => new Date(), []);
-  const both = input.tile.enabled && input.marble.enabled;
-
-  /* ---------------- Area helpers ---------------- */
-
-  const setEntry = (kind: 'rooms' | 'otherAreas', index: number, entry: AreaEntry) =>
-    setInput((i) => ({ ...i, [kind]: i[kind].map((e, k) => (k === index ? entry : e)) }));
-
-  const setFlooring = (which: 'tile' | 'marble', on: boolean) =>
-    setInput((i) => {
-      const tile = { ...i.tile, enabled: which === 'tile' ? on : i.tile.enabled };
-      const marble = { ...i.marble, enabled: which === 'marble' ? on : i.marble.enabled };
-      // Turning on the second material: start it on whatever floor the
-      // first leaves free, so the split never opens in an error.
-      if (on && tile.enabled && marble.enabled) {
-        const keep = Math.min(Math.max(0, which === 'tile' ? i.marble.area : i.tile.area), r.totalArea);
-        const rest = Math.max(0, r.totalArea - keep);
-        tile.area = which === 'tile' ? rest : keep;
-        marble.area = which === 'marble' ? rest : keep;
-      }
-      return { ...i, tile, marble };
-    });
-
-  /* ---------------- Section numbering & totals ---------------- */
-
-  const sectionOrder = [
-    'area',
-    'flooring',
-    ...(input.tile.enabled ? ['tile'] : []),
-    ...(input.marble.enabled ? ['marble'] : []),
-    'stairs',
-    'materials',
-    ...(advanced ? ['additional'] : []),
-  ];
-  const num = (id: string) => sectionOrder.indexOf(id) + 1;
-
-  const tileSum = r.tile ? r.tile.materialCost + r.tile.labourCost : 0;
-  const marbleSum = r.marble ? r.marble.materialCost + r.marble.labourCost + (r.marble.polishingCost ?? 0) : 0;
-  const stairsSum = (r.staircase?.total ?? 0) + (r.riser ? r.riser.materialCost + r.riser.labourCost : 0) + (r.nosing?.cost ?? 0);
-  const materialsSum = r.cement.cost + r.sand.cost + r.whiteCement.cost + (r.adhesive?.cost ?? 0) + (r.grout?.cost ?? 0);
-  const additionalSum =
-    (r.skirting ? r.skirting.materialCost + r.skirting.labourCost : 0) +
-    r.transportation +
-    r.loadingUnloading +
-    r.otherExpenses +
-    r.contingency;
-
-  // Advanced items still count in Basic mode; say which, so nothing is hidden.
-  const advancedOn = [
-    input.marble.enabled && input.marble.polishingEnabled ? t('polishing') : '',
-    input.staircase.enabled && input.riser.enabled ? t('risers') : '',
-    input.staircase.enabled && input.nosing.enabled ? t('nosing') : '',
-    input.tile.enabled && input.adhesive.enabled ? t('adhesive') : '',
-    input.grout.enabled ? t('grout') : '',
-    input.skirting.enabled ? t('skirting') : '',
-    input.additional.transportation > 0 ? t('transportation') : '',
-    input.additional.loadingUnloading > 0 ? t('loading / unloading') : '',
-    input.additional.other > 0 ? t('other expenses') : '',
-  ].filter(Boolean);
+  const tileIssues = issues.some((i) => i.path.startsWith('tile.'));
+  const marbleIssues = issues.some((i) => /^(marble|staircase|windows|doors)\./.test(i.path));
 
   /* ---------------- Actions ---------------- */
 
   const resetExample = () => {
-    setState((s) => ({ ...defaultState(), mode: s.mode }));
+    setState((s) => ({ ...defaultState(), tab: s.tab }));
     notify(t('Example restored'));
   };
   const startBlank = () => {
-    setState((s) => ({ ...s, input: blankInput(), projectName: '' }));
-    notify(t('Cleared — enter your own measurements and rates'));
+    setState({ input: blankInput(), tab: 'tile', projectName: '' });
+    notify(t('Cleared — enter your own areas and rates'));
   };
   const onCopy = async () => {
-    const ok = await copyText(`${t('Tile & Marble Flooring Cost Calculator')}\n${summaryText(r, input, projectName)}`);
+    const ok = await copyText(`${t('Tile & Marble Cost Calculator')}\n${summaryText(r, projectName)}`);
     notify(ok ? t('Result copied') : t('Could not copy'));
   };
   const onCsv = () => {
-    const rows = estimateCsvRows(r, input, projectName, toISODate(today));
+    const rows = estimateCsvRows(r, projectName, toISODate(today));
     const slug = projectName.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
-    downloadCSV(`paisewise-flooring-estimate${slug ? `-${slug}` : ''}`, toCSV(ESTIMATE_CSV_COLUMNS, rows));
+    downloadCSV(`paisewise-tile-marble-estimate${slug ? `-${slug}` : ''}`, toCSV(ESTIMATE_CSV_COLUMNS, rows));
     notify(t('CSV downloaded'));
   };
 
@@ -196,605 +132,428 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
     </div>
   );
 
+  /* ---------------- Tabs ---------------- */
+
+  const tabRefs = useRef<Record<FlooringTab, HTMLButtonElement | null>>({ tile: null, marble: null });
+  const onTabKey = (e: KeyboardEvent<HTMLButtonElement>) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+    e.preventDefault();
+    const next: FlooringTab = e.key === 'Home' ? 'tile' : e.key === 'End' ? 'marble' : tab === 'tile' ? 'marble' : 'tile';
+    setTab(next);
+    tabRefs.current[next]?.focus();
+  };
+  /** Switch tab from elsewhere on the page and bring the tabs into view. */
+  const goTo = (next: FlooringTab) => {
+    setTab(next);
+    requestAnimationFrame(() => {
+      const el = tabRefs.current[next];
+      el?.focus({ preventScroll: true });
+      el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  };
+
+  const tabButton = (id: FlooringTab, label: string, icon: ReactNode, area: number, total: number, hasIssue: boolean) => (
+    <button
+      ref={(el) => {
+        tabRefs.current[id] = el;
+      }}
+      type="button"
+      role="tab"
+      id={`fl-tab-${id}`}
+      aria-selected={tab === id}
+      aria-controls={`fl-panel-${id}`}
+      tabIndex={tab === id ? 0 : -1}
+      className={`fl-tab${tab === id ? ' on' : ''}`}
+      onClick={() => setTab(id)}
+      onKeyDown={onTabKey}
+    >
+      <span className="fl-tab-icon" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="fl-tab-text">
+        <span className="fl-tab-name">
+          {label}
+          {hasIssue && (
+            <span className="fl-tab-alert" title={t('Needs attention')}>
+              <span className="sr-only">{t('Needs attention')}</span>
+            </span>
+          )}
+        </span>
+        <span className="fl-tab-meta num">
+          <span>{sqft(area)}</span>
+          <span className="fl-tab-total">{formatINR(total)}</span>
+        </span>
+      </span>
+    </button>
+  );
+
   /* ================================================================ */
 
   return (
     <>
       <div className="fl-grid" id="calc-tool">
-        {/* ------------------------- Inputs ------------------------- */}
-        <div className="card accent-top panel-input fl-inputs no-print">
-          <div className="card-head fl-head">
-            <span className="step-dot" aria-hidden="true">
-              1
-            </span>
-            <span className="section-label">{t('Inputs')}</span>
-            <Seg
-              className="fl-mode"
-              label={t('Detail level')}
-              value={mode}
-              onChange={(m: FlooringMode) => setState((s) => ({ ...s, mode: m }))}
-              options={[
-                { value: 'basic', label: t('Basic') },
-                { value: 'advanced', label: t('Advanced') },
-              ]}
-            />
+        <div className="fl-main no-print">
+          {/* ------------------------- Tile | Marble ------------------------- */}
+          <div className="card panel-input fl-card">
+            <div className="fl-tabs" role="tablist" aria-label={t('Tile or marble')}>
+              {tabButton('tile', t('Tile'), <TileGlyph />, r.tile.quantity.area, r.tile.total, tileIssues)}
+              {tabButton('marble', t('Marble'), <MarbleGlyph />, r.marble.quantity.area, r.marble.total, marbleIssues)}
+            </div>
+
+            {tab === 'tile' ? (
+              <div className="fl-panel" role="tabpanel" id="fl-panel-tile" aria-labelledby="fl-tab-tile">
+                <AreaField
+                  path="tile.area"
+                  label="Total Tile Area"
+                  help="Enter the total usable tile area. Include all rooms, hall, kitchen, bathroom, etc. that will use tiles."
+                  value={input.tile.area}
+                  error={err('tile.area') ?? (errors.area ? t(errors.area) : undefined)}
+                  onChange={(v) => patch('tile', { area: v })}
+                />
+
+                <div className="fields">
+                  <Pct
+                    path="tile.skirtingPct"
+                    label="Tile skirting"
+                    value={input.tile.skirtingPct}
+                    presets={[0, 5, 10]}
+                    suggested={DEFAULTS.tileSkirtingPct}
+                    error={err('tile.skirtingPct')}
+                    onChange={(v) => patch('tile', { skirtingPct: v })}
+                    help="Extra tile for the skirting strip along the walls, as a share of the tile area."
+                  />
+                  <Pct
+                    path="tile.wastagePct"
+                    label="Tile wastage"
+                    value={input.tile.wastagePct}
+                    presets={[3, 5, 7, 10]}
+                    suggested={DEFAULTS.tileWastagePct}
+                    error={err('tile.wastagePct')}
+                    onChange={(v) => patch('tile', { wastagePct: v })}
+                    help="For cutting and breakage, on the tile area plus skirting."
+                  />
+                </div>
+
+                <QuantityFlow q={r.tile.quantity} noun="tile" />
+
+                <div className="fields">
+                  <Num
+                    path="tile.rate"
+                    label="Tile Rate"
+                    type="currency"
+                    unit="/ sq ft"
+                    value={input.tile.rate}
+                    error={err('tile.rate')}
+                    onChange={(v) => patch('tile', { rate: v })}
+                    help="The price per sq ft you are quoted — any tile, any brand."
+                  />
+                  <Num
+                    path="tile.labourRate"
+                    label="Tile Labour Cost"
+                    type="currency"
+                    unit="/ sq ft"
+                    value={input.tile.labourRate}
+                    error={err('tile.labourRate')}
+                    onChange={(v) => patch('tile', { labourRate: v })}
+                    help="Laying charge per sq ft, paid on the tile area you entered."
+                  />
+                </div>
+
+                <TabSummary
+                  title={t('Tile Summary')}
+                  rows={[
+                    [t('Base tile area'), sqft(r.tile.quantity.area)],
+                    [t('Estimated skirting'), sqft(r.tile.quantity.skirting)],
+                    [t('Wastage'), sqft(r.tile.quantity.wastage)],
+                    [t('Total tile required'), sqft(r.tile.quantity.required)],
+                    [t('Tile rate'), `${rate(r.tile.rate)} / sq ft`],
+                    [t('Tile material cost'), formatINR(r.tile.material)],
+                    [t('Tile labour'), formatINR(r.tile.labour)],
+                  ]}
+                  totalLabel={t('Tile Total')}
+                  total={r.tile.total}
+                />
+
+                <button type="button" className="btn outline sm fl-next" onClick={() => goTo('marble')}>
+                  {t('Next: Marble')}
+                  <Icon name="chevronRight" size={15} />
+                </button>
+              </div>
+            ) : (
+              <div className="fl-panel" role="tabpanel" id="fl-panel-marble" aria-labelledby="fl-tab-marble">
+                <AreaField
+                  path="marble.area"
+                  label="Total Marble Area"
+                  help="Enter the total marble area you want to use, including floor, kitchen platform, windows, doors, stairs, etc. according to your calculation."
+                  value={input.marble.area}
+                  error={err('marble.area') ?? (errors.area ? t(errors.area) : undefined)}
+                  onChange={(v) => patch('marble', { area: v })}
+                />
+
+                <div className="fields">
+                  <Pct
+                    path="marble.skirtingPct"
+                    label="Marble skirting"
+                    value={input.marble.skirtingPct}
+                    presets={[0, 5, 10]}
+                    suggested={DEFAULTS.marbleSkirtingPct}
+                    error={err('marble.skirtingPct')}
+                    onChange={(v) => patch('marble', { skirtingPct: v })}
+                    help="Extra marble for the skirting strip, as a share of the marble area."
+                  />
+                  <Pct
+                    path="marble.wastagePct"
+                    label="Marble wastage"
+                    value={input.marble.wastagePct}
+                    presets={[5, 7, 10]}
+                    suggested={DEFAULTS.marbleWastagePct}
+                    error={err('marble.wastagePct')}
+                    onChange={(v) => patch('marble', { wastagePct: v })}
+                    help="For cutting and breakage, on the marble area plus skirting."
+                  />
+                </div>
+
+                <QuantityFlow q={r.marble.quantity} noun="marble" />
+
+                <div className="fields">
+                  <Num
+                    path="marble.rate"
+                    label="Marble Rate"
+                    type="currency"
+                    unit="/ sq ft"
+                    value={input.marble.rate}
+                    error={err('marble.rate')}
+                    onChange={(v) => patch('marble', { rate: v })}
+                    help="The price per sq ft you are quoted — any marble or stone."
+                  />
+                  <Num
+                    path="marble.labourRate"
+                    label="Marble Labour Cost"
+                    type="currency"
+                    unit="/ sq ft"
+                    value={input.marble.labourRate}
+                    error={err('marble.labourRate')}
+                    onChange={(v) => patch('marble', { labourRate: v })}
+                    help="For the marble floor and kitchen platform only."
+                  />
+                </div>
+                <p className="fl-fine">
+                  <Icon name="info" size={13} />
+                  {t('Marble labour covers the marble floor and kitchen platform. Staircase, window and door work is added separately below.')}
+                </p>
+
+                <SubCard icon="layers" title={t('Marble Staircase')} total={r.marble.staircase.total}>
+                  <div className="note">
+                    <Icon name="info" size={16} className="i" />
+                    <div>
+                      {t('Enter the number of stairs and the width each step covers separately. A “12 ft” staircase means 12 ft wide steps — not 12 steps.')}
+                    </div>
+                  </div>
+                  <div className="fields">
+                    <Num path="staircase.steps" label="Number of Stairs" unit="steps" value={input.staircase.steps} error={err('staircase.steps')} onChange={(v) => patch('staircase', { steps: v })} />
+                    <Num
+                      path="staircase.width"
+                      label="Step Width (marble coverage)"
+                      unit="ft"
+                      value={input.staircase.width}
+                      error={err('staircase.width')}
+                      onChange={(v) => patch('staircase', { width: v })}
+                      help="The side-to-side width each step’s marble covers, e.g. 12 ft."
+                    />
+                    <Num
+                      path="staircase.baseWidth"
+                      label="Base Step Width"
+                      unit="ft"
+                      value={input.staircase.baseWidth}
+                      error={err('staircase.baseWidth')}
+                      onChange={(v) => patch('staircase', { baseWidth: v })}
+                      help="The width your contractor’s per-step rate is quoted for. Usually 3 ft."
+                    />
+                    <Num
+                      path="staircase.baseCost"
+                      label="Base Labour Cost per Step"
+                      type="currency"
+                      value={input.staircase.baseCost}
+                      error={err('staircase.baseCost')}
+                      onChange={(v) => patch('staircase', { baseCost: v })}
+                      help="The labour for one step of the base width, e.g. ₹1,000 for 3 ft."
+                    />
+                  </div>
+                  {r.marble.staircase.steps > 0 && r.marble.staircase.baseWidth > 0 && (
+                    <p className="fl-calc-line num">
+                      {rate(r.marble.staircase.baseCost)} × ({formatNumber(r.marble.staircase.width, 2)} ÷ {formatNumber(r.marble.staircase.baseWidth, 2)}) ={' '}
+                      <strong>
+                        {rate(r.marble.staircase.costPerStep)} {t('per step')}
+                      </strong>
+                      <span className="fl-sep" aria-hidden="true">
+                        →
+                      </span>
+                      {formatNumber(r.marble.staircase.steps)} × {rate(r.marble.staircase.costPerStep)} = <strong>{formatINR(r.marble.staircase.total)}</strong>
+                    </p>
+                  )}
+                </SubCard>
+
+                <SubCard icon="home" title={t('Marble Window & Door Finishing')} total={r.marble.windows.total + r.marble.doors.total}>
+                  <div className="fields">
+                    <Num path="windows.count" label="Number of Windows" value={input.windows.count} error={err('windows.count')} onChange={(v) => patch('windows', { count: v })} />
+                    <Num path="windows.rate" label="Labour Cost per Window" type="currency" value={input.windows.rate} error={err('windows.rate')} onChange={(v) => patch('windows', { rate: v })} />
+                    <Num path="doors.count" label="Number of Doors" value={input.doors.count} error={err('doors.count')} onChange={(v) => patch('doors', { count: v })} />
+                    <Num path="doors.rate" label="Labour Cost per Door" type="currency" value={input.doors.rate} error={err('doors.rate')} onChange={(v) => patch('doors', { rate: v })} />
+                  </div>
+                  <p className="fl-calc-line num">
+                    {t('Windows')} {formatNumber(r.marble.windows.count)} × {rate(r.marble.windows.rate)} = <strong>{formatINR(r.marble.windows.total)}</strong>
+                    <span className="fl-sep" aria-hidden="true">
+                      ·
+                    </span>
+                    {t('Doors')} {formatNumber(r.marble.doors.count)} × {rate(r.marble.doors.rate)} = <strong>{formatINR(r.marble.doors.total)}</strong>
+                  </p>
+                  <p className="fl-fine">
+                    <Icon name="info" size={13} />
+                    {t('Charged per piece, separately from the marble labour per sq ft.')}
+                  </p>
+                </SubCard>
+
+                <TabSummary
+                  title={t('Marble Summary')}
+                  rows={[
+                    [t('Base marble area'), sqft(r.marble.quantity.area)],
+                    [t('Estimated skirting'), sqft(r.marble.quantity.skirting)],
+                    [t('Wastage'), sqft(r.marble.quantity.wastage)],
+                    [t('Total marble required'), sqft(r.marble.quantity.required)],
+                    [t('Marble rate'), `${rate(r.marble.rate)} / sq ft`],
+                    [t('Marble material'), formatINR(r.marble.material)],
+                    [t('Marble floor/platform labour'), formatINR(r.marble.labour)],
+                    [t('Staircase'), formatINR(r.marble.staircase.total)],
+                    [t('Window finishing'), formatINR(r.marble.windows.total)],
+                    [t('Door finishing'), formatINR(r.marble.doors.total)],
+                  ]}
+                  totalLabel={t('Marble Section Total')}
+                  total={r.marble.total}
+                />
+
+                <button type="button" className="btn outline sm fl-next" onClick={() => goTo('tile')}>
+                  <Icon name="arrowLeft" size={15} />
+                  {t('Back to Tile')}
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="card-pad fl-form">
-            <TextField
-              id="fl-project"
-              label={t('Project name (optional)')}
-              value={projectName}
-              placeholder={t('e.g. Sharma residence, ground floor')}
-              onChange={(v) => setState((s) => ({ ...s, projectName: v }))}
-              maxLength={80}
-            />
-
-            {/* 1 · Floor area */}
-            <Section id="fl-sec-area" n={num('area')} title={t('Floor area')} summary={sqft(r.totalArea)}>
-              <RoomCount value={input.rooms.length} onChange={(n) => setInput((i) => ({ ...i, rooms: resizeRooms(i.rooms, n) }))} />
-
-              {input.rooms.length > 0 && (
-                <div className="fl-areas">
-                  {input.rooms.map((room, i) => (
-                    <AreaCard
-                      key={room.id}
-                      entry={room}
-                      path={`rooms.${i}`}
-                      errors={errors}
-                      nameEditable
-                      onChange={(e) => setEntry('rooms', i, e)}
-                    />
-                  ))}
-                </div>
-              )}
-
-              <div className="fl-areas">
-                <AreaCard entry={input.hall} path="hall" errors={errors} onChange={(e) => setInput((i) => ({ ...i, hall: e }))} />
-                <AreaCard entry={input.kitchen} path="kitchen" errors={errors} onChange={(e) => setInput((i) => ({ ...i, kitchen: e }))} />
-              </div>
-
-              <div className="fl-sub">
-                <div className="fl-sub-head">
-                  <h3>{t('Other areas')}</h3>
-                  <span className="small muted">{t('Dining, lobby, balcony, passage, store, pooja room…')}</span>
-                </div>
-                {input.otherAreas.length > 0 && (
-                  <div className="fl-areas">
-                    {input.otherAreas.map((o, i) => (
-                      <AreaCard
-                        key={o.id}
-                        entry={o}
-                        path={`otherAreas.${i}`}
-                        errors={errors}
-                        nameEditable
-                        onChange={(e) => setEntry('otherAreas', i, e)}
-                        onRemove={() => setInput((s) => ({ ...s, otherAreas: s.otherAreas.filter((_, k) => k !== i) }))}
-                      />
-                    ))}
-                  </div>
-                )}
-                <button
-                  type="button"
-                  className="btn outline sm fl-add"
-                  disabled={!canAddOtherArea(input.otherAreas)}
-                  onClick={() => setInput((s) => ({ ...s, otherAreas: [...s.otherAreas, newOtherArea(s.otherAreas)] }))}
-                >
-                  <span aria-hidden="true">+</span> {t('Add another area')}
-                </button>
-              </div>
-
-              <div className="fl-total" role="status">
-                <span className="fl-total-label">{t('Total flooring area')}</span>
-                <span className="fl-total-value num">{sqft(r.totalArea)}</span>
-              </div>
-            </Section>
-
-            {/* 2 · Flooring selection */}
-            <Section
-              id="fl-sec-flooring"
-              n={num('flooring')}
-              title={t('What flooring are you using?')}
-              summary={both ? t('Tile + Marble') : input.tile.enabled ? t('Tile') : input.marble.enabled ? t('Marble') : '—'}
-            >
-              <div className="fl-pick" role="group" aria-label={t('Flooring')}>
-                <Toggle
-                  checked={input.tile.enabled}
-                  onChange={(on) => setFlooring('tile', on)}
-                  label={t('Tile')}
-                  hint={t('Any tile — you enter the rate you are quoted')}
-                />
-                <Toggle
-                  checked={input.marble.enabled}
-                  onChange={(on) => setFlooring('marble', on)}
-                  label={t('Marble')}
-                  hint={t('Any marble or stone — at your supplier’s rate')}
-                />
-              </div>
-              {errors.flooring && <InlineError message={t(errors.flooring)} />}
-
-              {both ? (
-                <>
-                  <div className="fields">
-                    <Num path="tile.area" label="Tile area" unit="sq ft" value={input.tile.area} error={err('tile.area')} onChange={(v) => patch('tile', { area: v })} />
-                    <Num path="marble.area" label="Marble area" unit="sq ft" value={input.marble.area} error={err('marble.area')} onChange={(v) => patch('marble', { area: v })} />
-                  </div>
-                  <AllocationTable r={r} />
-                  {errors.allocation && <InlineError message={t(errors.allocation)} />}
-                  {(r.allocation.excess > 0 || r.allocation.remaining > 0.005) && r.totalArea > 0 && (
-                    <div className="btn-row fl-fit">
-                      <button
-                        type="button"
-                        className="btn ghost sm"
-                        onClick={() => patch('marble', { area: Math.max(0, r.totalArea - Math.min(input.tile.area, r.totalArea)) })}
-                      >
-                        {t('Marble takes the rest')}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn ghost sm"
-                        onClick={() => patch('tile', { area: Math.max(0, r.totalArea - Math.min(input.marble.area, r.totalArea)) })}
-                      >
-                        {t('Tile takes the rest')}
-                      </button>
-                    </div>
-                  )}
-                </>
-              ) : input.tile.enabled || input.marble.enabled ? (
-                <p className="fl-readout">
-                  <Icon name="check" size={14} strokeWidth={2.4} />
-                  {input.tile.enabled ? t('Tile covers the whole floor:') : t('Marble covers the whole floor:')}{' '}
-                  <strong className="num">{sqft(r.totalArea)}</strong>
-                </p>
-              ) : null}
-            </Section>
-
-            {/* 3 · Tile */}
-            {input.tile.enabled && (
-              <Section id="fl-sec-tile" n={num('tile')} title={t('Tile cost')} summary={formatINR(tileSum)}>
-                <div className="fields">
-                  <Num path="tile.rate" label="Tile rate" type="currency" unit="/ sq ft" value={input.tile.rate} error={err('tile.rate')} onChange={(v) => patch('tile', { rate: v })} help="The price per sq ft your supplier quotes — any tile, any brand." />
-                  <Num path="tile.labourRate" label="Tile labour rate" type="currency" unit="/ sq ft" value={input.tile.labourRate} error={err('tile.labourRate')} onChange={(v) => patch('tile', { labourRate: v })} help="Laying charge per sq ft. Paid on the area laid, not on wastage." />
-                  <Wastage
-                    path="tile.wastage"
-                    label="Tile wastage"
-                    value={input.tile.wastage}
-                    presets={[3, 5, 7, 10]}
-                    error={err('tile.wastage')}
-                    onChange={(v) => patch('tile', { wastage: v })}
+          {/* ------------------------- Shared: materials & extras ------------------------- */}
+          <div className="card panel-input fl-card">
+            <div className="card-head">
+              <span className="fl-head-icon" aria-hidden="true">
+                <Icon name="layers" size={16} />
+              </span>
+              <h2 className="fl-card-title">{t('Estimated Supporting Materials')}</h2>
+              <span className="fl-card-sum num">{formatINR(r.material.supporting)}</span>
+            </div>
+            <div className="card-pad fl-panel">
+              <p className="small muted fl-intro">{t('Enter today’s rates — the quantities are worked out for you from the tile and marble areas.')}</p>
+              <div className="fl-materials">
+                {r.supporting.map((s) => (
+                  <MaterialRow
+                    key={s.key}
+                    k={s.key}
+                    value={input.rates[s.key]}
+                    error={err(`rates.${s.key}`)}
+                    onChange={(v) => setInput((i) => ({ ...i, rates: { ...i.rates, [s.key]: v } }))}
+                    quantity={reqQuantity(s)}
+                    cost={s.cost}
                   />
-                </div>
-                {r.tile && (
-                  <p className="fl-readout">
-                    {t('Buy')} <strong className="num">{sqft(r.tile.purchaseArea)}</strong> ({sqft(r.tile.area)} + {formatPercent(r.tile.wastagePct, 2)}) ·{' '}
-                    {t('Material')} <strong className="num">{formatINR(r.tile.materialCost)}</strong> · {t('Labour')}{' '}
-                    <strong className="num">{formatINR(r.tile.labourCost)}</strong>
-                  </p>
+                ))}
+              </div>
+              <p className="fl-fine">
+                <Icon name="info" size={13} />
+                <strong>{t('Estimated quantities:')}</strong>{' '}
+                {t(
+                  'Sand, cement, white cement and grout are calculated using configurable assumptions. Actual requirements may vary depending on site conditions and installation method.',
                 )}
-              </Section>
-            )}
+              </p>
+            </div>
 
-            {/* 4 · Marble */}
-            {input.marble.enabled && (
-              <Section id="fl-sec-marble" n={num('marble')} title={t('Marble cost')} summary={formatINR(marbleSum)}>
-                <div className="fields">
-                  <Num path="marble.rate" label="Marble rate" type="currency" unit="/ sq ft" value={input.marble.rate} error={err('marble.rate')} onChange={(v) => patch('marble', { rate: v })} help="The price per sq ft you are quoted — any marble or stone." />
-                  <Num path="marble.labourRate" label="Marble labour rate" type="currency" unit="/ sq ft" value={input.marble.labourRate} error={err('marble.labourRate')} onChange={(v) => patch('marble', { labourRate: v })} help="Laying charge per sq ft. Paid on the area laid, not on wastage." />
-                  <Wastage
-                    path="marble.wastage"
-                    label="Marble wastage"
-                    value={input.marble.wastage}
-                    presets={[5, 7, 10]}
-                    error={err('marble.wastage')}
-                    onChange={(v) => patch('marble', { wastage: v })}
-                  />
-                </div>
-                {r.marble && (
-                  <p className="fl-readout">
-                    {t('Buy')} <strong className="num">{sqft(r.marble.purchaseArea)}</strong> ({sqft(r.marble.area)} + {formatPercent(r.marble.wastagePct, 2)}) ·{' '}
-                    {t('Material')} <strong className="num">{formatINR(r.marble.materialCost)}</strong> · {t('Labour')}{' '}
-                    <strong className="num">{formatINR(r.marble.labourCost)}</strong>
-                  </p>
-                )}
-
-                {advanced && (
-                  <Optional
-                    checked={input.marble.polishingEnabled}
-                    onChange={(on) => patch('marble', { polishingEnabled: on })}
-                    label={t('Marble grinding & polishing')}
-                    hint={t('Charged on the marble area, without wastage')}
-                  >
-                    <div className="fields">
-                      <Num path="marble.polishingRate" label="Polishing rate" type="currency" unit="/ sq ft" value={input.marble.polishingRate} error={err('marble.polishingRate')} onChange={(v) => patch('marble', { polishingRate: v })} />
-                    </div>
-                    {r.marble?.polishingCost != null && (
-                      <p className="fl-readout">
-                        {sqft(r.marble.area)} × {rateText(input.marble.polishingRate)} = <strong className="num">{formatINR(r.marble.polishingCost)}</strong>
-                      </p>
-                    )}
-                  </Optional>
-                )}
-              </Section>
-            )}
-
-            {/* 5 · Staircase */}
-            <Section
-              id="fl-sec-stairs"
-              n={num('stairs')}
-              title={t('Marble staircase')}
-              summary={input.staircase.enabled ? formatINR(stairsSum) : t('Not included')}
-            >
-              <Optional
-                checked={input.staircase.enabled}
-                onChange={(on) => patch('staircase', { enabled: on })}
-                label={t('Include a marble staircase')}
-                hint={t('Priced per step — kept out of the floor area')}
-              >
-                <div className="note">
-                  <Icon name="info" size={16} className="i" />
-                  <div>
-                    {t('Enter the number of steps and the width of each step separately. A “12 ft staircase” means steps 12 ft wide — not 12 steps.')}
-                  </div>
-                </div>
-                <div className="fields">
-                  <Num path="staircase.steps" label="Number of steps" unit="steps" value={input.staircase.steps} error={err('staircase.steps')} onChange={(v) => patch('staircase', { steps: v })} />
-                  <Num path="staircase.baseCostPerStep" label="Cost per step at base width" type="currency" value={input.staircase.baseCostPerStep} error={err('staircase.baseCostPerStep')} onChange={(v) => patch('staircase', { baseCostPerStep: v })} help="The price your contractor quotes for one step of the base width." />
-                  <LengthField
-                    path="staircase.width"
-                    label="Step width"
-                    value={input.staircase.width}
-                    unit={input.staircase.widthUnit}
-                    error={err('staircase.width')}
-                    onChange={(v) => patch('staircase', { width: v })}
-                    onUnit={(u) => patch('staircase', { widthUnit: u as LengthUnit })}
-                    help="How wide each step is, side to side."
-                  />
-                  <LengthField
-                    path="staircase.baseWidth"
-                    label="Base step width"
-                    value={input.staircase.baseWidth}
-                    unit={input.staircase.baseWidthUnit}
-                    error={err('staircase.baseWidth')}
-                    onChange={(v) => patch('staircase', { baseWidth: v })}
-                    onUnit={(u) => patch('staircase', { baseWidthUnit: u as LengthUnit })}
-                    help="The width the per-step price is quoted for. Usually 3 ft."
-                  />
-                </div>
-                {r.staircase && (
-                  <div className="fl-calc-line">
-                    <span>
-                      {t('Cost per step')} <strong className="num">{rateText(r.staircase.costPerStep)}</strong>
-                    </span>
-                    <span>
-                      {t('Number of steps')} <strong className="num">{formatNumber(r.staircase.steps)}</strong>
-                    </span>
-                    <span>
-                      {t('Total staircase cost')} <strong className="num">{formatINR(r.staircase.total)}</strong>
-                    </span>
-                  </div>
-                )}
-
-                {advanced && (
-                  <>
-                    <Optional
-                      checked={input.riser.enabled}
-                      onChange={(on) =>
-                        patch('riser', on ? { enabled: true, count: input.staircase.steps, width: input.staircase.width, widthUnit: input.staircase.widthUnit } : { enabled: false })
-                      }
-                      label={t('Riser')}
-                      hint={t('The vertical face of each step, priced by area')}
-                    >
-                      <div className="fields">
-                        <Num path="riser.count" label="Number of risers" value={input.riser.count} error={err('riser.count')} onChange={(v) => patch('riser', { count: v })} />
-                        <LengthField
-                          path="riser.height"
-                          label="Riser height"
-                          value={input.riser.height}
-                          unit={input.riser.heightUnit}
-                          units={RISER_UNITS}
-                          error={err('riser.height')}
-                          onChange={(v) => patch('riser', { height: v })}
-                          onUnit={(u) => patch('riser', { heightUnit: u })}
-                        />
-                        <LengthField
-                          path="riser.width"
-                          label="Riser width"
-                          value={input.riser.width}
-                          unit={input.riser.widthUnit}
-                          units={RISER_UNITS}
-                          error={err('riser.width')}
-                          onChange={(v) => patch('riser', { width: v })}
-                          onUnit={(u) => patch('riser', { widthUnit: u })}
-                        />
-                        <Num path="riser.materialRate" label="Marble rate" type="currency" unit="/ sq ft" value={input.riser.materialRate} error={err('riser.materialRate')} onChange={(v) => patch('riser', { materialRate: v })} />
-                        <Num path="riser.labourRate" label="Labour rate" type="currency" unit="/ sq ft" value={input.riser.labourRate} error={err('riser.labourRate')} onChange={(v) => patch('riser', { labourRate: v })} />
-                      </div>
-                      {r.riser && (
-                        <p className="fl-readout">
-                          {t('Riser area')} <strong className="num">{sqft(r.riser.area)}</strong> · {t('Material')}{' '}
-                          <strong className="num">{formatINR(r.riser.materialCost)}</strong> · {t('Labour')}{' '}
-                          <strong className="num">{formatINR(r.riser.labourCost)}</strong>
-                        </p>
-                      )}
-                    </Optional>
-
-                    <Optional
-                      checked={input.nosing.enabled}
-                      onChange={(on) =>
-                        patch('nosing', on ? { enabled: true, steps: input.staircase.steps, lengthPerStep: input.staircase.width, lengthUnit: input.staircase.widthUnit } : { enabled: false })
-                      }
-                      label={t('Step nosing / edge')}
-                      hint={t('Edge profiling, priced per running foot')}
-                    >
-                      <div className="fields">
-                        <Num path="nosing.steps" label="Number of steps" value={input.nosing.steps} error={err('nosing.steps')} onChange={(v) => patch('nosing', { steps: v })} />
-                        <LengthField
-                          path="nosing.lengthPerStep"
-                          label="Nosing length per step"
-                          value={input.nosing.lengthPerStep}
-                          unit={input.nosing.lengthUnit}
-                          error={err('nosing.lengthPerStep')}
-                          onChange={(v) => patch('nosing', { lengthPerStep: v })}
-                          onUnit={(u) => patch('nosing', { lengthUnit: u as LengthUnit })}
-                        />
-                        <Num path="nosing.ratePerFt" label="Rate" type="currency" unit="/ running ft" value={input.nosing.ratePerFt} error={err('nosing.ratePerFt')} onChange={(v) => patch('nosing', { ratePerFt: v })} />
-                      </div>
-                      {r.nosing && (
-                        <p className="fl-readout">
-                          {formatNumber(r.nosing.totalLength, 2)} {t('running ft')} · <strong className="num">{formatINR(r.nosing.cost)}</strong>
-                        </p>
-                      )}
-                    </Optional>
-                  </>
-                )}
-              </Optional>
-            </Section>
-
-            {/* 6 · Materials */}
-            <Section id="fl-sec-materials" n={num('materials')} title={t('Materials')} summary={formatINR(materialsSum)}>
+            <div className="card-head fl-head-split">
+              <span className="fl-head-icon" aria-hidden="true">
+                <Icon name="receipt" size={16} />
+              </span>
+              <h2 className="fl-card-title">{t('Extra Expenses')}</h2>
+              <span className="fl-card-sum num">{formatINR(r.extra)}</span>
+            </div>
+            <div className="card-pad fl-panel">
               <div className="fields">
-                <Num path="materials.cementRate" label="Cement rate" type="currency" unit="/ bag" value={input.materials.cementRate} error={err('materials.cementRate')} onChange={(v) => patch('materials', { cementRate: v })} />
-                <Num path="materials.sandRate" label="Sand rate" type="currency" unit="/ CFT" value={input.materials.sandRate} error={err('materials.sandRate')} onChange={(v) => patch('materials', { sandRate: v })} />
-                <Num path="materials.whiteCementRate" label="White cement rate" type="currency" unit="/ kg" value={input.materials.whiteCementRate} error={err('materials.whiteCementRate')} onChange={(v) => patch('materials', { whiteCementRate: v })} />
+                <Pct
+                  path="extraPct"
+                  label="Extra expenses"
+                  value={input.extraPct}
+                  presets={[2, 3, 5]}
+                  suggested={DEFAULTS.extraPct}
+                  error={err('extraPct')}
+                  onChange={(v) => setInput((i) => ({ ...i, extraPct: v }))}
+                  help="Transport, loading, breakage and small items — a share of the whole project cost."
+                />
               </div>
-              <div className="fl-estimates">
-                <EstimateChip label={t('Cement')} qty={`${formatNumber(r.cement.quantity)} ${t('bags')}`} cost={r.cement.cost} />
-                <EstimateChip label={t('Sand')} qty={`${formatNumber(r.sand.quantity, 2)} CFT`} cost={r.sand.cost} />
-                <EstimateChip label={t('White cement')} qty={`${formatNumber(r.whiteCement.quantity, 2)} kg`} cost={r.whiteCement.cost} />
+              <p className="fl-calc-line num">
+                {t('Subtotal')} {formatINR(r.subtotal)} × {formatPercent(r.extraPct, 2)} = <strong>{formatINR(r.extra)}</strong>
+              </p>
+
+              <TextField
+                id="fl-project"
+                label={t('Name this estimate (optional)')}
+                value={projectName}
+                placeholder={t('e.g. Sharma residence')}
+                onChange={(v) => setState((s) => ({ ...s, projectName: v }))}
+                maxLength={80}
+              />
+
+              <div className="btn-row live-row">
+                <span className="live-note">
+                  <Icon name="refresh" size={14} className="i" />
+                  {t('Results update as you type')}
+                </span>
+                <span className="btn-row">
+                  <button type="button" className="btn ghost sm" onClick={startBlank}>
+                    {t('Start blank')}
+                  </button>
+                  <button type="button" className="btn ghost sm" onClick={resetExample}>
+                    <Icon name="refresh" size={15} />
+                    {t('Reset')}
+                  </button>
+                </span>
               </div>
-
-              {advanced && (
-                <div className="fl-sub">
-                  <div className="fl-sub-head">
-                    <h3>{t('Consumption per sq ft')}</h3>
-                    <span className="small muted">{t('Suggested defaults — editable')}</span>
-                  </div>
-                  <div className="fields">
-                    <Num path="materials.cementPerSqft" label="Cement" unit="bags / sq ft" value={input.materials.cementPerSqft} error={err('materials.cementPerSqft')} onChange={(v) => patch('materials', { cementPerSqft: v })} help="0.02 bag per sq ft is about one 50 kg bag for every 50 sq ft of mortar-bed flooring." />
-                    <Num path="materials.sandPerSqft" label="Sand" unit="CFT / sq ft" value={input.materials.sandPerSqft} error={err('materials.sandPerSqft')} onChange={(v) => patch('materials', { sandPerSqft: v })} help="0.1 CFT per sq ft is roughly a 1-inch mortar bed." />
-                    <Num path="materials.whiteCementPerSqft" label="White cement" unit="kg / sq ft" value={input.materials.whiteCementPerSqft} error={err('materials.whiteCementPerSqft')} onChange={(v) => patch('materials', { whiteCementPerSqft: v })} help="Used for joint filling. About 1 kg for every 30–35 sq ft." />
-                  </div>
-                  {both && (
-                    <div className="fl-applies">
-                      <AppliesSeg label={t('Cement goes under')} value={input.materials.cementAppliesTo} onChange={(v) => patch('materials', { cementAppliesTo: v })} />
-                      <AppliesSeg label={t('Sand goes under')} value={input.materials.sandAppliesTo} onChange={(v) => patch('materials', { sandAppliesTo: v })} />
-                      <AppliesSeg label={t('White cement goes under')} value={input.materials.whiteCementAppliesTo} onChange={(v) => patch('materials', { whiteCementAppliesTo: v })} />
-                    </div>
-                  )}
-
-                  <Optional
-                    checked={input.adhesive.enabled}
-                    onChange={(on) => patch('adhesive', { enabled: on })}
-                    label={t('Tile adhesive')}
-                    hint={input.tile.enabled ? t('Bags rounded up to a whole bag') : t('Applies to tile — select tile above')}
-                  >
-                    <div className="fields">
-                      <Num path="adhesive.pricePerBag" label="Price per bag" type="currency" value={input.adhesive.pricePerBag} error={err('adhesive.pricePerBag')} onChange={(v) => patch('adhesive', { pricePerBag: v })} />
-                      <Num path="adhesive.coveragePerBag" label="Coverage per bag" unit="sq ft / bag" value={input.adhesive.coveragePerBag} error={err('adhesive.coveragePerBag')} onChange={(v) => patch('adhesive', { coveragePerBag: v })} help="The bag label states it; a 20 kg bag usually covers 35–50 sq ft." />
-                    </div>
-                    {r.adhesive && (
-                      <p className="fl-readout">
-                        {sqft(r.adhesive.area)} ÷ {formatNumber(r.adhesive.coverage, 2)} = {formatNumber(r.adhesive.exactBags, 2)} → <strong className="num">{formatNumber(r.adhesive.bags)} {t('bags')}</strong> · <strong className="num">{formatINR(r.adhesive.cost)}</strong>
-                      </p>
-                    )}
-                  </Optional>
-
-                  <Optional
-                    checked={input.grout.enabled}
-                    onChange={(on) => patch('grout', { enabled: on })}
-                    label={t('Grout')}
-                    hint={t('Joint filler, estimated in kg')}
-                  >
-                    <div className="fields">
-                      <Num path="grout.ratePerKg" label="Grout rate" type="currency" unit="/ kg" value={input.grout.ratePerKg} error={err('grout.ratePerKg')} onChange={(v) => patch('grout', { ratePerKg: v })} />
-                      <Num path="grout.kgPerSqft" label="Grout consumption" unit="kg / sq ft" value={input.grout.kgPerSqft} error={err('grout.kgPerSqft')} onChange={(v) => patch('grout', { kgPerSqft: v })} help="Depends on tile size and joint width; 0.025 kg per sq ft suits 2 × 2 ft tiles with 2–3 mm joints." />
-                    </div>
-                    {both && <AppliesSeg label={t('Grout goes on')} value={input.grout.appliesTo} onChange={(v) => patch('grout', { appliesTo: v })} />}
-                    {r.grout && (
-                      <p className="fl-readout">
-                        {sqft(r.grout.area)} → <strong className="num">{formatNumber(r.grout.quantity, 2)} kg</strong> · <strong className="num">{formatINR(r.grout.cost)}</strong>
-                      </p>
-                    )}
-                  </Optional>
-                </div>
-              )}
-
-              <p className="fl-fine">
-                <Icon name="info" size={13} />
-                {t('Material quantities are estimated using configurable consumption assumptions. Actual quantities may vary depending on site conditions and installation method.')}
-              </p>
-            </Section>
-
-            {/* 7 · Additional costs */}
-            {advanced && (
-              <Section id="fl-sec-additional" n={num('additional')} title={t('Additional costs')} summary={formatINR(additionalSum)}>
-                <Optional
-                  checked={input.skirting.enabled}
-                  onChange={(on) => patch('skirting', { enabled: on })}
-                  label={t('Skirting')}
-                  hint={t('The strip along the foot of the walls, per running foot')}
-                >
-                  <Seg
-                    label={t('Skirting length')}
-                    value={input.skirting.mode}
-                    onChange={(v: 'auto' | 'manual') => patch('skirting', { mode: v })}
-                    options={[
-                      { value: 'auto', label: t('From rooms') },
-                      { value: 'manual', label: t('Enter length') },
-                    ]}
-                  />
-                  <div className="fields">
-                    {input.skirting.mode === 'manual' && (
-                      <LengthField
-                        path="skirting.runningLength"
-                        label="Total running length"
-                        value={input.skirting.runningLength}
-                        unit={input.skirting.runningUnit}
-                        error={err('skirting.runningLength')}
-                        onChange={(v) => patch('skirting', { runningLength: v })}
-                        onUnit={(u) => patch('skirting', { runningUnit: u as LengthUnit })}
-                      />
-                    )}
-                    <LengthField
-                      path="skirting.openings"
-                      label="Doors & openings to deduct"
-                      value={input.skirting.openings}
-                      unit={input.skirting.openingsUnit}
-                      error={err('skirting.openings')}
-                      onChange={(v) => patch('skirting', { openings: v })}
-                      onUnit={(u) => patch('skirting', { openingsUnit: u as LengthUnit })}
-                      help="The total width of doors and other openings, where no skirting goes."
-                    />
-                    <div className="field">
-                      <span className="field-label">{t('Skirting material')}</span>
-                      <Seg
-                        label={t('Skirting material')}
-                        value={input.skirting.material}
-                        onChange={(v: 'tile' | 'marble') => patch('skirting', { material: v })}
-                        options={[
-                          { value: 'tile', label: t('Tile') },
-                          { value: 'marble', label: t('Marble') },
-                        ]}
-                      />
-                    </div>
-                    <Num path="skirting.materialRate" label="Material rate" type="currency" unit="/ running ft" value={input.skirting.materialRate} error={err('skirting.materialRate')} onChange={(v) => patch('skirting', { materialRate: v })} />
-                    <Num path="skirting.labourRate" label="Labour rate" type="currency" unit="/ running ft" value={input.skirting.labourRate} error={err('skirting.labourRate')} onChange={(v) => patch('skirting', { labourRate: v })} />
-                  </div>
-                  {r.skirting && (
-                    <>
-                      <p className="fl-readout">
-                        {input.skirting.mode === 'auto' ? t('Perimeter') : t('Length')} {formatNumber(r.skirting.grossFt, 2)} ft − {formatNumber(r.skirting.openingsFt, 2)} ft ={' '}
-                        <strong className="num">
-                          {formatNumber(r.skirting.netFt, 2)} {t('running ft')}
-                        </strong>{' '}
-                        · <strong className="num">{formatINR(r.skirting.materialCost + r.skirting.labourCost)}</strong>
-                      </p>
-                      {input.skirting.mode === 'auto' && r.skirting.unmeasured.length > 0 && (
-                        <p className="fl-fine">
-                          <Icon name="info" size={13} />
-                          {t('Not counted (entered by area, so the perimeter is unknown):')} {r.skirting.unmeasured.join(', ')}
-                        </p>
-                      )}
-                    </>
-                  )}
-                </Optional>
-
-                <div className="fields">
-                  <Num path="additional.transportation" label="Transportation" type="currency" value={input.additional.transportation} error={err('additional.transportation')} onChange={(v) => patch('additional', { transportation: v })} />
-                  <Num path="additional.loadingUnloading" label="Loading / unloading" type="currency" value={input.additional.loadingUnloading} error={err('additional.loadingUnloading')} onChange={(v) => patch('additional', { loadingUnloading: v })} />
-                  <Num path="additional.other" label="Other expenses" type="currency" value={input.additional.other} error={err('additional.other')} onChange={(v) => patch('additional', { other: v })} />
-                  <TextField
-                    id="fl-other-note"
-                    label={t('Other expenses — description')}
-                    value={input.additional.otherNote}
-                    placeholder={t('e.g. site cleaning, material shifting')}
-                    onChange={(v) => patch('additional', { otherNote: v })}
-                    maxLength={120}
-                  />
-                </div>
-
-                <div className="fields">
-                  <Wastage
-                    path="contingencyPct"
-                    label="Contingency"
-                    value={input.contingencyPct}
-                    presets={[0, 3, 5, 7, 10]}
-                    error={err('contingencyPct')}
-                    onChange={(v) => setInput((i) => ({ ...i, contingencyPct: v }))}
-                    help="A cushion for price changes, breakage and small extras, worked on every cost above."
-                  />
-                </div>
-                <p className="fl-readout">
-                  {formatPercent(r.contingencyPct, 2)} × {t('eligible cost')} {formatINR(r.subtotal)} = <strong className="num">{formatINR(r.contingency)}</strong>
-                </p>
-              </Section>
-            )}
-
-            {!advanced && (
-              <p className="fl-fine">
-                <Icon name="info" size={13} />
-                {t('Contingency of {pct} is included.').replace('{pct}', formatPercent(input.contingencyPct, 2))}{' '}
-                {advancedOn.length > 0 && <>{t('Also included from Advanced:')} {advancedOn.join(', ')}. </>}
-                <button type="button" className="fl-link" onClick={() => setState((s) => ({ ...s, mode: 'advanced' }))}>
-                  {t('Switch to Advanced')}
-                </button>{' '}
-                {t('for skirting, adhesive, grout, polishing, risers, transport and contingency.')}
-              </p>
-            )}
-
-            <div className="btn-row live-row">
-              <span className="live-note">
-                <Icon name="refresh" size={14} className="i" />
-                {t('Results update as you type')}
-              </span>
-              <span className="btn-row">
-                <button type="button" className="btn ghost sm" onClick={startBlank}>
-                  {t('Start blank')}
-                </button>
-                <button type="button" className="btn ghost sm" onClick={resetExample}>
-                  <Icon name="refresh" size={15} />
-                  {t('Reset')}
-                </button>
-              </span>
             </div>
           </div>
         </div>
 
-        {/* ------------------------- Running estimate ------------------------- */}
-        <aside className="fl-side no-print" aria-label={t('Estimate')}>
-          <div className="card accent-top panel-result fl-result" id="calc-result">
+        {/* ------------------------- Running project total ------------------------- */}
+        <aside className="fl-side no-print" aria-label={t('Project total')}>
+          <div className="card panel-result fl-result" id="calc-result">
             <div className="card-head">
-              <span className="step-dot" aria-hidden="true">
-                2
-              </span>
-              <span className="section-label">{t('Estimate')}</span>
+              <span className="section-label">{t('Project total')}</span>
             </div>
             <div className="card-pad stack">
               {valid ? (
                 <>
                   <div ref={heroRef} className="anim-zoom">
                     <div className="hero-result">
-                      <div className="h-label">{t('Grand total')}</div>
-                      <div className={`h-value num value-in${formatINR(r.grandTotal).length > 13 ? ' xs' : formatINR(r.grandTotal).length > 10 ? ' sm' : ''}`}>
-                        {formatINR(r.grandTotal)}
-                      </div>
+                      <div className="h-label">{t('Total project cost')}</div>
+                      <div className={`h-value num value-in${fit(formatINR(r.grandTotal))}`}>{formatINR(r.grandTotal)}</div>
                       <div className="h-caption">
                         {r.averagePerSqft != null
-                          ? `${formatINR(r.averagePerSqft, 2)} ${t('average per sq ft')} · ${sqft(r.totalArea)}`
-                          : t('Add the floor area to see the cost per sq ft')}
+                          ? `${rate(round2(r.averagePerSqft))} ${t('average per sq ft')} · ${sqft(r.baseArea)}`
+                          : t('Enter an area to see the cost per sq ft')}
                       </div>
                     </div>
                   </div>
 
-                  <div className="stat-grid">
-                    <Stat label={t('Total flooring area')} value={sqft(r.totalArea)} tone="accent" />
-                    {r.tile && <Stat label={t('Tile area')} value={sqft(r.allocation.tileArea)} />}
-                    {r.marble && <Stat label={t('Marble area')} value={sqft(r.allocation.marbleArea)} />}
-                    <Stat
-                      label={t('Average cost per sq ft')}
-                      value={r.averagePerSqft != null ? formatINR(r.averagePerSqft, 2) : '—'}
-                      help={t('Grand total ÷ total flooring area (not the purchase area after wastage). The staircase is included in the total but not in the area.')}
-                    />
+                  <div className="fl-tabtotals">
+                    <button type="button" className={`fl-tt${tab === 'tile' ? ' on' : ''}`} onClick={() => goTo('tile')}>
+                      <span>{t('Tile')}</span>
+                      <strong className="num">{formatINR(r.tile.total)}</strong>
+                    </button>
+                    <button type="button" className={`fl-tt${tab === 'marble' ? ' on' : ''}`} onClick={() => goTo('marble')}>
+                      <span>{t('Marble')}</span>
+                      <strong className="num">{formatINR(r.marble.total)}</strong>
+                    </button>
                   </div>
 
                   <CompositionBar
@@ -802,17 +561,16 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
                       kind: 'donut',
                       title: 'Where the money goes',
                       data: [
-                        { label: 'Material', value: r.byKind.material },
-                        { label: 'Labour', value: r.byKind.labour },
-                        { label: 'Other costs', value: r.byKind.other },
-                        { label: 'Contingency', value: r.contingency },
+                        { label: 'Tile & marble', value: r.material.flooring },
+                        { label: 'Labour', value: r.labour.total },
+                        { label: 'Supporting materials', value: r.material.supporting },
+                        { label: 'Extra expenses', value: r.extra },
                       ],
                       format: (n) => formatINR(n),
                     }}
                   />
 
-                  <SplitList r={r} />
-
+                  <TotalsList r={r} />
                   {actions}
                 </>
               ) : (
@@ -820,10 +578,18 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
                   <span className="p-ring">
                     <Icon name="alert" size={24} />
                   </span>
-                  <span className="p-title">{t('Fix these to see your estimate')}</span>
+                  <span className="p-title">{t('Fix these to see your project total')}</span>
                   <ul>
                     {issues.slice(0, 6).map((i) => (
-                      <li key={i.path}>{t(i.message)}</li>
+                      <li key={i.path}>
+                        {tabFor(i.path) ? (
+                          <button type="button" className="fl-link" onClick={() => goTo(tabFor(i.path) as FlooringTab)}>
+                            {t(i.message)}
+                          </button>
+                        ) : (
+                          t(i.message)
+                        )}
+                      </li>
                     ))}
                     {issues.length > 6 && <li>{t('…and {n} more').replace('{n}', String(issues.length - 6))}</li>}
                   </ul>
@@ -836,9 +602,8 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
 
       {valid && (
         <>
-          <EstimateSummary r={r} input={input} projectName={projectName} date={today} actions={actions} />
-          <Breakdown r={r} input={input} />
-          <Workings r={r} input={input} />
+          <ProjectSummary r={r} projectName={projectName} date={today} actions={actions} />
+          <Workings r={r} />
         </>
       )}
 
@@ -847,7 +612,7 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
         <span>
           <strong>{t('Estimate only:')}</strong>{' '}
           {t(
-            'Material quantities such as cement, sand, white cement, adhesive and grout are estimated using configurable assumptions. Actual requirements may vary based on site conditions, floor level, surface preparation, material thickness, installation method and contractor practices. Always verify quantities with your contractor before purchasing materials.',
+            'Sand, cement, white cement and grout quantities are estimated using configurable consumption assumptions. Actual quantities may vary based on surface condition, mortar thickness, installation method, material thickness and site conditions. Verify final quantities with your contractor before purchasing materials.',
           )}
         </span>
       </p>
@@ -855,341 +620,200 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
   );
 }
 
-/** Rates keep their paise when they have any: ₹1,093.61 a step, ₹30 a sq ft. */
-const rateText = (v: number) => formatINR(v, Number.isInteger(Math.round(v * 100) / 100) ? 0 : 2);
+type PatchKey = 'tile' | 'marble' | 'staircase' | 'windows' | 'doors';
 
-/** "20.00" — measurements in the room cards always show two decimals. */
-const fixed2 = (v: number) => v.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const round2 = (v: number) => Math.round(v * 100) / 100;
 
-type PatchKey = 'tile' | 'marble' | 'staircase' | 'riser' | 'nosing' | 'materials' | 'adhesive' | 'grout' | 'skirting' | 'additional';
+/** Steps the headline size down for long figures, as the other calculators do. */
+const fit = (value: string) => (value.length > 13 ? ' xs' : value.length > 10 ? ' sm' : '');
 
-const RISER_UNITS: { value: RiserUnit; label: string }[] = [
-  { value: 'in', label: 'in' },
-  { value: 'ft', label: 'ft' },
-  { value: 'm', label: 'm' },
-];
-const LENGTH_UNITS: { value: RiserUnit; label: string }[] = [
-  { value: 'ft', label: 'Feet' },
-  { value: 'm', label: 'Metre' },
-];
-
-/* ================================================================== */
-/* Estimate blocks                                                     */
-/* ================================================================== */
-
-function AllocationTable({ r }: { r: FlooringResult }) {
-  const t = useT();
-  const { tileArea, marbleArea, remaining } = r.allocation;
-  return (
-    <div className="table-scroll fl-table-wrap">
-      <table className="data fl-table">
-        <caption className="sr-only">{t('Area allocation')}</caption>
-        <thead>
-          <tr>
-            <th scope="col">{t('Flooring')}</th>
-            <th scope="col">{t('Area')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <th scope="row">{t('Tile')}</th>
-            <td className="num">{sqft(tileArea)}</td>
-          </tr>
-          <tr>
-            <th scope="row">{t('Marble')}</th>
-            <td className="num">{sqft(marbleArea)}</td>
-          </tr>
-          <tr className={remaining < 0 ? 'fl-over' : undefined}>
-            <th scope="row">{remaining < 0 ? t('Over by') : t('Remaining')}</th>
-            <td className="num">{sqft(Math.abs(remaining))}</td>
-          </tr>
-        </tbody>
-        <tfoot>
-          <tr>
-            <td>{t('Total')}</td>
-            <td className="num">{sqft(r.totalArea)}</td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
-  );
+/** Which tab holds the input an issue is about; null for the shared inputs. */
+function tabFor(path: string): FlooringTab | null {
+  if (path === 'area' || path.startsWith('tile.')) return 'tile';
+  if (/^(marble|staircase|windows|doors)\./.test(path)) return 'marble';
+  return null;
 }
 
-/** Material · Labour · Other · Contingency · Grand total — where the money goes, in one glance. */
-function SplitList({ r }: { r: FlooringResult }) {
+/* ================================================================== */
+/* Results                                                             */
+/* ================================================================== */
+
+/** Material · Labour · Supporting · Extra — adds up to the project total. */
+function TotalsList({ r }: { r: FlooringResult }) {
   const t = useT();
   return (
     <dl className="fl-split">
-      {(['material', 'labour', 'other'] as const).map((k) => (
-        <div key={k}>
-          <dt>{t(KIND_LABEL[k])}</dt>
-          <dd className="num">{formatINR(r.byKind[k])}</dd>
-        </div>
-      ))}
+      <div>
+        <dt>{t('Tile & marble material')}</dt>
+        <dd className="num">{formatINR(r.material.flooring)}</dd>
+      </div>
+      <div>
+        <dt>{t('Total labour')}</dt>
+        <dd className="num">{formatINR(r.labour.total)}</dd>
+      </div>
+      <div>
+        <dt>{t('Supporting materials')}</dt>
+        <dd className="num">{formatINR(r.material.supporting)}</dd>
+      </div>
       <div>
         <dt>
-          {t('Contingency')} ({formatPercent(r.contingencyPct, 2)})
+          {t('Extra expenses')} ({formatPercent(r.extraPct, 2)})
         </dt>
-        <dd className="num">{formatINR(r.contingency)}</dd>
+        <dd className="num">{formatINR(r.extra)}</dd>
       </div>
       <div className="fl-split-total">
-        <dt>{t('Grand total')}</dt>
+        <dt>{t('Total project cost')}</dt>
         <dd className="num">{formatINR(r.grandTotal)}</dd>
       </div>
     </dl>
   );
 }
 
-function EstimateSummary({
-  r,
-  input,
-  projectName,
-  date,
-  actions,
-}: {
-  r: FlooringResult;
-  input: FlooringInput;
-  projectName: string;
-  date: Date;
-  actions: ReactNode;
-}) {
+function ProjectSummary({ r, projectName, date, actions }: { r: FlooringResult; projectName: string; date: Date; actions: ReactNode }) {
   const t = useT();
+  const m = r.marble;
   return (
-    <section className="calc-block" id="fl-estimate" aria-labelledby="fl-estimate-head">
+    <section className="calc-block" id="fl-summary" aria-labelledby="fl-summary-head">
       <div className="card fl-summary">
         <div className="fl-summary-head">
           <div>
-            <p className="eyebrow">{t('Complete cost summary')}</p>
-            <h2 id="fl-estimate-head">{projectName.trim() || t('Flooring estimate')}</h2>
+            <p className="eyebrow">{t('Combined Project Summary')}</p>
+            <h2 id="fl-summary-head">{projectName.trim() || t('Tile & marble estimate')}</h2>
             <p className="small muted">
-              {t('Prepared on')} {formatDate(date)}
+              {t('Prepared on')} {formatDate(date)} · {t('Tile')} {sqft(r.tile.quantity.area)} · {t('Marble')} {sqft(m.quantity.area)}
             </p>
           </div>
           {actions}
         </div>
 
-        <div className="fl-summary-areas">
-          <div>
-            <span>{t('Total flooring area')}</span>
-            <strong className="num">{sqft(r.totalArea)}</strong>
-          </div>
-          {r.tile && (
-            <div>
-              <span>{t('Tile area')}</span>
-              <strong className="num">{sqft(r.allocation.tileArea)}</strong>
-            </div>
-          )}
-          {r.marble && (
-            <div>
-              <span>{t('Marble area')}</span>
-              <strong className="num">{sqft(r.allocation.marbleArea)}</strong>
-            </div>
-          )}
-          {r.staircase && (
-            <div>
-              <span>{t('Staircase')}</span>
-              <strong className="num">
-                {formatNumber(r.staircase.steps)} {t('steps')}
-              </strong>
-            </div>
-          )}
-        </div>
-
-        <ul className="fl-summary-lines">
-          {r.lines.map((l) => (
-            <li key={l.key}>
-              <span className="fl-sl-label">
-                {t(lineLabel(l, r, input))}
-                {l.quantity != null && (
-                  <span className="fl-sl-sub">
-                    {lineQuantity(l)} × {lineRate(l)}
-                  </span>
-                )}
-              </span>
-              <span className="fl-sl-value num">{formatINR(l.cost)}</span>
-            </li>
-          ))}
-          <li className="fl-sl-subtotal">
-            <span className="fl-sl-label">{t('Subtotal')}</span>
-            <span className="fl-sl-value num">{formatINR(r.subtotal)}</span>
-          </li>
-          <li>
-            <span className="fl-sl-label">
-              {t('Contingency')}
-              <span className="fl-sl-sub">
-                {formatPercent(r.contingencyPct, 2)} × {formatINR(r.subtotal)}
-              </span>
-            </span>
-            <span className="fl-sl-value num">{formatINR(r.contingency)}</span>
-          </li>
-        </ul>
-
-        <div className="fl-grand">
-          <div>
-            <span className="fl-grand-label">{t('Grand total')}</span>
-            <span className="fl-grand-value num">{formatINR(r.grandTotal)}</span>
-          </div>
-          <div>
-            <span className="fl-grand-label">{t('Average cost per sq ft')}</span>
-            <span className="fl-grand-avg num">{r.averagePerSqft != null ? formatINR(r.averagePerSqft, 2) : '—'}</span>
-          </div>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-function Breakdown({ r, input }: { r: FlooringResult; input: FlooringInput }) {
-  const t = useT();
-  const c = r.comparison;
-  const row = (label: string, a: number, b: number, show = true) =>
-    show ? (
-      <tr key={label}>
-        <th scope="row">{t(label)}</th>
-        <td className="num">{r.tile ? formatINR(a) : '—'}</td>
-        <td className="num">{r.marble ? formatINR(b) : '—'}</td>
-        <td className="num">{formatINR(a + b)}</td>
-      </tr>
-    ) : null;
-
-  return (
-    <section className="calc-block fl-breakdown" aria-label={t('Cost breakdown')}>
-      <div className="card">
-        <div className="card-head">
-          <h3>{t('Material & labour summary')}</h3>
-        </div>
-        <div className="table-scroll">
-          <table className="data fl-table">
-            <thead>
-              <tr>
-                <th scope="col">{t('Item')}</th>
-                <th scope="col">{t('Quantity')}</th>
-                <th scope="col">{t('Rate')}</th>
-                <th scope="col">{t('Cost')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {r.lines.map((l) => (
-                <tr key={l.key}>
-                  <th scope="row">{t(lineLabel(l, r, input))}</th>
-                  <td className="num">{lineQuantity(l)}</td>
-                  <td className="num">{lineRate(l)}</td>
-                  <td className="num">{formatINR(l.cost)}</td>
-                </tr>
-              ))}
-              <tr>
-                <th scope="row">
-                  {t('Contingency')} ({formatPercent(r.contingencyPct, 2)})
-                </th>
-                <td className="num">—</td>
-                <td className="num">—</td>
-                <td className="num">{formatINR(r.contingency)}</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td>{t('Grand total')}</td>
-                <td />
-                <td />
-                <td className="num">{formatINR(r.grandTotal)}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
-      </div>
-
-      <div className="fl-two">
-        <div className="card">
-          <div className="card-head">
-            <h3>{t('Tile vs marble')}</h3>
-          </div>
-          <div className="table-scroll">
-            <table className="data fl-table">
+        <div className="fl-summary-grid">
+          <SummaryTable
+            title={t('Flooring')}
+            rows={[
+              [t('Tile material'), r.tile.material],
+              [t('Marble material'), m.material],
+            ]}
+            totalLabel={t('Flooring Material Total')}
+            total={r.material.flooring}
+          />
+          <SummaryTable
+            title={t('Labour')}
+            rows={[
+              [t('Tile labour'), r.labour.tile],
+              [t('Marble floor/platform labour'), r.labour.marble],
+              [t('Staircase labour'), r.labour.staircase],
+              [t('Window finishing'), r.labour.windows],
+              [t('Door finishing'), r.labour.doors],
+            ]}
+            totalLabel={t('Total Labour')}
+            total={r.labour.total}
+          />
+          <div className="fl-st">
+            <h3>{t('Supporting Materials')}</h3>
+            <table className="fl-st-table">
               <thead>
                 <tr>
-                  <th scope="col">{t('Category')}</th>
-                  <th scope="col">{t('Tile')}</th>
-                  <th scope="col">{t('Marble')}</th>
-                  <th scope="col">{t('Total')}</th>
+                  <th scope="col">{t('Item')}</th>
+                  <th scope="col">{t('Quantity')}</th>
+                  <th scope="col">{t('Cost')}</th>
                 </tr>
               </thead>
               <tbody>
-                {row('Material', c.tile.material, c.marble.material)}
-                {row('Labour', c.tile.labour, c.marble.labour)}
-                {row('Wastage', c.tile.wastage, c.marble.wastage)}
-                {row('Polishing', c.tile.polishing, c.marble.polishing, !!r.marble?.polishingCost)}
-                {row('Staircase, riser & nosing', c.tile.stairs, c.marble.stairs, c.marble.stairs > 0)}
-                {row('Other', c.tile.other, c.marble.other, c.tile.other + c.marble.other > 0)}
+                {r.supporting.map((s) => (
+                  <tr key={s.key}>
+                    <th scope="row">{t(SUPPORTING_META[s.key].label)}</th>
+                    <td className="num">{reqQuantity(s)}</td>
+                    <td className="num">{formatINR(s.cost)}</td>
+                  </tr>
+                ))}
               </tbody>
               <tfoot>
                 <tr>
-                  <td>{t('Total')}</td>
-                  <td className="num">{r.tile ? formatINR(c.tile.total) : '—'}</td>
-                  <td className="num">{r.marble ? formatINR(c.marble.total) : '—'}</td>
-                  <td className="num">{formatINR(c.tile.total + c.marble.total)}</td>
+                  <th scope="row" colSpan={2}>
+                    {t('Supporting Material Total')}
+                  </th>
+                  <td className="num">{formatINR(r.material.supporting)}</td>
                 </tr>
               </tfoot>
             </table>
           </div>
-          <p className="small muted fl-table-note">
-            {t('Shared costs — cement, sand, white cement, transport, other expenses — come to {shared}; with contingency the grand total is {total}.')
-              .replace('{shared}', formatINR(c.shared))
-              .replace('{total}', formatINR(r.grandTotal))}
-          </p>
+          <SummaryTable title={t('Other')} rows={[[`${t('Extra expenses')} (${formatPercent(r.extraPct, 2)})`, r.extra]]} />
         </div>
 
-        <div className="card">
-          <div className="card-head">
-            <h3>{t('Material, labour & other')}</h3>
+        <div className="fl-grand">
+          <div className="fl-grand-main">
+            <span className="fl-grand-label">{t('Total Project Cost')}</span>
+            <span className="fl-grand-value num">{formatINR(r.grandTotal)}</span>
+            {r.averagePerSqft != null && (
+              <span className="fl-grand-avg num">
+                {t('Average flooring cost')} {rate(round2(r.averagePerSqft))} / sq ft
+              </span>
+            )}
           </div>
-          <div className="card-pad">
-            <SplitList r={r} />
-            <p className="small muted fl-table-note fl-flush">
-              {t('Other costs: the staircase (an all-in per-step rate), transport, loading and other expenses.')}
-            </p>
-          </div>
+          <dl className="fl-grand-parts">
+            <div>
+              <dt>{t('Tile & marble material')}</dt>
+              <dd className="num">{formatINR(r.material.flooring)}</dd>
+            </div>
+            <div>
+              <dt>{t('Total labour cost')}</dt>
+              <dd className="num">{formatINR(r.labour.total)}</dd>
+            </div>
+            <div>
+              <dt>{t('Supporting material cost')}</dt>
+              <dd className="num">{formatINR(r.material.supporting)}</dd>
+            </div>
+            <div>
+              <dt>{t('Extra expenses')}</dt>
+              <dd className="num">{formatINR(r.extra)}</dd>
+            </div>
+          </dl>
         </div>
-      </div>
-
-      <div className="card">
-        <div className="card-head">
-          <h3>{t('Room-wise area')}</h3>
-        </div>
-        <div className="table-scroll">
-          <table className="data fl-table">
-            <thead>
-              <tr>
-                <th scope="col">{t('Area')}</th>
-                <th scope="col">{t('Measured as')}</th>
-                <th scope="col">{t('Sq ft')}</th>
-              </tr>
-            </thead>
-            <tbody>
-              {r.areas.map((a) => (
-                <tr key={a.id}>
-                  <th scope="row">{t(a.name)}</th>
-                  <td className="num">{areaSource(a, input)}</td>
-                  <td className="num">{formatNumber(a.sqft, 2)}</td>
-                </tr>
-              ))}
-            </tbody>
-            <tfoot>
-              <tr>
-                <td>{t('Total')}</td>
-                <td />
-                <td className="num">{formatNumber(r.totalArea, 2)}</td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        <p className="small muted fl-summary-note">
+          {t('Total material cost (tile and marble plus supporting materials): {amount}. The average divides the total by the {area} you entered, not by the larger purchase quantity.')
+            .replace('{amount}', formatINR(r.material.total))
+            .replace('{area}', sqft(r.baseArea))}
+        </p>
       </div>
     </section>
   );
 }
 
-function Workings({ r, input }: { r: FlooringResult; input: FlooringInput }) {
+function SummaryTable({ title, rows, totalLabel, total }: { title: string; rows: [string, number][]; totalLabel?: string; total?: number }) {
   const t = useT();
-  const metric = r.areas.filter((a) => a.sqm != null && a.sqft > 0);
+  return (
+    <div className="fl-st">
+      <h3>{title}</h3>
+      <table className="fl-st-table">
+        <thead>
+          <tr>
+            <th scope="col">{t('Item')}</th>
+            <th scope="col">{t('Cost')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(([label, value]) => (
+            <tr key={label}>
+              <th scope="row">{label}</th>
+              <td className="num">{formatINR(value)}</td>
+            </tr>
+          ))}
+        </tbody>
+        {totalLabel && total != null && (
+          <tfoot>
+            <tr>
+              <th scope="row">{totalLabel}</th>
+              <td className="num">{formatINR(total)}</td>
+            </tr>
+          </tfoot>
+        )}
+      </table>
+    </div>
+  );
+}
+
+function Workings({ r }: { r: FlooringResult }) {
+  const t = useT();
   return (
     <section className="calc-block" id="fl-working" aria-labelledby="fl-working-head">
       <div className="block-head fl-block-head">
@@ -1197,59 +821,21 @@ function Workings({ r, input }: { r: FlooringResult; input: FlooringInput }) {
         <h2 id="fl-working-head">{t('How each figure was worked out')}</h2>
       </div>
       <div className="fl-workings">
-        {metric.length > 0 && (
-          <details className="acc">
-            <summary>{t('Metric areas converted to sq ft')}</summary>
-            <div className="acc-body">
-              <ul className="fl-steps">
-                {metric.map((a) => (
-                  <li key={a.id}>
-                    <strong>{a.name}:</strong> {metricNote(a)}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </details>
-        )}
-        {r.lines.map((l) => (
-          <details className="acc" key={l.key}>
+        {workings(r).map((b) => (
+          <details className="acc" key={b.title}>
             <summary>
-              <span>{t(lineLabel(l, r, input))}</span>
-              <span className="fl-acc-value num">{formatINR(l.cost)}</span>
+              <span>{t(b.title)}</span>
+              <span className="fl-acc-value num">{formatINR(b.total)}</span>
             </summary>
             <div className="acc-body">
               <ul className="fl-steps">
-                {workings(l.key, r, input).map((w, i) => (
-                  <li key={i}>{w}</li>
+                {b.steps.map((s, i) => (
+                  <li key={i}>{s}</li>
                 ))}
               </ul>
             </div>
           </details>
         ))}
-        <details className="acc">
-          <summary>
-            <span>{t('Contingency & grand total')}</span>
-            <span className="fl-acc-value num">{formatINR(r.grandTotal)}</span>
-          </summary>
-          <div className="acc-body">
-            <ul className="fl-steps">
-              <li>
-                {t('Eligible cost (every item above)')}: {formatINR(r.subtotal)}
-              </li>
-              <li>
-                {formatINR(r.subtotal)} × {formatPercent(r.contingencyPct, 2)} = {formatINR(r.contingency)}
-              </li>
-              <li>
-                {formatINR(r.subtotal)} + {formatINR(r.contingency)} = {formatINR(r.grandTotal)}
-              </li>
-              {r.averagePerSqft != null && (
-                <li>
-                  {formatINR(r.grandTotal)} ÷ {sqft(r.totalArea)} = {formatINR(r.averagePerSqft, 2)} {t('per sq ft')}
-                </li>
-              )}
-            </ul>
-          </div>
-        </details>
       </div>
     </section>
   );
@@ -1259,18 +845,106 @@ function Workings({ r, input }: { r: FlooringResult; input: FlooringInput }) {
 /* Input pieces                                                        */
 /* ================================================================== */
 
-function Section({ id, n, title, summary, children }: { id: string; n: number; title: string; summary?: string; children: ReactNode }) {
+/** Area → + skirting → subtotal → + wastage → total required, as a short ladder. */
+function QuantityFlow({ q, noun }: { q: Quantity; noun: 'tile' | 'marble' }) {
+  const t = useT();
   return (
-    <details className="fl-sec" id={id} open>
-      <summary>
-        <span className="fl-sec-n" aria-hidden="true">
-          {n}
+    <div className="fl-flow" role="group" aria-label={noun === 'tile' ? t('Tile quantity') : t('Marble quantity')}>
+      <div className="fl-flow-row">
+        <span>{noun === 'tile' ? t('Base tile area') : t('Base marble area')}</span>
+        <span className="num">{sqft(q.area)}</span>
+      </div>
+      <div className="fl-flow-row add">
+        <span>
+          + {t('Skirting')} ({formatPercent(q.skirtingPct, 2)})
         </span>
-        <span className="fl-sec-title">{title}</span>
-        {summary && <span className="fl-sec-sum num">{summary}</span>}
-      </summary>
-      <div className="fl-sec-body">{children}</div>
-    </details>
+        <span className="num">{sqft(q.skirting)}</span>
+      </div>
+      <div className="fl-flow-row sub">
+        <span>{t('Subtotal')}</span>
+        <span className="num">{sqft(q.subtotal)}</span>
+      </div>
+      <div className="fl-flow-row add">
+        <span>
+          + {t('Wastage')} ({formatPercent(q.wastagePct, 2)})
+        </span>
+        <span className="num">{sqft(q.wastage)}</span>
+      </div>
+      <div className="fl-flow-row total">
+        <span>{noun === 'tile' ? t('Total tile required') : t('Total marble required')}</span>
+        <span className="num">
+          {sqft(q.required)}
+          {q.required > 0 && <small>{t('order ≈ {n} sq ft').replace('{n}', formatNumber(q.purchase))}</small>}
+        </span>
+      </div>
+      <p className="fl-flow-note">
+        {t('Your {area} stays as entered — labour and the average cost use it. Skirting and wastage only change what you buy.').replace('{area}', sqft(q.area))}
+      </p>
+    </div>
+  );
+}
+
+function TabSummary({ title, rows, totalLabel, total }: { title: string; rows: [string, string][]; totalLabel: string; total: number }) {
+  return (
+    <div className="fl-tabsum">
+      <h3>{title}</h3>
+      <dl>
+        {rows.map(([k, v]) => (
+          <div key={k}>
+            <dt>{k}</dt>
+            <dd className="num">{v}</dd>
+          </div>
+        ))}
+        <div className="fl-tabsum-total">
+          <dt>{totalLabel}</dt>
+          <dd className="num">{formatINR(total)}</dd>
+        </div>
+      </dl>
+    </div>
+  );
+}
+
+function SubCard({ icon, title, total, children }: { icon: 'layers' | 'home'; title: string; total: number; children: ReactNode }) {
+  return (
+    <section className="fl-sub">
+      <div className="fl-sub-head">
+        <Icon name={icon} size={16} />
+        <h3>{title}</h3>
+        <span className="num">{formatINR(total)}</span>
+      </div>
+      <div className="fl-sub-body">{children}</div>
+    </section>
+  );
+}
+
+function MaterialRow({
+  k,
+  value,
+  error,
+  onChange,
+  quantity,
+  cost,
+}: {
+  k: SupportingKey;
+  value: number;
+  error?: string;
+  onChange: (v: number) => void;
+  quantity: string;
+  cost: number;
+}) {
+  const t = useT();
+  const m = SUPPORTING_META[k];
+  return (
+    <div className="fl-mat">
+      <Num path={`rates.${k}`} label={`${m.label} rate`} type="currency" unit={`/ ${m.rateUnit}`} value={value} error={error} onChange={onChange} />
+      <div className="fl-mat-est" aria-live="polite">
+        <span className="fl-mat-label">
+          {t('Required')} <span className="fl-est-tag">{t('estimated')}</span>
+        </span>
+        <strong className="num">{quantity}</strong>
+        <span className="num fl-mat-cost">{value > 0 ? formatINR(cost) : t('add a rate')}</span>
+      </div>
+    </div>
   );
 }
 
@@ -1302,49 +976,38 @@ function Num({ path, label, value, onChange, type = 'number', unit, help, error,
   );
 }
 
-/** A length with its own unit switch underneath. */
-function LengthField({
+/** The headline input of each tab, with its helper text always in view. */
+function AreaField({
   path,
   label,
-  value,
-  unit,
-  units = LENGTH_UNITS,
-  error,
   help,
+  value,
+  error,
   onChange,
-  onUnit,
 }: {
   path: string;
   label: string;
+  help: string;
   value: number;
-  unit: RiserUnit;
-  units?: { value: RiserUnit; label: string }[];
   error?: string;
-  help?: string;
   onChange: (v: number) => void;
-  onUnit: (u: RiserUnit) => void;
 }) {
   const t = useT();
   return (
-    <div className="fl-length">
-      <Num path={path} label={label} value={value} unit={unit === 'in' ? 'in' : unit === 'm' ? 'm' : 'ft'} error={error} help={help} onChange={onChange} />
-      <Seg
-        className="fl-unit"
-        label={`${t(label)} — ${t('unit')}`}
-        value={unit}
-        onChange={onUnit}
-        options={units.map((u) => ({ value: u.value, label: t(u.label) }))}
-      />
+    <div className="fl-area-field">
+      <Num path={path} label={label} unit="sq ft" value={value} error={error} onChange={onChange} wide />
+      <p className="fl-help">{t(help)}</p>
     </div>
   );
 }
 
-/** Percentage with one-tap presets; typing any other figure is the "custom" option. */
-function Wastage({
+/** A percentage with one-tap presets; typing any other figure is the custom option. */
+function Pct({
   path,
   label,
   value,
   presets,
+  suggested,
   error,
   help,
   onChange,
@@ -1353,6 +1016,7 @@ function Wastage({
   label: string;
   value: number;
   presets: number[];
+  suggested: number;
   error?: string;
   help?: string;
   onChange: (v: number) => void;
@@ -1363,117 +1027,26 @@ function Wastage({
   return (
     <div className="fl-pct">
       <FieldControl field={field} value={value} error={error} onChange={(_, v) => onChange(v === '' ? 0 : Number(v) || 0)} />
-      <div className="fl-pct-side">
-        <div className="fl-chips" role="group" aria-label={`${t(label)} — ${t('presets')}`}>
-          {presets.map((p) => (
-            <button key={p} type="button" className="fl-chip" aria-pressed={value === p} onClick={() => onChange(p)}>
-              {p}%
-            </button>
-          ))}
-          <button
-            type="button"
-            className="fl-chip"
-            aria-pressed={custom}
-            onClick={(e) => {
-              const el = e.currentTarget.closest('.fl-pct')?.querySelector<HTMLInputElement>('input');
-              el?.focus();
-              el?.select();
-            }}
-          >
-            {t('Custom')}
+      <div className="fl-chips" role="group" aria-label={`${t(label)} — ${t('presets')}`}>
+        {presets.map((p) => (
+          <button key={p} type="button" className="fl-chip" aria-pressed={value === p} onClick={() => onChange(p)}>
+            {p}%
           </button>
-        </div>
-        <span className="fl-tag">{t('Suggested default — editable')}</span>
-      </div>
-    </div>
-  );
-}
-
-function Seg<T extends string>({
-  label,
-  value,
-  options,
-  onChange,
-  className = '',
-}: {
-  label: string;
-  value: T;
-  options: { value: T; label: string }[];
-  onChange: (v: T) => void;
-  className?: string;
-}) {
-  const index = Math.max(
-    0,
-    options.findIndex((o) => o.value === value),
-  );
-  return (
-    <div
-      className={`segmented fl-seg ${className}`}
-      role="group"
-      aria-label={label}
-      style={{ ['--seg-count' as string]: options.length, ['--seg-index' as string]: index }}
-    >
-      {options.map((o) => (
-        <button key={o.value} type="button" aria-pressed={o.value === value} onClick={() => onChange(o.value)}>
-          {o.label}
+        ))}
+        <button
+          type="button"
+          className="fl-chip"
+          aria-pressed={custom}
+          onClick={(e) => {
+            const el = e.currentTarget.closest('.fl-pct')?.querySelector<HTMLInputElement>('input');
+            el?.focus();
+            el?.select();
+          }}
+        >
+          {t('Custom')}
         </button>
-      ))}
-    </div>
-  );
-}
-
-function AppliesSeg({ label, value, onChange }: { label: string; value: AppliesTo; onChange: (v: AppliesTo) => void }) {
-  const t = useT();
-  return (
-    <div className="field">
-      <span className="field-label">{label}</span>
-      <Seg
-        label={label}
-        value={value}
-        onChange={onChange}
-        options={[
-          { value: 'all', label: t('Tile + marble') },
-          { value: 'tile', label: t('Tile') },
-          { value: 'marble', label: t('Marble') },
-        ]}
-      />
-    </div>
-  );
-}
-
-function Toggle({ checked, onChange, label, hint }: { checked: boolean; onChange: (on: boolean) => void; label: string; hint?: string }) {
-  return (
-    <label className={`fl-toggle${checked ? ' on' : ''}`}>
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
-      <span className="fl-toggle-box" aria-hidden="true">
-        <Icon name="check" size={13} strokeWidth={3} />
-      </span>
-      <span className="fl-toggle-text">
-        <span className="fl-toggle-label">{label}</span>
-        {hint && <span className="fl-toggle-hint">{hint}</span>}
-      </span>
-    </label>
-  );
-}
-
-/** An optional block: a checkbox, and its fields once it is ticked. */
-function Optional({
-  checked,
-  onChange,
-  label,
-  hint,
-  children,
-}: {
-  checked: boolean;
-  onChange: (on: boolean) => void;
-  label: string;
-  hint?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className={`fl-opt${checked ? ' on' : ''}`}>
-      <Toggle checked={checked} onChange={onChange} label={label} hint={hint} />
-      {checked && <div className="fl-opt-body">{children}</div>}
+      </div>
+      <span className="fl-tag">{t('Suggested default — editable ({n}%)').replace('{n}', String(suggested))}</span>
     </div>
   );
 }
@@ -1514,212 +1087,25 @@ function TextField({
   );
 }
 
-function RoomCount({ value, onChange }: { value: number; onChange: (n: number) => void }) {
-  const t = useT();
-  const [text, setText] = useState(String(value));
-  const [capped, setCapped] = useState(false);
-  const [focused, setFocused] = useState(false);
-  useEffect(() => {
-    if (!focused) setText(String(value));
-  }, [value, focused]);
-
-  const commit = (raw: string) => {
-    setText(raw.replace(/[^0-9]/g, ''));
-    if (raw.trim() === '') return;
-    const n = Number(raw.replace(/[^0-9]/g, ''));
-    if (!Number.isFinite(n)) return;
-    setCapped(n > MAX_ROOMS);
-    onChange(Math.min(MAX_ROOMS, n));
-  };
-
+/** A 2 × 2 tile grid. */
+function TileGlyph() {
   return (
-    <div className="field fl-count">
-      <label className="field-label" htmlFor="fl-room-count">
-        {t('How many rooms?')}
-        <span className="muted fl-count-max">{t('up to {n}').replace('{n}', String(MAX_ROOMS))}</span>
-      </label>
-      <div className="fl-stepper">
-        <button type="button" className="fl-step-btn" aria-label={t('One room fewer')} disabled={value <= 0} onClick={() => onChange(value - 1)}>
-          −
-        </button>
-        <div className="input-wrap">
-          <input
-            id="fl-room-count"
-            className="input"
-            type="text"
-            inputMode="numeric"
-            autoComplete="off"
-            value={text}
-            onFocus={() => setFocused(true)}
-            onBlur={() => {
-              setFocused(false);
-              setText(String(value));
-            }}
-            onChange={(e) => commit(e.target.value)}
-          />
-          <span className="affix">{t('rooms')}</span>
-        </div>
-        <button type="button" className="fl-step-btn" aria-label={t('One more room')} disabled={value >= MAX_ROOMS} onClick={() => onChange(value + 1)}>
-          +
-        </button>
-      </div>
-      {capped && <p className="fl-fine">{t('Up to {n} rooms can be entered — add bigger spaces under Other areas.').replace('{n}', String(MAX_ROOMS))}</p>}
-    </div>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round">
+      <rect x="3" y="3" width="8" height="8" rx="1.5" />
+      <rect x="13" y="3" width="8" height="8" rx="1.5" />
+      <rect x="3" y="13" width="8" height="8" rx="1.5" />
+      <rect x="13" y="13" width="8" height="8" rx="1.5" />
+    </svg>
   );
 }
 
-function AreaCard({
-  entry,
-  path,
-  errors,
-  nameEditable,
-  onChange,
-  onRemove,
-}: {
-  entry: AreaEntry;
-  path: string;
-  errors: Record<string, string>;
-  nameEditable?: boolean;
-  onChange: (e: AreaEntry) => void;
-  onRemove?: () => void;
-}) {
-  const t = useT();
-  // Measured spaces start folded to one line; a new, empty one opens.
-  const [startOpen] = useState(() => calculateRoomArea(entry).sqft === 0);
-  const a = useMemo(() => calculateRoomArea(entry), [entry]);
-  const ref = useRef<HTMLDetailsElement>(null);
-  const hasError = Object.keys(errors).some((k) => k.startsWith(`${path}.`));
-  // A folded card with a problem in it opens itself — but never closes on
-  // its own once fixed, which would snap shut under the reader's cursor.
-  useEffect(() => {
-    if (hasError && ref.current) ref.current.open = true;
-  }, [hasError]);
-  const set = (part: Partial<AreaEntry>) => onChange({ ...entry, ...part });
-  const u = entry.lengthUnit === 'm' ? 'm' : 'ft';
-
-  const source =
-    entry.method === 'area'
-      ? a.sqft > 0
-        ? t('Area entered')
-        : t('Not measured yet')
-      : entry.length > 0 && entry.width > 0
-        ? `${formatNumber(entry.length, 2)} × ${formatNumber(entry.width, 2)} ${u}`
-        : t('Not measured yet');
-
+/** A single slab with veining. */
+function MarbleGlyph() {
   return (
-    <details ref={ref} className={`fl-area${hasError ? ' invalid' : ''}`} open={startOpen}>
-      <summary>
-        <span className="fl-area-name">{entry.name.trim() || t('Unnamed area')}</span>
-        <span className="fl-area-src">{source}</span>
-        <span className="fl-area-val num">{sqft(a.sqft)}</span>
-      </summary>
-      <div className="fl-area-body">
-        {nameEditable && (
-          <TextField id={`${path}-name`} label={t('Name')} value={entry.name} maxLength={40} onChange={(v) => set({ name: v })} />
-        )}
-        <Seg
-          label={t('How to measure')}
-          value={entry.method}
-          onChange={(v) => set({ method: v })}
-          options={[
-            { value: 'dimensions', label: t('Length × Width') },
-            { value: 'area', label: t('Direct area') },
-          ]}
-        />
-        {entry.method === 'dimensions' ? (
-          <>
-            <div className="fields fl-dims">
-              <Num path={`${path}.length`} label="Length" unit={u} value={entry.length} error={errors[`${path}.length`] && t(errors[`${path}.length`])} onChange={(v) => set({ length: v })} />
-              <Num path={`${path}.width`} label="Width" unit={u} value={entry.width} error={errors[`${path}.width`] && t(errors[`${path}.width`])} onChange={(v) => set({ width: v })} />
-            </div>
-            <Seg
-              className="fl-unit"
-              label={t('Unit')}
-              value={entry.lengthUnit}
-              onChange={(v) => set({ lengthUnit: v })}
-              options={[
-                { value: 'ft', label: t('Feet') },
-                { value: 'm', label: t('Metre') },
-              ]}
-            />
-          </>
-        ) : (
-          <>
-            <div className="fields">
-              <Num
-                path={`${path}.area`}
-                label="Area"
-                unit={entry.areaUnit === 'sqm' ? 'm²' : 'sq ft'}
-                value={entry.area}
-                error={errors[`${path}.area`] && t(errors[`${path}.area`])}
-                onChange={(v) => set({ area: v })}
-              />
-            </div>
-            <Seg
-              className="fl-unit"
-              label={t('Unit')}
-              value={entry.areaUnit}
-              onChange={(v) => set({ areaUnit: v })}
-              options={[
-                { value: 'sqft', label: t('Sq ft') },
-                { value: 'sqm', label: t('Sq metre') },
-              ]}
-            />
-          </>
-        )}
-        <p className="fl-readout">
-          {a.sqm != null ? (
-            <>
-              {t('Area')}: <strong className="num">{fixed2(a.sqm)} m²</strong> · {t('Converted area')}:{' '}
-              <strong className="num">{fixed2(a.sqft)} sq ft</strong>
-            </>
-          ) : (
-            <>
-              {t('Area')}: <strong className="num">{fixed2(a.sqft)} sq ft</strong>
-            </>
-          )}
-        </p>
-        {onRemove && (
-          <button type="button" className="btn ghost sm fl-remove" onClick={onRemove}>
-            <Icon name="close" size={14} />
-            {t('Remove {name}').replace('{name}', entry.name.trim() || t('this area'))}
-          </button>
-        )}
-      </div>
-    </details>
-  );
-}
-
-function EstimateChip({ label, qty, cost }: { label: string; qty: string; cost: number }) {
-  const t = useT();
-  return (
-    <div className="fl-est">
-      <span className="fl-est-label">{label}</span>
-      <span className="fl-est-qty num">
-        {qty} <span className="fl-est-tag">{t('estimated')}</span>
-      </span>
-      <span className="fl-est-cost num">{formatINR(cost)}</span>
-    </div>
-  );
-}
-
-function Stat({ label, value, tone, help }: { label: string; value: string; tone?: 'accent'; help?: string }) {
-  return (
-    <div className={`stat ${tone ?? ''}`}>
-      <div className="s-label">
-        {label}
-        {help && <Tooltip text={help} />}
-      </div>
-      <div className={`s-value num${value.length > 12 ? ' sm' : ''}`}>{value}</div>
-    </div>
-  );
-}
-
-function InlineError({ message }: { message: string }) {
-  return (
-    <div className="error" role="alert">
-      <Icon name="alert" size={13} strokeWidth={2} />
-      {message}
-    </div>
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M3 14c3-1 4-4 7-4s3 3 6 2 3-4 5-4" opacity="0.7" />
+      <path d="M8 21c1-2 3-3 5-3s3-2 4-3" opacity="0.5" />
+    </svg>
   );
 }
