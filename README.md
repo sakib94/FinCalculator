@@ -160,8 +160,9 @@ A calculator whose inputs are not a flat list of fields can draw its own inputs 
 instead: set `workspace` on its `CalculatorDef` to a component (and `workspaceSections` for
 extra "On this page" links). The page still supplies the header, jump bar, guide, FAQs and next
 steps. The Tile & Marble Cost Calculator works this way — two tabs (Tile, Marble) feed one
-project total, with the staircase, window and door finishing and supporting materials alongside.
-Its maths, including the sand/cement/white-cement/grout consumption assumptions (`CONSUMPTION`),
+project total, with automatic skirting, fixed wastage and supporting materials alongside.
+Its maths, including the skirting rule (`SKIRTING`), wastage (`WASTAGE`) and the
+sand/cement/white-cement/grout consumption assumptions (`CONSUMPTION`),
 is in `src/engines/flooring.ts`; its example and saved-state handling in
 `src/calculators/everyday/flooringModel.ts`; its workings and CSV in `flooringReport.ts`; and
 the screen in `src/components/FlooringWorkspace.tsx`.

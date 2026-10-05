@@ -1,4 +1,5 @@
 import type { FlooringResult, Quantity, Requirement, SupportingKey } from '@/engines/flooring';
+import { SKIRTING } from '@/engines/flooring';
 import { formatINR, formatNumber, formatPercent } from '@/lib/format';
 
 /**
@@ -23,10 +24,17 @@ export const SUPPORTING_META: Record<SupportingKey, { label: string; unit: strin
 
 export const reqQuantity = (r: Requirement): string => `${formatNumber(r.quantity)} ${SUPPORTING_META[r.key].unit}`;
 
+/** "Skirting: 660 sq ft ÷ 6 = 110 sq ft" — or why there is none. */
+export function skirtingWorking(q: Quantity): string {
+  if (!q.skirtingOn) return 'No skirting';
+  return `Skirting: ${sqft(q.skirtingBase)} × 4 × ${formatNumber(SKIRTING.heightFt, 2)} ft ÷ ${SKIRTING.roomSideFt} ft = ${sqft(q.skirting)}`;
+}
+
 /** Area → + skirting → subtotal → + wastage → total required. */
 export function quantityWorking(q: Quantity): string[] {
   return [
-    `${sqft(q.area)} + ${pct(q.skirtingPct)} skirting (${sqft(q.skirting)}) = ${sqft(q.subtotal)}`,
+    `${skirtingWorking(q)} (6-inch skirting; walls estimated from ${SKIRTING.roomSideFt} × ${SKIRTING.roomSideFt} ft rooms)`,
+    `${sqft(q.area)} + ${sqft(q.skirting)} skirting = ${sqft(q.subtotal)}`,
     `${sqft(q.subtotal)} + ${pct(q.wastagePct)} wastage (${sqft(q.wastage)}) = ${sqft(q.required)} required`,
   ];
 }
@@ -49,8 +57,7 @@ export interface WorkingBlock {
 export function workings(r: FlooringResult): WorkingBlock[] {
   const t = r.tile;
   const m = r.marble;
-  const s = m.staircase;
-  const blocks: WorkingBlock[] = [
+  return [
     {
       title: 'Tile material',
       total: t.material,
@@ -64,37 +71,21 @@ export function workings(r: FlooringResult): WorkingBlock[] {
     {
       title: 'Marble material',
       total: m.material,
-      steps: [...quantityWorking(m.quantity), `${sqft(m.quantity.required)} × ${rate(m.rate)} = ${money(m.material)}`],
-    },
-    {
-      title: 'Marble floor & platform labour',
-      total: m.labour,
       steps: [
-        `${sqft(m.quantity.area)} × ${rate(m.labourRate)} = ${money(m.labour)}`,
-        'Covers the marble floor and kitchen platform only — the staircase, windows and doors are priced separately.',
+        `${sqft(m.floorArea)} floor & platform + ${sqft(m.trimArea)} windows & stairs = ${sqft(m.quantity.area)}`,
+        ...quantityWorking(m.quantity),
+        `${sqft(m.quantity.required)} × ${rate(m.rate)} = ${money(m.material)}`,
       ],
     },
     {
-      title: 'Marble staircase labour',
-      total: s.total,
-      steps:
-        s.steps > 0
-          ? [
-              `${rate(s.baseCost)} per step at ${formatNumber(s.baseWidth, 2)} ft`,
-              `${rate(s.baseCost)} × (${formatNumber(s.width, 2)} ÷ ${formatNumber(s.baseWidth, 2)}) = ${rate(s.costPerStep)} per step`,
-              `${formatNumber(s.steps)} ${s.steps === 1 ? 'step' : 'steps'} × ${rate(s.costPerStep)} = ${money(s.total)}`,
-            ]
-          : ['No staircase entered.'],
+      title: 'Marble floor & platform labour',
+      total: m.floorLabour,
+      steps: [`${sqft(m.floorArea)} × ${rate(m.floorLabourRate)} = ${money(m.floorLabour)}`],
     },
     {
-      title: 'Window finishing',
-      total: m.windows.total,
-      steps: [`${formatNumber(m.windows.count)} × ${rate(m.windows.rate)} = ${money(m.windows.total)}`],
-    },
-    {
-      title: 'Door finishing',
-      total: m.doors.total,
-      steps: [`${formatNumber(m.doors.count)} × ${rate(m.doors.rate)} = ${money(m.doors.total)}`],
+      title: 'Marble window & stair labour',
+      total: m.trimLabour,
+      steps: [`${sqft(m.trimArea)} × ${rate(m.trimLabourRate)} = ${money(m.trimLabour)}`],
     },
     ...r.supporting.map((req) => ({ title: SUPPORTING_META[req.key].label, total: req.cost, steps: supportingWorking(req) })),
     {
@@ -111,16 +102,11 @@ export function workings(r: FlooringResult): WorkingBlock[] {
       steps: [
         `${money(r.subtotal)} + ${money(r.extra)} = ${money(r.grandTotal)}`,
         ...(r.averagePerSqft != null
-          ? [
-              `${money(r.grandTotal)} ÷ ${sqft(r.baseArea)} (${formatNumber(t.quantity.area, 2)} tile + ${formatNumber(m.quantity.area, 2)} marble) = ${rate(
-                Math.round(r.averagePerSqft * 100) / 100,
-              )} per sq ft`,
-            ]
+          ? [`${money(r.grandTotal)} ÷ ${sqft(r.baseArea)} (all areas entered) = ${rate(Math.round(r.averagePerSqft * 100) / 100)} per sq ft`]
           : []),
       ],
     },
   ];
-  return blocks;
 }
 
 /* ------------------------------------------------------------------ */
@@ -133,15 +119,13 @@ export function summaryText(r: FlooringResult, projectName: string): string {
   const lines = [
     projectName.trim() ? `Project: ${projectName.trim()}` : '',
     `Tile: ${sqft(t.quantity.area)} entered, ${sqft(t.quantity.required)} required`,
-    `Marble: ${sqft(m.quantity.area)} entered, ${sqft(m.quantity.required)} required`,
+    `Marble: ${sqft(m.floorArea)} floor & platform + ${sqft(m.trimArea)} windows & stairs, ${sqft(m.quantity.required)} required`,
     '',
     `Tile material: ${money(t.material)}`,
     `Marble material: ${money(m.material)}`,
     `Tile labour: ${money(t.labour)}`,
-    `Marble floor & platform labour: ${money(m.labour)}`,
-    `Staircase labour: ${money(m.staircase.total)}`,
-    `Window finishing: ${money(m.windows.total)}`,
-    `Door finishing: ${money(m.doors.total)}`,
+    `Marble floor & platform labour: ${money(m.floorLabour)}`,
+    `Marble window & stair labour: ${money(m.trimLabour)}`,
     ...r.supporting.map((s) => `${SUPPORTING_META[s.key].label} (${reqQuantity(s)}): ${money(s.cost)}`),
     `Extra expenses (${pct(r.extraPct)}): ${money(r.extra)}`,
     '',
@@ -177,20 +161,19 @@ export function estimateCsvRows(r: FlooringResult, projectName: string, date: st
   push('Project', projectName.trim() || 'Tile & marble estimate');
   push('Date', date);
   push('Tile', 'Tile area (entered)', r2(t.quantity.area), 'sq ft');
-  push('Tile', `Skirting (${t.quantity.skirtingPct}%)`, r2(t.quantity.skirting), 'sq ft');
+  push('Tile', 'Skirting', r2(t.quantity.skirting), 'sq ft');
   push('Tile', `Wastage (${t.quantity.wastagePct}%)`, r2(t.quantity.wastage), 'sq ft');
   push('Tile', 'Total tile required', r2(t.quantity.required), 'sq ft');
-  push('Marble', 'Marble area (entered)', r2(m.quantity.area), 'sq ft');
-  push('Marble', `Skirting (${m.quantity.skirtingPct}%)`, r2(m.quantity.skirting), 'sq ft');
+  push('Marble', 'Floor & kitchen platform (entered)', r2(m.floorArea), 'sq ft');
+  push('Marble', 'Windows & stairs (entered)', r2(m.trimArea), 'sq ft');
+  push('Marble', 'Skirting', r2(m.quantity.skirting), 'sq ft');
   push('Marble', `Wastage (${m.quantity.wastagePct}%)`, r2(m.quantity.wastage), 'sq ft');
   push('Marble', 'Total marble required', r2(m.quantity.required), 'sq ft');
   push('Material', 'Tile material', r2(t.quantity.required), 'sq ft', t.rate, t.material);
   push('Material', 'Marble material', r2(m.quantity.required), 'sq ft', m.rate, m.material);
   push('Labour', 'Tile labour', r2(t.quantity.area), 'sq ft', t.labourRate, t.labour);
-  push('Labour', 'Marble floor & platform labour', r2(m.quantity.area), 'sq ft', m.labourRate, m.labour);
-  push('Labour', 'Marble staircase labour', m.staircase.steps, 'steps', r2(m.staircase.costPerStep), m.staircase.total);
-  push('Labour', 'Window finishing', m.windows.count, 'windows', m.windows.rate, m.windows.total);
-  push('Labour', 'Door finishing', m.doors.count, 'doors', m.doors.rate, m.doors.total);
+  push('Labour', 'Marble floor & platform labour', r2(m.floorArea), 'sq ft', m.floorLabourRate, m.floorLabour);
+  push('Labour', 'Marble window & stair labour', r2(m.trimArea), 'sq ft', m.trimLabourRate, m.trimLabour);
   for (const s of r.supporting) push('Supporting material', SUPPORTING_META[s.key].label, s.quantity, SUPPORTING_META[s.key].unit, s.rate, s.cost);
   push('Total', 'Total material', '', '', '', r.material.total);
   push('Total', 'Total labour', '', '', '', r.labour.total);

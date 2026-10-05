@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
 import type { Field, WorkspaceProps } from '@/calculators/types';
 import {
+  SKIRTING,
   calculateFlooringEstimate,
   validateFlooring,
   type FlooringInput,
@@ -37,15 +38,15 @@ import { CalcPopup } from './CalcPopup';
 import { Icon } from './Icon';
 import { useToast } from './Toast';
 
-/** v2: the area-only calculator. Saves from the old room-by-room version are not read. */
-const STORAGE_KEY = 'flooring-estimate-v2';
+/** v3: automatic skirting and two marble areas. Saves from earlier versions are not read. */
+const STORAGE_KEY = 'flooring-estimate-v3';
 
 /**
  * Tile & Marble Cost Calculator.
  *
  * Two tabs — Tile and Marble — over one project. The homeowner enters the
  * areas they have worked out and today's rates; skirting, wastage, labour,
- * the staircase, window and door finishing, setting materials and an
+ * setting materials and an
  * extra-expenses allowance are added automatically. A running project
  * total sits beside the inputs, and the combined summary, with the
  * working behind every figure, follows underneath.
@@ -93,7 +94,7 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
 
   const today = useMemo(() => new Date(), []);
   const tileIssues = issues.some((i) => i.path.startsWith('tile.'));
-  const marbleIssues = issues.some((i) => /^(marble|staircase|windows|doors)\./.test(i.path));
+  const marbleIssues = issues.some((i) => i.path.startsWith('marble.'));
 
   /* ---------------- Actions ---------------- */
 
@@ -212,28 +213,12 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
                   onChange={(v) => patch('tile', { area: v })}
                 />
 
-                <div className="fields">
-                  <Pct
-                    path="tile.skirtingPct"
-                    label="Tile skirting"
-                    value={input.tile.skirtingPct}
-                    presets={[0, 5, 10]}
-                    suggested={DEFAULTS.tileSkirtingPct}
-                    error={err('tile.skirtingPct')}
-                    onChange={(v) => patch('tile', { skirtingPct: v })}
-                    help="Extra tile for the skirting strip along the walls, as a share of the tile area."
-                  />
-                  <Pct
-                    path="tile.wastagePct"
-                    label="Tile wastage"
-                    value={input.tile.wastagePct}
-                    presets={[3, 5, 7, 10]}
-                    suggested={DEFAULTS.tileWastagePct}
-                    error={err('tile.wastagePct')}
-                    onChange={(v) => patch('tile', { wastagePct: v })}
-                    help="For cutting and breakage, on the tile area plus skirting."
-                  />
-                </div>
+                <SkirtingToggle
+                  checked={input.tile.skirting}
+                  onChange={(on) => patch('tile', { skirting: on })}
+                  label={t('Add tile skirting')}
+                  q={r.tile.quantity}
+                />
 
                 <QuantityFlow q={r.tile.quantity} noun="tile" />
 
@@ -282,39 +267,57 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
               </div>
             ) : (
               <div className="fl-panel" role="tabpanel" id="fl-panel-marble" aria-labelledby="fl-tab-marble">
-                <AreaField
-                  path="marble.area"
-                  label="Total Marble Area"
-                  help="Enter the total marble area you want to use, including floor, kitchen platform, windows, doors, stairs, etc. according to your calculation."
-                  value={input.marble.area}
-                  error={err('marble.area') ?? (errors.area ? t(errors.area) : undefined)}
-                  onChange={(v) => patch('marble', { area: v })}
-                />
-
-                <div className="fields">
-                  <Pct
-                    path="marble.skirtingPct"
-                    label="Marble skirting"
-                    value={input.marble.skirtingPct}
-                    presets={[0, 5, 10]}
-                    suggested={DEFAULTS.marbleSkirtingPct}
-                    error={err('marble.skirtingPct')}
-                    onChange={(v) => patch('marble', { skirtingPct: v })}
-                    help="Extra marble for the skirting strip, as a share of the marble area."
+                <SubCard icon="home" title={t('Marble Floor & Kitchen Platform')} total={r.marble.floorLabour}>
+                  <AreaField
+                    path="marble.floorArea"
+                    label="Total Marble Area — Floor & Kitchen"
+                    help="Marble floor and kitchen platform, as you have worked it out."
+                    value={input.marble.floorArea}
+                    error={err('marble.floorArea') ?? (errors.area ? t(errors.area) : undefined)}
+                    onChange={(v) => patch('marble', { floorArea: v })}
                   />
-                  <Pct
-                    path="marble.wastagePct"
-                    label="Marble wastage"
-                    value={input.marble.wastagePct}
-                    presets={[5, 7, 10]}
-                    suggested={DEFAULTS.marbleWastagePct}
-                    error={err('marble.wastagePct')}
-                    onChange={(v) => patch('marble', { wastagePct: v })}
-                    help="For cutting and breakage, on the marble area plus skirting."
+                  <div className="fields">
+                    <Num
+                      path="marble.floorLabourRate"
+                      label="Labour Cost (floor & platform)"
+                      type="currency"
+                      unit="/ sq ft"
+                      value={input.marble.floorLabourRate}
+                      error={err('marble.floorLabourRate')}
+                      onChange={(v) => patch('marble', { floorLabourRate: v })}
+                      help="Laying charge per sq ft for the marble floor and kitchen platform."
+                    />
+                  </div>
+                  <SkirtingToggle
+                    checked={input.marble.skirting}
+                    onChange={(on) => patch('marble', { skirting: on })}
+                    label={t('Do you want marble skirting?')}
+                    q={r.marble.quantity}
                   />
-                </div>
+                </SubCard>
 
-                <QuantityFlow q={r.marble.quantity} noun="marble" />
+                <SubCard icon="layers" title={t('Marble Windows & Stairs')} total={r.marble.trimLabour}>
+                  <AreaField
+                    path="marble.trimArea"
+                    label="Total Marble Area — Windows & Stairs"
+                    help="Window sills, frames and stair treads and risers, as you have worked them out."
+                    value={input.marble.trimArea}
+                    error={err('marble.trimArea')}
+                    onChange={(v) => patch('marble', { trimArea: v })}
+                  />
+                  <div className="fields">
+                    <Num
+                      path="marble.trimLabourRate"
+                      label="Labour Cost (windows & stairs)"
+                      type="currency"
+                      unit="/ sq ft"
+                      value={input.marble.trimLabourRate}
+                      error={err('marble.trimLabourRate')}
+                      onChange={(v) => patch('marble', { trimLabourRate: v })}
+                      help="Finishing charge per sq ft for windows and stairs — usually higher than floor laying."
+                    />
+                  </div>
+                </SubCard>
 
                 <div className="fields">
                   <Num
@@ -325,108 +328,24 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
                     value={input.marble.rate}
                     error={err('marble.rate')}
                     onChange={(v) => patch('marble', { rate: v })}
-                    help="The price per sq ft you are quoted — any marble or stone."
-                  />
-                  <Num
-                    path="marble.labourRate"
-                    label="Marble Labour Cost"
-                    type="currency"
-                    unit="/ sq ft"
-                    value={input.marble.labourRate}
-                    error={err('marble.labourRate')}
-                    onChange={(v) => patch('marble', { labourRate: v })}
-                    help="For the marble floor and kitchen platform only."
+                    help="The price per sq ft you are quoted — for all the marble above."
                   />
                 </div>
-                <p className="fl-fine">
-                  <Icon name="info" size={13} />
-                  {t('Marble labour covers the marble floor and kitchen platform. Staircase, window and door work is added separately below.')}
-                </p>
 
-                <SubCard icon="layers" title={t('Marble Staircase')} total={r.marble.staircase.total}>
-                  <div className="note">
-                    <Icon name="info" size={16} className="i" />
-                    <div>
-                      {t('Enter the number of stairs and the width each step covers separately. A “12 ft” staircase means 12 ft wide steps — not 12 steps.')}
-                    </div>
-                  </div>
-                  <div className="fields">
-                    <Num path="staircase.steps" label="Number of Stairs" unit="steps" value={input.staircase.steps} error={err('staircase.steps')} onChange={(v) => patch('staircase', { steps: v })} />
-                    <Num
-                      path="staircase.width"
-                      label="Step Width (marble coverage)"
-                      unit="ft"
-                      value={input.staircase.width}
-                      error={err('staircase.width')}
-                      onChange={(v) => patch('staircase', { width: v })}
-                      help="The side-to-side width each step’s marble covers, e.g. 12 ft."
-                    />
-                    <Num
-                      path="staircase.baseWidth"
-                      label="Base Step Width"
-                      unit="ft"
-                      value={input.staircase.baseWidth}
-                      error={err('staircase.baseWidth')}
-                      onChange={(v) => patch('staircase', { baseWidth: v })}
-                      help="The width your contractor’s per-step rate is quoted for. Usually 3 ft."
-                    />
-                    <Num
-                      path="staircase.baseCost"
-                      label="Base Labour Cost per Step"
-                      type="currency"
-                      value={input.staircase.baseCost}
-                      error={err('staircase.baseCost')}
-                      onChange={(v) => patch('staircase', { baseCost: v })}
-                      help="The labour for one step of the base width, e.g. ₹1,000 for 3 ft."
-                    />
-                  </div>
-                  {r.marble.staircase.steps > 0 && r.marble.staircase.baseWidth > 0 && (
-                    <p className="fl-calc-line num">
-                      {rate(r.marble.staircase.baseCost)} × ({formatNumber(r.marble.staircase.width, 2)} ÷ {formatNumber(r.marble.staircase.baseWidth, 2)}) ={' '}
-                      <strong>
-                        {rate(r.marble.staircase.costPerStep)} {t('per step')}
-                      </strong>
-                      <span className="fl-sep" aria-hidden="true">
-                        →
-                      </span>
-                      {formatNumber(r.marble.staircase.steps)} × {rate(r.marble.staircase.costPerStep)} = <strong>{formatINR(r.marble.staircase.total)}</strong>
-                    </p>
-                  )}
-                </SubCard>
-
-                <SubCard icon="home" title={t('Marble Window & Door Finishing')} total={r.marble.windows.total + r.marble.doors.total}>
-                  <div className="fields">
-                    <Num path="windows.count" label="Number of Windows" value={input.windows.count} error={err('windows.count')} onChange={(v) => patch('windows', { count: v })} />
-                    <Num path="windows.rate" label="Labour Cost per Window" type="currency" value={input.windows.rate} error={err('windows.rate')} onChange={(v) => patch('windows', { rate: v })} />
-                    <Num path="doors.count" label="Number of Doors" value={input.doors.count} error={err('doors.count')} onChange={(v) => patch('doors', { count: v })} />
-                    <Num path="doors.rate" label="Labour Cost per Door" type="currency" value={input.doors.rate} error={err('doors.rate')} onChange={(v) => patch('doors', { rate: v })} />
-                  </div>
-                  <p className="fl-calc-line num">
-                    {t('Windows')} {formatNumber(r.marble.windows.count)} × {rate(r.marble.windows.rate)} = <strong>{formatINR(r.marble.windows.total)}</strong>
-                    <span className="fl-sep" aria-hidden="true">
-                      ·
-                    </span>
-                    {t('Doors')} {formatNumber(r.marble.doors.count)} × {rate(r.marble.doors.rate)} = <strong>{formatINR(r.marble.doors.total)}</strong>
-                  </p>
-                  <p className="fl-fine">
-                    <Icon name="info" size={13} />
-                    {t('Charged per piece, separately from the marble labour per sq ft.')}
-                  </p>
-                </SubCard>
+                <QuantityFlow q={r.marble.quantity} noun="marble" />
 
                 <TabSummary
                   title={t('Marble Summary')}
                   rows={[
-                    [t('Base marble area'), sqft(r.marble.quantity.area)],
+                    [t('Floor & platform area'), sqft(r.marble.floorArea)],
+                    [t('Windows & stairs area'), sqft(r.marble.trimArea)],
                     [t('Estimated skirting'), sqft(r.marble.quantity.skirting)],
                     [t('Wastage'), sqft(r.marble.quantity.wastage)],
                     [t('Total marble required'), sqft(r.marble.quantity.required)],
                     [t('Marble rate'), `${rate(r.marble.rate)} / sq ft`],
                     [t('Marble material'), formatINR(r.marble.material)],
-                    [t('Marble floor/platform labour'), formatINR(r.marble.labour)],
-                    [t('Staircase'), formatINR(r.marble.staircase.total)],
-                    [t('Window finishing'), formatINR(r.marble.windows.total)],
-                    [t('Door finishing'), formatINR(r.marble.doors.total)],
+                    [t('Floor & platform labour'), formatINR(r.marble.floorLabour)],
+                    [t('Window & stair labour'), formatINR(r.marble.trimLabour)],
                   ]}
                   totalLabel={t('Marble Section Total')}
                   total={r.marble.total}
@@ -621,7 +540,7 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
   );
 }
 
-type PatchKey = 'tile' | 'marble' | 'staircase' | 'windows' | 'doors';
+type PatchKey = 'tile' | 'marble';
 
 const round2 = (v: number) => Math.round(v * 100) / 100;
 
@@ -631,7 +550,7 @@ const fit = (value: string) => (value.length > 13 ? ' xs' : value.length > 10 ? 
 /** Which tab holds the input an issue is about; null for the shared inputs. */
 function tabFor(path: string): FlooringTab | null {
   if (path === 'area' || path.startsWith('tile.')) return 'tile';
-  if (/^(marble|staircase|windows|doors)\./.test(path)) return 'marble';
+  if (path.startsWith('marble.')) return 'marble';
   return null;
 }
 
@@ -701,10 +620,8 @@ function ProjectSummary({ r, projectName, date, actions }: { r: FlooringResult; 
             title={t('Labour')}
             rows={[
               [t('Tile labour'), r.labour.tile],
-              [t('Marble floor/platform labour'), r.labour.marble],
-              [t('Staircase labour'), r.labour.staircase],
-              [t('Window finishing'), r.labour.windows],
-              [t('Door finishing'), r.labour.doors],
+              [t('Marble floor & platform labour'), r.labour.marbleFloor],
+              [t('Marble window & stair labour'), r.labour.marbleTrim],
             ]}
             totalLabel={t('Total Labour')}
             total={r.labour.total}
@@ -856,9 +773,7 @@ function QuantityFlow({ q, noun }: { q: Quantity; noun: 'tile' | 'marble' }) {
         <span className="num">{sqft(q.area)}</span>
       </div>
       <div className="fl-flow-row add">
-        <span>
-          + {t('Skirting')} ({formatPercent(q.skirtingPct, 2)})
-        </span>
+        <span>+ {q.skirtingOn ? t('Skirting (auto)') : t('Skirting — not added')}</span>
         <span className="num">{sqft(q.skirting)}</span>
       </div>
       <div className="fl-flow-row sub">
@@ -867,7 +782,7 @@ function QuantityFlow({ q, noun }: { q: Quantity; noun: 'tile' | 'marble' }) {
       </div>
       <div className="fl-flow-row add">
         <span>
-          + {t('Wastage')} ({formatPercent(q.wastagePct, 2)})
+          + {t('Wastage')} ({formatPercent(q.wastagePct, 2)}, {t('standard')})
         </span>
         <span className="num">{sqft(q.wastage)}</span>
       </div>
@@ -882,6 +797,34 @@ function QuantityFlow({ q, noun }: { q: Quantity; noun: 'tile' | 'marble' }) {
         {t('Your {area} stays as entered — labour and the average cost use it. Skirting and wastage only change what you buy.').replace('{area}', sqft(q.area))}
       </p>
     </div>
+  );
+}
+
+/**
+ * Skirting is worked out, never typed: area × 4 sides × 0.5 ft height ÷ a
+ * 12 ft room side, i.e. area ÷ 6. The checkbox only says whether to add it.
+ */
+function SkirtingToggle({ checked, onChange, label, q }: { checked: boolean; onChange: (on: boolean) => void; label: string; q: Quantity }) {
+  const t = useT();
+  return (
+    <label className={`fl-toggle${checked ? ' on' : ''}`}>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <span className="fl-toggle-box" aria-hidden="true">
+        <Icon name="check" size={13} strokeWidth={3} />
+      </span>
+      <span className="fl-toggle-text">
+        <span className="fl-toggle-label">
+          {label}
+          {checked && q.skirtingBase > 0 && <strong className="num"> + {sqft(q.skirting)}</strong>}
+        </span>
+        <span className="fl-toggle-hint">
+          {t('Worked out for you: 6-inch skirting along the walls, estimated from {side} × {side} ft rooms (area ÷ 6).').replace(
+            /\{side\}/g,
+            String(SKIRTING.roomSideFt),
+          )}
+        </span>
+      </span>
+    </label>
   );
 }
 

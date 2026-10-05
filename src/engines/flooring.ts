@@ -1,12 +1,12 @@
 /* ------------------------------------------------------------------ *
  * Tile & marble cost estimate.
  *
- * The homeowner works out their own areas and enters two totals: the tile
- * area and the marble area. From those the engine adds skirting and
- * wastage to find what to buy, prices the material, prices the labour on
- * the area actually laid, adds the marble staircase and the window and
- * door finishing, estimates the setting materials, and puts an
- * extra-expenses allowance on top.
+ * The homeowner works out their own areas and enters them: the tile area,
+ * the marble floor & kitchen-platform area, and the marble window & stair
+ * area. From those the engine adds skirting and wastage to find what to
+ * buy, prices the material, prices the labour on the area actually laid,
+ * estimates the setting materials, and puts an extra-expenses allowance
+ * on top.
  *
  *   Area → + skirting → subtotal → + wastage → required → × rate = material
  *   Area × labour rate = labour   (never on skirting or wastage)
@@ -14,6 +14,26 @@
  * Money is rounded to whole rupees per line, so the lines of the estimate
  * always add up to exactly the totals shown under them.
  * ------------------------------------------------------------------ */
+
+/**
+ * Skirting is estimated, not measured. A total area does not say how long
+ * the walls are, so the walls are worked out from a typical room:
+ *
+ *   a 12 × 12 ft room is 144 sq ft and has 4 × 12 = 48 ft of wall;
+ *   6-inch (0.5 ft) skirting along it is 48 × 0.5 = 24 sq ft;
+ *   24 ÷ 144 = 1/6 — so skirting ≈ floor area ÷ 6.
+ *
+ * In general: skirting = area × 4 × height ÷ room side.
+ */
+export const SKIRTING = {
+  /** Standard skirting height: 6 inches. */
+  heightFt: 0.5,
+  /** Side of the typical square room the wall length is estimated from. */
+  roomSideFt: 12,
+} as const;
+
+/** Wastage is fixed at the usual allowances: 5% for tile, 7% for marble. */
+export const WASTAGE = { tile: 5, marble: 7 } as const;
 
 /**
  * How much of each setting material one square foot takes. These are
@@ -34,47 +54,49 @@ export const CONSUMPTION = {
 
 export type SupportingKey = 'sand' | 'cement' | 'whiteCement' | 'grout';
 
-export interface SurfaceInput {
-  /** The usable area the user worked out, in sq ft. */
+export interface TileInput {
+  /** The usable tile area the user worked out, in sq ft. */
   area: number;
-  skirtingPct: number;
-  wastagePct: number;
+  /** Add tile skirting along the walls. */
+  skirting: boolean;
   rate: number;
   labourRate: number;
 }
 
-export interface StaircaseInput {
-  steps: number;
-  /** The real width each step's marble covers, in feet (e.g. 12). */
-  width: number;
-  /** The width the per-step labour price is quoted for, in feet (e.g. 3). */
-  baseWidth: number;
-  baseCost: number;
-}
-
-export interface CountInput {
-  count: number;
+export interface MarbleInput {
+  /** Marble floor and kitchen platform, sq ft. */
+  floorArea: number;
+  floorLabourRate: number;
+  /** Add marble skirting along the walls of the marble floor. */
+  skirting: boolean;
+  /** Marble on windows and stairs, sq ft. */
+  trimArea: number;
+  trimLabourRate: number;
+  /** Price per sq ft for all the marble. */
   rate: number;
 }
 
 export interface FlooringInput {
-  tile: SurfaceInput;
-  marble: SurfaceInput;
-  staircase: StaircaseInput;
-  windows: CountInput;
-  doors: CountInput;
+  tile: TileInput;
+  marble: MarbleInput;
   rates: Record<SupportingKey, number>;
   extraPct: number;
 }
 
 /* ------------------------------------------------------------------ */
-/* Tile & marble                                                       */
+/* Quantities                                                          */
 /* ------------------------------------------------------------------ */
 
+/** Skirting area for a floor area: area × 4 × height ÷ room side (area ÷ 6 by default). */
+export const calculateSkirting = (floorArea: number): number =>
+  (clean(floorArea) * 4 * SKIRTING.heightFt) / SKIRTING.roomSideFt;
+
 export interface Quantity {
-  /** What the user entered — never changed. */
+  /** Everything the user entered — never changed. */
   area: number;
-  skirtingPct: number;
+  /** The part of it that is floor with walls around it, which skirting is worked on. */
+  skirtingBase: number;
+  skirtingOn: boolean;
   skirting: number;
   /** Area + skirting. */
   subtotal: number;
@@ -87,31 +109,35 @@ export interface Quantity {
 }
 
 /**
- * Area → + skirting → subtotal → + wastage → total required.
- * Skirting is a share of the area; wastage is a share of area + skirting,
- * because the skirting pieces are cut from the same stock.
+ * Area → + skirting → subtotal → + wastage → total required. Wastage is a
+ * share of area + skirting, because skirting pieces are cut from the same
+ * stock.
  */
-function quantity(area: number, skirtingPct: number, wastagePct: number): Quantity {
+function quantity(area: number, skirtingBase: number, skirtingOn: boolean, wastagePct: number): Quantity {
   const a = clean(area);
-  const skirting = (a * clean(skirtingPct)) / 100;
+  const skirting = skirtingOn ? calculateSkirting(skirtingBase) : 0;
   const subtotal = a + skirting;
-  const wastage = (subtotal * clean(wastagePct)) / 100;
+  const wastage = (subtotal * wastagePct) / 100;
   const required = subtotal + wastage;
   return {
     area: a,
-    skirtingPct: clean(skirtingPct),
+    skirtingBase: clean(skirtingBase),
+    skirtingOn,
     skirting,
     subtotal,
-    wastagePct: clean(wastagePct),
+    wastagePct,
     wastage,
     required,
     purchase: Math.round(round6(required)),
   };
 }
 
-export const calculateTileQuantity = (t: Pick<SurfaceInput, 'area' | 'skirtingPct' | 'wastagePct'>): Quantity =>
-  quantity(t.area, t.skirtingPct, t.wastagePct);
-export const calculateMarbleQuantity = calculateTileQuantity;
+export const calculateTileQuantity = (t: Pick<TileInput, 'area' | 'skirting'>): Quantity =>
+  quantity(t.area, t.area, t.skirting, WASTAGE.tile);
+
+/** Floor & platform plus windows & stairs; skirting runs only along the floor. */
+export const calculateMarbleQuantity = (m: Pick<MarbleInput, 'floorArea' | 'trimArea' | 'skirting'>): Quantity =>
+  quantity(clean(m.floorArea) + clean(m.trimArea), m.floorArea, m.skirting, WASTAGE.marble);
 
 /** Material = total required × rate. */
 export const calculateTileMaterialCost = (q: Quantity, rate: number): number => rupees(q.required * clean(rate));
@@ -119,51 +145,7 @@ export const calculateMarbleMaterialCost = calculateTileMaterialCost;
 
 /** Labour = the area entered × labour rate — no skirting, no wastage. */
 export const calculateTileLabourCost = (area: number, labourRate: number): number => rupees(clean(area) * clean(labourRate));
-/** Marble floor & kitchen platform labour. Staircase, windows and doors are separate. */
 export const calculateMarbleLabourCost = calculateTileLabourCost;
-
-/* ------------------------------------------------------------------ */
-/* Marble staircase, windows, doors                                    */
-/* ------------------------------------------------------------------ */
-
-export interface StaircaseCost {
-  steps: number;
-  width: number;
-  baseWidth: number;
-  baseCost: number;
-  costPerStep: number;
-  total: number;
-}
-
-/**
- * Cost per step = base cost × (actual width ÷ base width); × steps.
- * At ₹1,000 for a 3 ft step, a 12 ft step is ₹4,000 — "12 ft" is the
- * width of each step, never the number of steps.
- */
-export function calculateStaircaseLabour(s: StaircaseInput): StaircaseCost {
-  const steps = Math.floor(clean(s.steps));
-  const width = clean(s.width);
-  const baseWidth = clean(s.baseWidth);
-  const baseCost = clean(s.baseCost);
-  const costPerStep = baseWidth > 0 ? baseCost * (width / baseWidth) : 0;
-  return { steps, width, baseWidth, baseCost, costPerStep, total: rupees(costPerStep * steps) };
-}
-
-export interface CountCost {
-  count: number;
-  rate: number;
-  total: number;
-}
-
-/** Windows × labour per window. */
-export const calculateWindowFinishing = (w: CountInput): CountCost => countCost(w);
-/** Doors × labour per door. */
-export const calculateDoorFinishing = (d: CountInput): CountCost => countCost(d);
-
-function countCost(c: CountInput): CountCost {
-  const count = Math.floor(clean(c.count));
-  return { count, rate: clean(c.rate), total: rupees(count * clean(c.rate)) };
-}
 
 /* ------------------------------------------------------------------ */
 /* Supporting materials                                                */
@@ -221,16 +203,15 @@ export function calculateTotalMaterialCost(tileMaterial: number, marbleMaterial:
 
 export interface LabourTotals {
   tile: number;
-  marble: number;
-  staircase: number;
-  windows: number;
-  doors: number;
+  /** Marble floor & kitchen platform. */
+  marbleFloor: number;
+  /** Marble windows & stairs. */
+  marbleTrim: number;
   total: number;
 }
 
-/** Tile + marble floor/platform + staircase + windows + doors. */
 export function calculateTotalLabourCost(parts: Omit<LabourTotals, 'total'>): LabourTotals {
-  return { ...parts, total: parts.tile + parts.marble + parts.staircase + parts.windows + parts.doors };
+  return { ...parts, total: parts.tile + parts.marbleFloor + parts.marbleTrim };
 }
 
 /** Extra expenses = subtotal × extra %. */
@@ -238,7 +219,7 @@ export const calculateExtraExpenses = (subtotal: number, pct: number): number =>
 
 export const calculateGrandTotal = (subtotal: number, extra: number): number => clean(subtotal) + clean(extra);
 
-/** Grand total ÷ (tile area + marble area) — the areas entered, not the purchase quantities. */
+/** Grand total ÷ every area entered — not the purchase quantities. */
 export const calculateAverageCostPerSqFt = (grandTotal: number, baseArea: number): number | null =>
   baseArea > 0 ? clean(grandTotal) / baseArea : null;
 
@@ -251,13 +232,14 @@ export interface FlooringResult {
   marble: {
     quantity: Quantity;
     rate: number;
-    labourRate: number;
+    floorArea: number;
+    floorLabourRate: number;
+    floorLabour: number;
+    trimArea: number;
+    trimLabourRate: number;
+    trimLabour: number;
     material: number;
-    labour: number;
-    staircase: StaircaseCost;
-    windows: CountCost;
-    doors: CountCost;
-    /** Material + floor/platform labour + staircase + windows + doors. */
+    /** Material + both labours. */
     total: number;
   };
   supporting: Requirement[];
@@ -268,7 +250,7 @@ export interface FlooringResult {
   extraPct: number;
   extra: number;
   grandTotal: number;
-  /** Tile area + marble area, as entered. */
+  /** Every area entered: tile + marble floor + marble windows & stairs. */
   baseArea: number;
   averagePerSqft: number | null;
 }
@@ -280,11 +262,8 @@ export function calculateFlooringEstimate(input: FlooringInput): FlooringResult 
   const tileMaterial = calculateTileMaterialCost(tq, input.tile.rate);
   const tileLabour = calculateTileLabourCost(tq.area, input.tile.labourRate);
   const marbleMaterial = calculateMarbleMaterialCost(mq, input.marble.rate);
-  const marbleLabour = calculateMarbleLabourCost(mq.area, input.marble.labourRate);
-
-  const staircase = calculateStaircaseLabour(input.staircase);
-  const windows = calculateWindowFinishing(input.windows);
-  const doors = calculateDoorFinishing(input.doors);
+  const floorLabour = calculateMarbleLabourCost(input.marble.floorArea, input.marble.floorLabourRate);
+  const trimLabour = calculateMarbleLabourCost(input.marble.trimArea, input.marble.trimLabourRate);
 
   const supporting = [
     calculateSandRequirement(tq.area, mq.area, input.rates.sand),
@@ -294,13 +273,7 @@ export function calculateFlooringEstimate(input: FlooringInput): FlooringResult 
   ];
 
   const material = calculateTotalMaterialCost(tileMaterial, marbleMaterial, supporting);
-  const labour = calculateTotalLabourCost({
-    tile: tileLabour,
-    marble: marbleLabour,
-    staircase: staircase.total,
-    windows: windows.total,
-    doors: doors.total,
-  });
+  const labour = calculateTotalLabourCost({ tile: tileLabour, marbleFloor: floorLabour, marbleTrim: trimLabour });
 
   const subtotal = material.total + labour.total;
   const extraPct = clean(input.extraPct);
@@ -320,13 +293,14 @@ export function calculateFlooringEstimate(input: FlooringInput): FlooringResult 
     marble: {
       quantity: mq,
       rate: clean(input.marble.rate),
-      labourRate: clean(input.marble.labourRate),
+      floorArea: clean(input.marble.floorArea),
+      floorLabourRate: clean(input.marble.floorLabourRate),
+      floorLabour,
+      trimArea: clean(input.marble.trimArea),
+      trimLabourRate: clean(input.marble.trimLabourRate),
+      trimLabour,
       material: marbleMaterial,
-      labour: marbleLabour,
-      staircase,
-      windows,
-      doors,
-      total: marbleMaterial + marbleLabour + staircase.total + windows.total + doors.total,
+      total: marbleMaterial + floorLabour + trimLabour,
     },
     supporting,
     material,
@@ -350,59 +324,41 @@ export interface FlooringIssue {
   message: string;
 }
 
-const MAX = { area: 10000000, rate: 10000000, pct: 100, count: 1000, width: 1000 };
+const MAX = { area: 10000000, rate: 10000000, pct: 100 };
 
 /**
  * Anything that would make the estimate wrong rather than merely
- * incomplete: no area at all, a negative or non-numeric figure, a material
- * with an area but no rate, a staircase with steps but no width, or a
- * fractional count of steps, windows or doors.
+ * incomplete: no area at all, a negative or non-numeric figure, or an
+ * area with no material rate.
  */
 export function validateFlooring(input: FlooringInput): FlooringIssue[] {
   const issues: FlooringIssue[] = [];
-  const check = (path: string, value: number, label: string, max: number, integer = false) => {
+  const check = (path: string, value: number, label: string, max: number) => {
     if (typeof value !== 'number' || !Number.isFinite(value)) issues.push({ path, message: `${label}: enter a valid number.` });
     else if (value < 0) issues.push({ path, message: `${label} cannot be negative.` });
-    else if (integer && !Number.isInteger(value)) issues.push({ path, message: `${label} must be a whole number.` });
     else if (value > max) issues.push({ path, message: `${label} looks too large — check the figure.` });
   };
   const required = (path: string, value: number, message: string) => {
     if (!issues.some((i) => i.path === path) && Number.isFinite(value) && value === 0) issues.push({ path, message });
   };
 
-  for (const [key, name] of [
-    ['tile', 'Tile'],
-    ['marble', 'Marble'],
-  ] as const) {
-    const s = input[key];
-    check(`${key}.area`, s.area, `${name} area`, MAX.area);
-    check(`${key}.skirtingPct`, s.skirtingPct, `${name} skirting`, MAX.pct);
-    check(`${key}.wastagePct`, s.wastagePct, `${name} wastage`, MAX.pct);
-    check(`${key}.rate`, s.rate, `${name} rate`, MAX.rate);
-    check(`${key}.labourRate`, s.labourRate, `${name} labour cost`, MAX.rate);
-    if (s.area > 0) required(`${key}.rate`, s.rate, `Enter the ${name.toLowerCase()} rate per sq ft.`);
-  }
-  if (!issues.some((i) => i.path.endsWith('.area')) && clean(input.tile.area) + clean(input.marble.area) === 0) {
-    issues.push({ path: 'area', message: 'Enter the tile area, the marble area, or both.' });
-  }
+  const t = input.tile;
+  check('tile.area', t.area, 'Tile area', MAX.area);
+  check('tile.rate', t.rate, 'Tile rate', MAX.rate);
+  check('tile.labourRate', t.labourRate, 'Tile labour cost', MAX.rate);
+  if (t.area > 0) required('tile.rate', t.rate, 'Enter the tile rate per sq ft.');
 
-  const s = input.staircase;
-  check('staircase.steps', s.steps, 'Number of stairs', MAX.count, true);
-  check('staircase.width', s.width, 'Step width', MAX.width);
-  check('staircase.baseWidth', s.baseWidth, 'Base step width', MAX.width);
-  check('staircase.baseCost', s.baseCost, 'Base labour cost', MAX.rate);
-  if (s.steps > 0) {
-    required('staircase.width', s.width, 'Enter the width each step covers, e.g. 12 ft.');
-    required('staircase.baseWidth', s.baseWidth, 'Enter the base step width the rate is quoted for, e.g. 3 ft.');
-    required('staircase.baseCost', s.baseCost, 'Enter the labour cost for one base-width step.');
-  }
+  const m = input.marble;
+  check('marble.floorArea', m.floorArea, 'Marble floor & platform area', MAX.area);
+  check('marble.floorLabourRate', m.floorLabourRate, 'Marble floor & platform labour', MAX.rate);
+  check('marble.trimArea', m.trimArea, 'Marble window & stair area', MAX.area);
+  check('marble.trimLabourRate', m.trimLabourRate, 'Marble window & stair labour', MAX.rate);
+  check('marble.rate', m.rate, 'Marble rate', MAX.rate);
+  if (m.floorArea > 0 || m.trimArea > 0) required('marble.rate', m.rate, 'Enter the marble rate per sq ft.');
 
-  check('windows.count', input.windows.count, 'Number of windows', MAX.count, true);
-  check('windows.rate', input.windows.rate, 'Labour cost per window', MAX.rate);
-  check('doors.count', input.doors.count, 'Number of doors', MAX.count, true);
-  check('doors.rate', input.doors.rate, 'Labour cost per door', MAX.rate);
-  if (input.windows.count > 0) required('windows.rate', input.windows.rate, 'Enter the finishing labour cost per window.');
-  if (input.doors.count > 0) required('doors.rate', input.doors.rate, 'Enter the finishing labour cost per door.');
+  if (!issues.some((i) => i.path.endsWith('Area') || i.path.endsWith('.area')) && clean(t.area) + clean(m.floorArea) + clean(m.trimArea) === 0) {
+    issues.push({ path: 'area', message: 'Enter the tile area, a marble area, or both.' });
+  }
 
   check('rates.sand', input.rates.sand, 'Sand rate', MAX.rate);
   check('rates.cement', input.rates.cement, 'Cement rate', MAX.rate);
