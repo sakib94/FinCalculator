@@ -27,7 +27,7 @@ import {
   summaryText,
   workings,
 } from '@/calculators/everyday/flooringReport';
-import { formatDate, formatINR, formatNumber, formatPercent, toISODate } from '@/lib/format';
+import { formatDate, formatINR, formatPercent, toISODate } from '@/lib/format';
 import { copyText, downloadCSV, printPage, toCSV } from '@/lib/export';
 import { readLocal, writeLocal } from '@/lib/storage';
 import { useT } from '@/hooks/PreferencesContext';
@@ -270,7 +270,7 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
                 <SubCard icon="home" title={t('Marble Floor & Kitchen Platform')} total={r.marble.floorLabour}>
                   <AreaField
                     path="marble.floorArea"
-                    label="Total Marble Area — Floor & Kitchen"
+                    label="Total Marble Area (Floor & Kitchen)"
                     help="Marble floor and kitchen platform, as you have worked it out."
                     value={input.marble.floorArea}
                     error={err('marble.floorArea') ?? (errors.area ? t(errors.area) : undefined)}
@@ -299,7 +299,7 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
                 <SubCard icon="layers" title={t('Marble Windows & Stairs')} total={r.marble.trimLabour}>
                   <AreaField
                     path="marble.trimArea"
-                    label="Total Marble Area — Windows & Stairs"
+                    label="Total Marble Area (Windows & Stairs)"
                     help="Window sills, frames and stair treads and risers, as you have worked them out."
                     value={input.marble.trimArea}
                     error={err('marble.trimArea')}
@@ -499,7 +499,7 @@ export function FlooringWorkspace({ heroRef, onHero }: WorkspaceProps) {
 
       {valid && (
         <>
-          <ProjectSummary r={r} projectName={projectName} date={today} actions={actions} />
+          <ProjectSummary r={r} projectName={projectName} date={today} />
           <Workings r={r} />
         </>
       )}
@@ -566,144 +566,100 @@ function TotalsList({ r }: { r: FlooringResult }) {
   );
 }
 
-function ProjectSummary({ r, projectName, date, actions }: { r: FlooringResult; projectName: string; date: Date; actions: ReactNode }) {
+/**
+ * One compact bill: four sections — flooring, labour, supporting materials,
+ * other — each with its items and a subtotal, every amount in one column,
+ * and the total underneath. Copy, print and CSV live in the result panel.
+ */
+function ProjectSummary({ r, projectName, date }: { r: FlooringResult; projectName: string; date: Date }) {
   const t = useT();
   const m = r.marble;
+  const section = (title: string, rows: [string, string, number][], totalLabel?: string, total?: number) => (
+    <tbody>
+      <tr className="fl-bill-section">
+        <th scope="rowgroup" colSpan={3}>
+          {title}
+        </th>
+      </tr>
+      {rows.map(([label, qty, cost]) => (
+        <tr key={label}>
+          <th scope="row">{label}</th>
+          <td className="num fl-bill-qty">{qty}</td>
+          <td className="num">{formatINR(cost)}</td>
+        </tr>
+      ))}
+      {totalLabel && total != null && (
+        <tr className="fl-bill-sub">
+          <th scope="row" colSpan={2}>
+            {totalLabel}
+          </th>
+          <td className="num">{formatINR(total)}</td>
+        </tr>
+      )}
+    </tbody>
+  );
+
   return (
     <section className="calc-block" id="fl-summary" aria-labelledby="fl-summary-head">
       <div className="card fl-summary">
         <div className="fl-summary-head">
-          <div>
-            <p className="eyebrow">{t('Combined Project Summary')}</p>
-            <h2 id="fl-summary-head">{projectName.trim() || t('Tile & marble estimate')}</h2>
-            <p className="small muted">
-              {t('Prepared on')} {formatDate(date)} · {t('Tile')} {sqft(r.tile.quantity.area)} · {t('Marble')} {sqft(m.quantity.area)}
-            </p>
-          </div>
-          {actions}
+          <p className="eyebrow">{t('Combined Project Summary')}</p>
+          <h2 id="fl-summary-head">{projectName.trim() || t('Tile & marble estimate')}</h2>
+          <p className="small muted">
+            {t('Prepared on')} {formatDate(date)} · {t('Tile')} {sqft(r.tile.quantity.area)} · {t('Marble')} {sqft(m.quantity.area)}
+          </p>
         </div>
 
-        <div className="fl-summary-grid">
-          <SummaryTable
-            title={t('Flooring')}
-            rows={[
-              [t('Tile material'), r.tile.material],
-              [t('Marble material'), m.material],
-            ]}
-            totalLabel={t('Flooring Material Total')}
-            total={r.material.flooring}
-          />
-          <SummaryTable
-            title={t('Labour')}
-            rows={[
-              [t('Tile labour'), r.labour.tile],
-              [t('Marble floor & platform labour'), r.labour.marbleFloor],
-              [t('Marble window & stair labour'), r.labour.marbleTrim],
-            ]}
-            totalLabel={t('Total Labour')}
-            total={r.labour.total}
-          />
-          <div className="fl-st">
-            <h3>{t('Supporting Materials')}</h3>
-            <table className="fl-st-table">
-              <thead>
-                <tr>
-                  <th scope="col">{t('Item')}</th>
-                  <th scope="col">{t('Quantity')}</th>
-                  <th scope="col">{t('Cost')}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {r.supporting.map((s) => (
-                  <tr key={s.key}>
-                    <th scope="row">{t(SUPPORTING_META[s.key].label)}</th>
-                    <td className="num">{reqQuantity(s)}</td>
-                    <td className="num">{formatINR(s.cost)}</td>
-                  </tr>
-                ))}
-              </tbody>
-              <tfoot>
-                <tr>
-                  <th scope="row" colSpan={2}>
-                    {t('Supporting Material Total')}
-                  </th>
-                  <td className="num">{formatINR(r.material.supporting)}</td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-          <SummaryTable title={t('Other')} rows={[[`${t('Extra expenses')} (${formatPercent(r.extraPct, 2)})`, r.extra]]} />
-        </div>
+        <table className="fl-bill">
+          <thead className="sr-only">
+            <tr>
+              <th scope="col">{t('Item')}</th>
+              <th scope="col">{t('Quantity')}</th>
+              <th scope="col">{t('Cost')}</th>
+            </tr>
+          </thead>
+          {section(
+            t('Flooring'),
+            [
+              [t('Tile material'), sqft(r.tile.quantity.required), r.tile.material],
+              [t('Marble material'), sqft(m.quantity.required), m.material],
+            ],
+            t('Flooring Material Total'),
+            r.material.flooring,
+          )}
+          {section(
+            t('Labour'),
+            [
+              [t('Tile labour'), sqft(r.tile.quantity.area), r.labour.tile],
+              [t('Marble floor & platform labour'), sqft(m.floorArea), r.labour.marbleFloor],
+              [t('Marble window & stair labour'), sqft(m.trimArea), r.labour.marbleTrim],
+            ],
+            t('Total Labour'),
+            r.labour.total,
+          )}
+          {section(
+            t('Supporting Materials'),
+            r.supporting.map((s) => [t(SUPPORTING_META[s.key].label), reqQuantity(s), s.cost] as [string, string, number]),
+            t('Supporting Material Total'),
+            r.material.supporting,
+          )}
+          {section(t('Other'), [[t('Extra expenses'), formatPercent(r.extraPct, 2), r.extra]])}
+        </table>
 
         <div className="fl-grand">
           <div className="fl-grand-main">
             <span className="fl-grand-label">{t('Total Project Cost')}</span>
             <span className="fl-grand-value num">{formatINR(r.grandTotal)}</span>
-            {r.averagePerSqft != null && (
-              <span className="fl-grand-avg num">
-                {t('Average flooring cost')} {rate(round2(r.averagePerSqft))} / sq ft
-              </span>
-            )}
           </div>
-          <dl className="fl-grand-parts">
-            <div>
-              <dt>{t('Tile & marble material')}</dt>
-              <dd className="num">{formatINR(r.material.flooring)}</dd>
+          {r.averagePerSqft != null && (
+            <div className="fl-grand-avg-box">
+              <span className="fl-grand-label">{t('Average flooring cost')}</span>
+              <span className="fl-grand-avg num">{rate(round2(r.averagePerSqft))} / sq ft</span>
             </div>
-            <div>
-              <dt>{t('Total labour cost')}</dt>
-              <dd className="num">{formatINR(r.labour.total)}</dd>
-            </div>
-            <div>
-              <dt>{t('Supporting material cost')}</dt>
-              <dd className="num">{formatINR(r.material.supporting)}</dd>
-            </div>
-            <div>
-              <dt>{t('Extra expenses')}</dt>
-              <dd className="num">{formatINR(r.extra)}</dd>
-            </div>
-          </dl>
+          )}
         </div>
-        <p className="small muted fl-summary-note">
-          {t('Total material cost (tile and marble plus supporting materials): {amount}. The average divides the total by the {area} you entered, not by the larger purchase quantity.')
-            .replace('{amount}', formatINR(r.material.total))
-            .replace('{area}', sqft(r.baseArea))}
-        </p>
       </div>
     </section>
-  );
-}
-
-function SummaryTable({ title, rows, totalLabel, total }: { title: string; rows: [string, number][]; totalLabel?: string; total?: number }) {
-  const t = useT();
-  return (
-    <div className="fl-st">
-      <h3>{title}</h3>
-      <table className="fl-st-table">
-        <thead>
-          <tr>
-            <th scope="col">{t('Item')}</th>
-            <th scope="col">{t('Cost')}</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map(([label, value]) => (
-            <tr key={label}>
-              <th scope="row">{label}</th>
-              <td className="num">{formatINR(value)}</td>
-            </tr>
-          ))}
-        </tbody>
-        {totalLabel && total != null && (
-          <tfoot>
-            <tr>
-              <th scope="row">{totalLabel}</th>
-              <td className="num">{formatINR(total)}</td>
-            </tr>
-          </tfoot>
-        )}
-      </table>
-    </div>
   );
 }
 
@@ -750,7 +706,7 @@ function QuantityFlow({ q, noun }: { q: Quantity; noun: 'tile' | 'marble' }) {
         <span className="num">{sqft(q.area)}</span>
       </div>
       <div className="fl-flow-row add">
-        <span>+ {q.skirtingOn ? t('Skirting (auto)') : t('Skirting — not added')}</span>
+        <span>+ {q.skirtingOn ? t('Skirting') : t('Skirting (not added)')}</span>
         <span className="num">{sqft(q.skirting)}</span>
       </div>
       <div className="fl-flow-row sub">
@@ -759,19 +715,16 @@ function QuantityFlow({ q, noun }: { q: Quantity; noun: 'tile' | 'marble' }) {
       </div>
       <div className="fl-flow-row add">
         <span>
-          + {t('Wastage')} ({formatPercent(q.wastagePct, 2)}, {t('standard')})
+          + {t('Wastage')} ({formatPercent(q.wastagePct, 2)})
         </span>
         <span className="num">{sqft(q.wastage)}</span>
       </div>
       <div className="fl-flow-row total">
         <span>{noun === 'tile' ? t('Total tile required') : t('Total marble required')}</span>
-        <span className="num">
-          {sqft(q.required)}
-          {q.required > 0 && <small>{t('order ≈ {n} sq ft').replace('{n}', formatNumber(q.purchase))}</small>}
-        </span>
+        <span className="num">{sqft(q.required)}</span>
       </div>
       <p className="fl-flow-note">
-        {t('Your {area} stays as entered — labour and the average cost use it. Skirting and wastage only change what you buy.').replace('{area}', sqft(q.area))}
+        {t('Labour is charged on your {area}. Skirting and wastage are added only to the material you buy.').replace('{area}', sqft(q.area))}
       </p>
     </div>
   );

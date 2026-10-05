@@ -104,10 +104,8 @@ export interface Quantity {
   subtotal: number;
   wastagePct: number;
   wastage: number;
-  /** Subtotal + wastage: what has to be bought. */
+  /** Subtotal + wastage, in whole sq ft: what has to be bought. */
   required: number;
-  /** The same, to the nearest whole sq ft, for ordering. */
-  purchase: number;
 }
 
 /**
@@ -117,10 +115,12 @@ export interface Quantity {
  */
 function quantity(area: number, skirtingBase: number, skirtingOn: boolean, wastagePct: number): Quantity {
   const a = clean(area);
-  const skirting = skirtingOn ? calculateSkirting(skirtingBase) : 0;
+  // Skirting and wastage are rounded up to whole sq ft, so the quantity to
+  // buy is a whole number too.
+  const skirting = skirtingOn ? ceil(calculateSkirting(skirtingBase)) : 0;
   const subtotal = a + skirting;
-  const wastage = (subtotal * wastagePct) / 100;
-  const required = subtotal + wastage;
+  const wastage = ceil((subtotal * wastagePct) / 100);
+  const required = ceil(subtotal + wastage);
   return {
     area: a,
     skirtingBase: clean(skirtingBase),
@@ -130,7 +130,6 @@ function quantity(area: number, skirtingBase: number, skirtingOn: boolean, wasta
     wastagePct,
     wastage,
     required,
-    purchase: Math.round(round6(required)),
   };
 }
 
@@ -382,6 +381,11 @@ function clean(v: number): number {
 /** Whole rupees per line, so the lines add up to the totals shown. */
 function rupees(v: number): number {
   return Number.isFinite(v) ? Math.round(round6(v)) : 0;
+}
+
+/** Rounds up to a whole unit, ignoring float dust (110.0000001 is 110). */
+function ceil(v: number): number {
+  return Math.ceil(round6(v));
 }
 
 /** Drops float dust before rounding: 19.200000000000003 is 19.2, 43658.99999 is 43659. */

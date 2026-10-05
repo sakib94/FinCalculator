@@ -61,14 +61,14 @@ describe('tile quantity', () => {
     expect(q.area).toBe(660);
     expect(q.skirting).toBe(110);
     expect(q.subtotal).toBe(770);
-    expect(q.wastage).toBeCloseTo(38.5, 10);
-    expect(q.required).toBeCloseTo(808.5, 10);
-    expect(q.purchase).toBe(809);
+    // 38.5 rounds up to 39; everything to buy is in whole sq ft.
+    expect(q.wastage).toBe(39);
+    expect(q.required).toBe(809);
   });
 
   it('prices material on the required quantity and labour on the area entered', () => {
     const q = calculateTileQuantity({ area: 660, skirting: true });
-    expect(calculateTileMaterialCost(q, 60)).toBe(48510);
+    expect(calculateTileMaterialCost(q, 60)).toBe(48540);
     expect(calculateTileLabourCost(660, 20)).toBe(13200);
   });
 });
@@ -79,15 +79,17 @@ describe('marble quantity', () => {
     const q = calculateMarbleQuantity({ floorArea: 250, trimArea: 50, skirting: true });
     expect(q.area).toBe(300);
     expect(q.skirtingBase).toBe(250);
-    expect(q.skirting).toBeCloseTo(41.6667, 4);
-    expect(q.required).toBeCloseTo(365.5833, 4);
-    expect(calculateMarbleMaterialCost(q, 120)).toBe(43870);
+    // 41.67 → 42 skirting; 342 × 7% = 23.94 → 24 wastage; 366 to buy.
+    expect(q.skirting).toBe(42);
+    expect(q.wastage).toBe(24);
+    expect(q.required).toBe(366);
+    expect(calculateMarbleMaterialCost(q, 120)).toBe(43920);
   });
 
   it('has no skirting when it is not wanted', () => {
     const q = calculateMarbleQuantity({ floorArea: 250, trimArea: 50, skirting: false });
     expect(q.skirting).toBe(0);
-    expect(q.required).toBeCloseTo(321, 10);
+    expect(q.required).toBe(321);
   });
 
   it('charges each marble section its own labour rate', () => {
@@ -132,22 +134,22 @@ describe('the example', () => {
   const r = calculateFlooringEstimate(defaultInput());
 
   it('prices the tile tab', () => {
-    expect(r.tile).toMatchObject({ material: 48510, labour: 13200, total: 61710 });
+    expect(r.tile).toMatchObject({ material: 48540, labour: 13200, total: 61740 });
   });
 
   it('prices the marble tab', () => {
-    expect(r.marble).toMatchObject({ material: 43870, floorLabour: 40000, trimLabour: 9000, total: 92870 });
+    expect(r.marble).toMatchObject({ material: 43920, floorLabour: 40000, trimLabour: 9000, total: 92920 });
   });
 
   it('combines both tabs into one project total', () => {
-    expect(r.material).toEqual({ flooring: 92380, supporting: 20900, total: 113280 });
+    expect(r.material).toEqual({ flooring: 92460, supporting: 20900, total: 113360 });
     expect(r.labour.total).toBe(62200);
-    expect(r.subtotal).toBe(175480);
+    expect(r.subtotal).toBe(175560);
     expect(r.extraPct).toBe(3);
-    expect(r.extra).toBe(5264);
-    expect(r.grandTotal).toBe(180744);
+    expect(r.extra).toBe(5267);
+    expect(r.grandTotal).toBe(180827);
     expect(r.baseArea).toBe(960);
-    expect(r.averagePerSqft).toBeCloseTo(188.275, 3);
+    expect(r.averagePerSqft).toBeCloseTo(188.3615, 3);
     expect(r.tile.total + r.marble.total + r.material.supporting + r.extra).toBe(r.grandTotal);
   });
 });
@@ -215,24 +217,24 @@ describe('report', () => {
     expect(workings(r).find((b) => b.title === 'Tile material')?.steps).toEqual([
       'Skirting: 660 sq ft × 4 × 0.5 ft ÷ 12 ft = 110 sq ft (6-inch skirting; walls estimated from 12 × 12 ft rooms)',
       '660 sq ft + 110 sq ft skirting = 770 sq ft',
-      '770 sq ft + 5% wastage (38.5 sq ft) = 808.5 sq ft required',
-      '808.5 sq ft × ₹60 = ₹48,510',
+      '770 sq ft + 5% wastage (39 sq ft) = 809 sq ft required',
+      '809 sq ft × ₹60 = ₹48,540',
     ]);
     const all = workings(r);
-    expect(all[all.length - 1].total).toBe(180744);
+    expect(all[all.length - 1].total).toBe(180827);
   });
 
   it('summarises and exports the whole estimate', () => {
-    expect(summaryText(r, 'Sharma residence')).toContain('TOTAL PROJECT COST: ₹1,80,744');
+    expect(summaryText(r, 'Sharma residence')).toContain('TOTAL PROJECT COST: ₹1,80,827');
     const rows = estimateCsvRows(r, '', '2026-10-05');
-    expect(rows.find((x) => x.item === 'Total project cost')?.cost).toBe(180744);
-    expect(rows.find((x) => x.item === 'Total tile required')?.quantity).toBe(808.5);
+    expect(rows.find((x) => x.item === 'Total project cost')?.cost).toBe(180827);
+    expect(rows.find((x) => x.item === 'Total tile required')?.quantity).toBe(809);
   });
 
   it('is registered with its own workspace', () => {
     const def = REGISTRY['tile-marble-flooring'];
     expect(def.workspace).toBeDefined();
-    expect(def.hero(def.compute({}), {})).toMatchObject({ value: '₹1,80,744' });
+    expect(def.hero(def.compute({}), {})).toMatchObject({ value: '₹1,80,827' });
   });
 });
 
@@ -245,7 +247,7 @@ describe('explanatory text', () => {
       expect(content, String(v)).toContain(inr(v));
     }
     expect(content).toContain(`₹${(Math.round((r.averagePerSqft ?? 0) * 100) / 100).toFixed(2)} per sq ft`);
-    expect(content).toContain('808.5 sq ft');
+    expect(content).toContain('809 sq ft');
     expect(r.supporting.map((s) => s.quantity)).toEqual([111, 24, 18, 20]);
   });
 });
