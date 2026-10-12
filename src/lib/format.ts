@@ -134,3 +134,6 @@ export const toISODate = (d: Date): string => {
   const p = (n: number) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}`;
 };
+
+/** "Jun 2031" — when a loan's last EMI falls. */
+export const formatMonthYear = (d: Date): string => d.toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });

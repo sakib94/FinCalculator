@@ -497,6 +497,31 @@ export const CALCULATORS: CalculatorMeta[] = [
   },
 
   {
+    id: 'loan-top-up',
+    isNew: true,
+    name: 'Loan Top-Up Calculator',
+    shortName: 'Loan Top-Up',
+    tagline: 'Should You Take a Loan Top-Up?',
+    category: 'loans',
+    icon: 'arrowUpRight',
+    keywords: [
+      'top up loan',
+      'loan top-up',
+      'home loan top up',
+      'top up emi',
+      'additional loan',
+      'consolidate',
+      'extend tenure',
+      'best tenure',
+      'additional interest',
+      'refinance',
+    ],
+    related: ['loan-prepayment', 'personal-loan-emi', 'home-loan-emi'],
+    seoTitle: 'Loan Top-Up Calculator – Compare EMI, Interest & Best Tenure',
+    seoDescription:
+      'Calculate your loan top-up EMI, compare existing vs new loan costs, find the best tenure, estimate additional interest and decide whether taking a loan top-up makes financial sense.',
+  },
+  {
     id: 'loan-prepayment',
     name: 'Loan Prepayment Calculator',
     shortName: 'Loan Prepayment',

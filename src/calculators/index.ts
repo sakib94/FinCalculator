@@ -30,6 +30,7 @@ import educationLoan from './loans/educationLoan';
 import prepayment from './loans/prepayment';
 import eligibility from './loans/eligibility';
 import flatVsReducing from './loans/flatVsReducing';
+import topUp from './loans/topUp';
 
 /* Tax & salary */
 import incomeTax from './tax/incomeTax';
@@ -97,6 +98,7 @@ export const REGISTRY: Record<string, AnyCalculator> = {
   'education-loan-emi': educationLoan,
   'loan-prepayment': prepayment,
   'loan-eligibility': eligibility,
+  'loan-top-up': topUp,
   'flat-vs-reducing': flatVsReducing,
   'income-tax': incomeTax,
   salary,

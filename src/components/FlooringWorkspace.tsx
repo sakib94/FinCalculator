@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { KeyboardEvent, ReactNode } from 'react';
-import type { Field, WorkspaceProps } from '@/calculators/types';
+import type { WorkspaceProps } from '@/calculators/types';
 import {
   SKIRTING,
   calculateFlooringEstimate,
@@ -31,7 +31,7 @@ import { formatDate, formatINR, formatPercent, toISODate } from '@/lib/format';
 import { copyText, downloadCSV, printPage, toCSV } from '@/lib/export';
 import { readLocal, writeLocal } from '@/lib/storage';
 import { useT } from '@/hooks/PreferencesContext';
-import { FieldControl } from './FieldControl';
+import { Num } from './WorkspaceFields';
 import { CompositionBar } from './CalcPageParts';
 import { CalcPopup } from './CalcPopup';
 import { Icon } from './Icon';
@@ -821,34 +821,6 @@ function MaterialRow({
         <span className="num fl-mat-cost">{value > 0 ? formatINR(cost) : t('add a rate')}</span>
       </div>
     </div>
-  );
-}
-
-interface NumProps {
-  path: string;
-  label: string;
-  value: number;
-  onChange: (v: number) => void;
-  type?: 'number' | 'currency' | 'percent';
-  unit?: string;
-  help?: string;
-  error?: string;
-  wide?: boolean;
-}
-
-/** A numeric field. Empty reads as zero, so it shows as a blank box rather than "0". */
-function Num({ path, label, value, onChange, type = 'number', unit, help, error, wide }: NumProps) {
-  const field = useMemo<Field>(
-    () => ({ name: path, label, type, default: 0, unit, help, wide, placeholder: '0' }),
-    [path, label, type, unit, help, wide],
-  );
-  return (
-    <FieldControl
-      field={field}
-      value={value === 0 ? '' : value}
-      error={error}
-      onChange={(_, v) => onChange(v === '' ? 0 : typeof v === 'number' ? v : Number(v) || 0)}
-    />
   );
 }
 

@@ -2,7 +2,7 @@
 
 Financial calculators for India, at [paisewise.in](https://paisewise.in).
 
-A financial and utility calculator platform for India: 50 calculators covering loans, investment,
+A financial and utility calculator platform for India: 51 calculators covering loans, investment,
 retirement, tax, salary, business, construction, flooring and everyday maths, plus 22 long-form financial
 guides — built as a single coherent application rather than a collection of pages.
 
@@ -68,7 +68,7 @@ offline cache from disk.
 **Investment & Retirement** — EPF · NPS · PPF · Mutual Fund (SIP *or* lumpsum) · FD · Retirement
 Planning · Inflation · SWP · Sukanya Samriddhi · Compound Interest · Net Worth
 **Loans** — Home Loan EMI · Personal Loan EMI · Car Loan EMI · Bike Loan EMI · Education Loan
-EMI · Loan Prepayment · Loan Eligibility · Flat vs Reducing Rate
+EMI · Loan Top-Up · Loan Prepayment · Loan Eligibility · Flat vs Reducing Rate
 **Tax & Salary** — Income Tax (old vs new regime) · Salary · CTC to In-Hand · Gratuity · Salary
 Increment · Leave Encashment · HRA Exemption · TDS · Capital Gains Tax
 **Date & Age** — Age · Date Difference
@@ -128,7 +128,7 @@ src/
 └── tests/              # Vitest suites for the engines
 ```
 
-The data flow is the same for every calculator, which is what keeps 50 modules feeling like one
+The data flow is the same for every calculator, which is what keeps 51 modules feeling like one
 product:
 
 ```
@@ -166,6 +166,17 @@ sand/cement/white-cement/grout consumption assumptions (`CONSUMPTION`),
 is in `src/engines/flooring.ts`; its example and saved-state handling in
 `src/calculators/everyday/flooringModel.ts`; its workings and CSV in `flooringReport.ts`; and
 the screen in `src/components/FlooringWorkspace.tsx`.
+
+The Loan Top-Up Calculator is the other workspace. It is a decision tool rather than an EMI
+calculator: it compares continuing the existing loan with taking the top-up *from today*,
+keeps interest already paid (a sunk cost) out of the comparison, and reads green, amber or red
+from five checks — need vs borrowing, EMI vs a comfortable EMI, tenure stretch, extra interest
+per rupee received, and charges. Its maths — the comparison, net cash after fees and GST, the
+tenure table and recommendation, amount scenarios, part prepayment and validation, with the
+decision thresholds in `THRESHOLDS` — is in `src/engines/topup.ts`; the example and saved
+state in `src/calculators/loans/topUpModel.ts`; the wording of the verdict and recommendation
+in `topUpReport.ts`; and the screen in `src/components/TopUpWorkspace.tsx` and
+`TopUpSections.tsx`.
 
 ### Adding a guide
 
