@@ -31,11 +31,15 @@ import { FEE_GST_PCT } from './loanTypes';
 /** Original tenures offered as one-tap choices, in years; anything else is entered as a custom tenure. */
 export const ORIGINAL_TENURE_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 10] as const;
 
-/** New tenures offered as one-tap choices, in months. */
-export const NEW_TENURE_MONTHS = [12, 24, 36, 48, 54, 60, 66, 72, 84, 96, 120] as const;
+/** New tenures offered as one-tap choices, in years; anything else is entered as a custom tenure. */
+export const NEW_TENURE_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 10] as const;
 
-/** The tenures every comparison is drawn across (the chosen tenure is added if it is not one of them). */
-export const COMPARE_TENURES = [48, 54, 60, 66, 72, 84] as const;
+/**
+ * The tenures every comparison is drawn across, in months: 3 to 7 years.
+ * The chosen tenure is added when it is not one of them. Tenures are
+ * entered and shown in years; the engine works in months throughout.
+ */
+export const COMPARE_TENURES = [36, 48, 60, 72, 84] as const;
 
 export const LIMITS = {
   /** ₹100 crore — far above any retail top-up, low enough to catch a slipped key. */
@@ -786,9 +790,12 @@ export function calculateTopUp(input: TopUpInput, today: Date = new Date()): Top
         : tenures.find((r) => r.months === 60) ?? tenures[0];
     if (shorter.months < selected) longTenure = pair(chosen, shorter);
   }
+  // The lesson sets the borrower's own tenure against the recommendation
+  // when theirs is longer; otherwise the longest tenure in the table.
   const longest = tenures[tenures.length - 1];
-  const lessonShort = recommendation.months < longest.months ? recommendation.row : tenures[0];
-  const lesson = lessonShort.months < longest.months ? pair(longest, lessonShort) : null;
+  const lessonLong = chosen.months > recommendation.months ? chosen : longest;
+  const lessonShort = recommendation.months < lessonLong.months ? recommendation.row : tenures[0];
+  const lesson = lessonShort.months < lessonLong.months ? pair(lessonLong, lessonShort) : null;
 
   const need = n(t.required);
   const fullCash = option.charges.total > 0 && option.charges.net + 0.5 < need ? topUpForCash(need, existing.outstanding, t) : null;
@@ -823,6 +830,11 @@ export interface TopUpIssue {
 }
 
 const RUPEE = new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 });
+/** "6 years", "1 year", "5.5 years" — tenures are entered in years. */
+const yearsText = (m: number) => {
+  const y = Math.round((m / 12) * 100) / 100;
+  return `${y} ${y === 1 ? 'year' : 'years'}`;
+};
 const inr = (v: number) => `₹${RUPEE.format(Math.round(v))}`;
 
 export function validateTopUp(input: TopUpInput): TopUpIssue[] {
@@ -843,9 +855,11 @@ export function validateTopUp(input: TopUpInput): TopUpIssue[] {
     if (bad(v)) err(path, 'Enter an interest rate of 0% or more.');
     else if (v > LIMITS.maxRatePct) err(path, `Enter an interest rate up to ${LIMITS.maxRatePct}%.`);
   };
-  const tenure = (path: string, v: number, max: number, label: string) => {
-    if (bad(v) || Math.round(v) < 1) err(path, `Enter the ${label} in months — at least 1.`);
-    else if (v > max) err(path, `Enter a ${label} up to ${max} months.`);
+  /** Tenures are entered in years, except the months left on a statement. */
+  const tenure = (path: string, v: number, max: number, label: string, unit: 'years' | 'months' = 'years') => {
+    const limit = unit === 'years' ? `${max / 12} years` : `${max} months`;
+    if (bad(v) || Math.round(v) < 1) err(path, unit === 'years' ? `Enter the ${label} in years.` : `Enter the ${label} in months — at least 1.`);
+    else if (v > max) err(path, `Enter a ${label} up to ${limit}.`);
     else return true;
     return false;
   };
@@ -856,7 +870,10 @@ export function validateTopUp(input: TopUpInput): TopUpIssue[] {
   const tenureOk = tenure('existing.originalTenureMonths', e.originalTenureMonths, LIMITS.maxOriginalTenureMonths, 'original tenure');
   if (bad(e.emisPaid)) err('existing.emisPaid', 'EMIs already paid can’t be negative.');
   else if (tenureOk && Math.round(e.emisPaid) > Math.round(e.originalTenureMonths))
-    err('existing.emisPaid', `EMIs already paid (${Math.round(e.emisPaid)}) can’t be more than the original tenure of ${Math.round(e.originalTenureMonths)} months.`);
+    err(
+      'existing.emisPaid',
+      `EMIs already paid (${Math.round(e.emisPaid)}) can’t be more than the original tenure of ${yearsText(e.originalTenureMonths)} (${Math.round(e.originalTenureMonths)} EMIs).`,
+    );
   else if (tenureOk && e.remainingMode === 'auto' && Math.round(e.emisPaid) === Math.round(e.originalTenureMonths))
     err('existing.emisPaid', 'Every EMI on the original tenure is paid, so no months are left. If the loan is still running, enter the remaining tenure yourself.');
 
@@ -866,7 +883,7 @@ export function validateTopUp(input: TopUpInput): TopUpIssue[] {
     err('existing.outstanding', `The outstanding principal can’t be more than the original loan of ${inr(e.originalAmount)}. Check your loan statement.`);
 
   let remainingOk = true;
-  if (e.remainingMode === 'manual') remainingOk = tenure('existing.remainingMonths', e.remainingMonths, LIMITS.maxOriginalTenureMonths, 'remaining tenure');
+  if (e.remainingMode === 'manual') remainingOk = tenure('existing.remainingMonths', e.remainingMonths, LIMITS.maxOriginalTenureMonths, 'remaining tenure', 'months');
   const left = remainingMonthsOf(e);
   if (emiOk && outOk && remainingOk && left > 0) {
     const r = Math.min(LIMITS.maxRatePct, Math.max(0, e.originalRatePct)) / 100 / 12;

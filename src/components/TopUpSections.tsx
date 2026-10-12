@@ -4,26 +4,31 @@ import type { AmountScenarios, PrepaymentPlan, ScenarioRow, TenureRow, TopUpInpu
 import type { PinnedOption, TopUpState } from '@/calculators/loans/topUpModel';
 import {
   TENURE_CSV_COLUMNS,
-  emiChangeWords,
+  amountTakeaway,
+  bottomLine,
+  compareTakeaway,
   lakh,
   matrixAdvice,
-  mo,
-  moAdj,
   money,
-  personalRecommendation,
+  personalPoints,
+  prepayTakeaway,
   ratePct,
   recommendationText,
   scheduleTable,
   tenureCsvRows,
+  tenureTakeaway,
   verdictTitle,
   when,
+  yrAdj,
+  yrs,
 } from '@/calculators/loans/topUpReport';
 import { formatINR, formatSignedINR } from '@/lib/format';
 import { downloadCSV, toCSV } from '@/lib/export';
+import { TweenedText } from '@/lib/tween';
 import { useT } from '@/hooks/PreferencesContext';
 import { Chart } from './Chart';
 import { DataTable } from './DataTable';
-import { Icon } from './Icon';
+import { Icon, type IconName } from './Icon';
 import { Num, Seg } from './WorkspaceFields';
 import { useToast } from './Toast';
 
@@ -42,7 +47,12 @@ interface Props {
   onUnpin: (id: string) => void;
 }
 
-/** Everything under the inputs: compare, tenure, amount, prepayment, decision, schedule. */
+/**
+ * Everything under the inputs, numbered on from the three input steps so
+ * the page reads as one journey: 4 compare → 5 tenure → 6 amount →
+ * 7 prepayment → 8 decision, then the schedule. Each section opens with a
+ * one-line takeaway, its key figure in bold.
+ */
 export function TopUpSections(p: Props) {
   return (
     <>
@@ -56,13 +66,61 @@ export function TopUpSections(p: Props) {
   );
 }
 
-function Head({ id, eyebrow, title, children }: { id: string; eyebrow: string; title: string; children?: ReactNode }) {
+/* ================================================================== */
+/* Shared pieces                                                       */
+/* ================================================================== */
+
+/** Text with **…** marking the figure to stress. */
+export function Rich({ text }: { text: string }) {
+  return (
+    <>
+      {text.split('**').map((part, i) => (i % 2 ? <strong key={i}>{part}</strong> : part))}
+    </>
+  );
+}
+
+function SectionHead({
+  id,
+  n,
+  eyebrow,
+  title,
+  takeaway,
+  icon = 'sparkle',
+  tone = 'info',
+  children,
+}: {
+  id: string;
+  n?: number;
+  eyebrow: string;
+  title: string;
+  takeaway?: string | null;
+  icon?: IconName;
+  tone?: 'info' | 'good' | 'warn';
+  children?: ReactNode;
+}) {
   const t = useT();
   return (
     <div className="block-head tu-block-head">
-      <p className="eyebrow">{t(eyebrow)}</p>
-      <h2 id={id}>{t(title)}</h2>
+      <div className="tu-sec-title">
+        {n != null && (
+          <span className="tu-step-n" aria-hidden="true">
+            {n}
+          </span>
+        )}
+        <div>
+          <p className="eyebrow">{t(eyebrow)}</p>
+          <h2 id={id}>{t(title)}</h2>
+        </div>
+      </div>
       {children}
+      {takeaway && (
+        <p className={`tu-takeaway ${tone}`}>
+          <Icon name={icon} size={17} className="tu-takeaway-i" />
+          <span>
+            <Rich text={takeaway} />
+          </span>
+        </p>
+      )}
     </div>
   );
 }
@@ -74,10 +132,13 @@ const pos = (v: number) => Math.max(0, v);
 /* 4 · Compare options                                                 */
 /* ================================================================== */
 
+type Better = 'good' | 'warn' | 'neutral';
+
 function CompareSection({ r }: { r: TopUpResult }) {
   const t = useT();
   const e = r.existing;
   const o = r.option;
+  const saving = o.additionalInterest < 0;
   const chart: ChartSpec = {
     kind: 'bar',
     title: 'Existing loan vs top-up, from today',
@@ -87,54 +148,88 @@ function CompareSection({ r }: { r: TopUpResult }) {
       { name: 'With top-up', values: [o.loan, o.futureInterest, o.totalPayments] },
     ],
   };
-  const saving = o.additionalInterest < 0;
+  const tone = (v: number, lowerIsBetter = true): Better => (Math.abs(v) < 0.5 ? 'neutral' : v < 0 === lowerIsBetter ? 'good' : 'warn');
+  const rows: { label: string; a: string; b: string; change: string; better: Better; key?: boolean }[] = [
+    { label: 'Loan amount', a: money(e.outstanding), b: money(o.loan), change: formatSignedINR(o.loan - e.outstanding), better: 'neutral' },
+    { label: 'Cash in your hand', a: '—', b: money(o.charges.net), change: formatSignedINR(o.charges.net), better: 'good' },
+    { label: 'Monthly EMI', a: money(e.emi), b: money(o.emi), change: formatSignedINR(o.emiChange), better: tone(o.emiChange) },
+    {
+      label: 'Time left to pay',
+      a: yrs(e.remainingMonths),
+      b: yrs(o.months),
+      change: o.extensionMonths === 0 ? '—' : `${o.extensionMonths > 0 ? '+' : '−'}${yrs(Math.abs(o.extensionMonths))}`,
+      better: tone(o.extensionMonths),
+    },
+    { label: 'Total payments', a: money(e.remainingPayments), b: money(o.totalPayments), change: formatSignedINR(o.additionalPayments), better: 'neutral' },
+    {
+      label: 'Interest from today',
+      a: money(e.futureInterest),
+      b: money(o.futureInterest),
+      change: formatSignedINR(o.additionalInterest),
+      better: tone(o.additionalInterest),
+      key: true,
+    },
+    { label: 'Last EMI', a: when(e.completion), b: when(o.completion), change: '', better: 'neutral' },
+  ];
 
   return (
     <section className="calc-block" id="tu-compare" aria-labelledby="tu-compare-head">
-      <Head id="tu-compare-head" eyebrow="Compare options" title="Continue as you are, or take the top-up?" />
+      <SectionHead
+        id="tu-compare-head"
+        n={4}
+        eyebrow="Compare options"
+        title="Continue as you are, or take the top-up?"
+        takeaway={compareTakeaway(r)}
+        icon="scale"
+        tone={saving ? 'good' : o.interestPerRupee > 0.5 ? 'warn' : 'info'}
+      />
 
-      <div className="tu-options">
-        <OptionCard
-          tone="a"
-          tag={t('Option A')}
-          title={t('Without top-up')}
-          rows={[
-            [t('Outstanding principal'), money(e.outstanding)],
-            [t('Remaining tenure'), mo(e.remainingMonths)],
-            [t('EMI'), money(e.emi)],
-            [t('Remaining total payments'), money(e.remainingPayments)],
-            [t('Remaining interest'), money(e.futureInterest)],
-            [t('Loan completion'), when(e.completion)],
-          ]}
-        />
-        <OptionCard
-          tone="b"
-          tag={t('Option B')}
-          title={t('With top-up')}
-          rows={[
-            [t('New loan amount'), money(o.loan)],
-            [t('Top-up cash received'), money(o.charges.net)],
-            [t('New interest rate'), ratePct(o.ratePct)],
-            [t('New tenure'), mo(o.months)],
-            [t('New EMI'), money(o.emi)],
-            [t('Total future payments'), money(o.totalPayments)],
-            [t('Future interest'), money(o.futureInterest)],
-            [t('Loan completion'), when(o.completion)],
-          ]}
-        />
+      <div className="card tu-cmp" role="table" aria-label={t('Without top-up compared with the top-up, from today')}>
+        <div className="tu-cmp-row tu-cmp-head" role="row">
+          <span role="columnheader" className="tu-cmp-label">
+            <span className="sr-only">{t('Item')}</span>
+          </span>
+          <span role="columnheader">
+            <span className="tu-cmp-tag">A</span>
+            <span className="tu-cmp-long">{t('Without top-up')}</span>
+            <span className="tu-cmp-short">{t('Without')}</span>
+          </span>
+          <span role="columnheader" className="b">
+            <span className="tu-cmp-tag">B</span>
+            <span className="tu-cmp-long">{t('With top-up')}</span>
+            <span className="tu-cmp-short">{t('With')}</span>
+          </span>
+          <span role="columnheader">{t('Change')}</span>
+        </div>
+        {rows.map((row) => (
+          <div className={`tu-cmp-row${row.key ? ' key' : ''}`} role="row" key={row.label}>
+            <span role="rowheader" className="tu-cmp-label">
+              {t(row.label)}
+              {row.key && <span className="tu-key-tag">{t('Key figure')}</span>}
+            </span>
+            <span role="cell" className="num">
+              {row.a}
+            </span>
+            <span role="cell" className="num b">
+              {row.key ? <TweenedText value={row.b} /> : row.b}
+            </span>
+            <span role="cell" className={`num tu-change ${row.better}`}>
+              {row.change}
+            </span>
+          </div>
+        ))}
       </div>
 
       <div className="tu-metrics">
         <div className="card tu-metric">
           <span className="tu-metric-label">{t('Additional financing cost')}</span>
-          <strong className="tu-metric-value num">{formatSignedINR(o.additionalPayments)}</strong>
+          <strong className="tu-metric-value num">
+            <TweenedText value={formatSignedINR(o.additionalPayments)} />
+          </strong>
           <p>
             {t('You receive')} <strong className="num">{lakh(o.charges.net)}</strong> {t('but commit to approximately')}{' '}
             <strong className="num">{lakh(o.additionalPayments)}</strong>{' '}
-            {t('of additional future loan payments. This includes repayment of the borrowed principal plus additional interest and the longer loan.')}
-          </p>
-          <p className="tu-formula num">
-            {money(o.totalPayments)} − {money(e.remainingPayments)}
+            {t('of additional future loan payments. This includes repayment of the borrowed principal, so not all of it is cost.')}
           </p>
         </div>
         <div className={`card tu-metric key ${saving ? 'good' : o.interestPerRupee > 0.5 ? 'warn' : 'calm'}`}>
@@ -142,23 +237,19 @@ function CompareSection({ r }: { r: TopUpResult }) {
             {saving ? t('Interest saved') : t('Additional interest')}
             <span className="tu-key-tag">{t('Key decision figure')}</span>
           </span>
-          <strong className="tu-metric-value num">{money(Math.abs(o.additionalInterest))}</strong>
+          <strong className="tu-metric-value num">
+            <TweenedText value={money(Math.abs(o.additionalInterest))} />
+          </strong>
           <p>
             {saving
-              ? t('The new rate is low enough that you pay less interest from today than on your current loan.')
-              : `${t('The real cost of the top-up: interest from today with it, minus interest from today without it.')} ${t('That is')} ${formatINR(
-                  o.interestPerRupee,
-                  2,
-                )} ${t('for every ₹1 you receive.')}`}
-          </p>
-          <p className="tu-formula num">
-            {money(o.futureInterest)} − {money(e.futureInterest)}
+              ? t('The new terms are cheap enough that you pay less interest from today than on your current loan.')
+              : `${t('The real cost of the top-up —')} ${formatINR(o.interestPerRupee, 2)} ${t('for every ₹1 you receive.')}`}
           </p>
           {!saving && o.interestSplit.existingBalance > 0 && (
             <dl className="tu-split">
               <div>
                 <dt>
-                  {t('Re-stretching today’s')} {lakh(e.outstanding)} {t('over')} {mo(o.months)}
+                  {t('Stretching today’s')} {lakh(e.outstanding)} {t('over')} {yrs(o.months)}
                 </dt>
                 <dd className="num">{money(o.interestSplit.existingBalance)}</dd>
               </div>
@@ -182,41 +273,19 @@ function CompareSection({ r }: { r: TopUpResult }) {
         </div>
       </div>
 
-      <div className="card tu-sunk">
-        <div className="tu-sunk-head">
-          <Icon name="calendarCheck" size={18} />
+      <div className="tu-sunk">
+        <Icon name="calendarCheck" size={18} className="tu-sunk-i" />
+        <div>
           <h3>{t('What about the interest you already paid?')}</h3>
+          <p>
+            {t('About')} <strong className="num">{money(e.historicalInterest)}</strong> {t('of your')} {e.emisPaid}{' '}
+            {t(
+              'EMIs so far went to interest. That is a sunk cost: it has already been paid and cannot be recovered whether you take the top-up or not. So the comparison above counts only what you pay from today — your outstanding principal and the EMIs still to come.',
+            )}
+          </p>
         </div>
-        <p>
-          {t('Across your')} {e.emisPaid} {t('EMIs so far, roughly')} <strong className="num">{money(e.historicalInterest)}</strong>{' '}
-          {t('went to interest (estimated from your original schedule).')}
-        </p>
-        <p>
-          {t(
-            'The interest already paid on your existing loan is a sunk cost. It has already been paid and cannot be recovered whether you take the top-up or not. This calculator focuses only on the costs you will pay from today onward. That is why the main comparison uses your current outstanding principal and remaining EMIs.',
-          )}
-        </p>
       </div>
     </section>
-  );
-}
-
-function OptionCard({ tone, tag, title, rows }: { tone: 'a' | 'b'; tag: string; title: string; rows: [string, string][] }) {
-  return (
-    <div className={`card tu-option ${tone}`}>
-      <div className="tu-option-head">
-        <span className="tu-option-tag">{tag}</span>
-        <h3>{title}</h3>
-      </div>
-      <dl>
-        {rows.map(([k, v]) => (
-          <div key={k}>
-            <dt>{k}</dt>
-            <dd className="num">{v}</dd>
-          </div>
-        ))}
-      </dl>
-    </div>
   );
 }
 
@@ -231,11 +300,11 @@ function Timeline({ r }: { r: TopUpResult }) {
       <div className="tu-tl-label">
         <span>{label}</span>
         <span className="num">
-          {mo(months)} · {t('ends')} {when(end)}
+          {yrs(months)} · {t('ends')} {when(end)}
         </span>
       </div>
       <div className="tu-tl-track">
-        <span className={`tu-tl-fill ${cls}`} style={{ width: `${(Math.min(months, months - extra) / max) * 100}%` }} />
+        <span className={`tu-tl-fill ${cls}`} style={{ width: `${((months - extra) / max) * 100}%` }} />
         {extra > 0 && <span className="tu-tl-fill extra" style={{ width: `${(extra / max) * 100}%` }} />}
       </div>
     </div>
@@ -245,12 +314,21 @@ function Timeline({ r }: { r: TopUpResult }) {
       <figcaption className="section-label">{t('How long you keep paying')}</figcaption>
       {bar(t('Without top-up'), a, r.existing.completion, 0, 'a')}
       {bar(t('With top-up'), b, r.option.completion, Math.max(0, b - a), 'b')}
-      <p className="small muted">
-        {b > a
-          ? `${t('The top-up keeps you paying for')} ${mo(b - a)} ${t('longer.')}`
-          : b < a
-            ? `${t('The top-up finishes')} ${mo(a - b)} ${t('sooner.')}`
-            : t('Both finish in the same month.')}
+      <p className="tu-tl-note">
+        {b > a && <span className="tu-tl-swatch" aria-hidden="true" />}
+        <span>
+          {b > a ? (
+            <>
+              {t('The top-up keeps you paying')} <strong>{yrs(b - a)}</strong> {t('longer.')}
+            </>
+          ) : b < a ? (
+            <>
+              {t('The top-up finishes')} <strong>{yrs(a - b)}</strong> {t('sooner.')}
+            </>
+          ) : (
+            t('Both finish in the same month.')
+          )}
+        </span>
       </p>
     </figure>
   );
@@ -263,7 +341,7 @@ function Timeline({ r }: { r: TopUpResult }) {
 const TAG_LABEL: Record<string, string> = {
   'lowest-interest': 'Lowest interest',
   'lowest-emi': 'Lowest EMI',
-  'best-balance': 'Best balance',
+  'best-balance': 'Recommended',
   selected: 'Your choice',
 };
 
@@ -282,13 +360,12 @@ function TenureSection({
   const { notify } = useToast();
   const rec = r.recommendation;
   const o = r.option;
-  const comfortable = input.topup.comfortableEmi;
-  const x = r.tenures.map((row) => `${row.months}`);
-  const emiChart: ChartSpec = { kind: 'bar', title: 'EMI by tenure', xLabel: 'Months', x, series: [{ name: 'EMI', values: r.tenures.map((row) => row.emi) }] };
+  const x = r.tenures.map((row) => yrs(row.months).replace(' years', ' yrs').replace(' year', ' yr'));
+  const emiChart: ChartSpec = { kind: 'bar', title: 'EMI by tenure', xLabel: 'Tenure', x, series: [{ name: 'EMI', values: r.tenures.map((row) => row.emi) }] };
   const interestChart: ChartSpec = {
     kind: 'bar',
     title: 'Interest by tenure',
-    xLabel: 'Months',
+    xLabel: 'Tenure',
     x,
     series: [
       { name: 'Total interest', values: r.tenures.map((row) => row.interest) },
@@ -302,7 +379,15 @@ function TenureSection({
 
   return (
     <section className="calc-block" id="tu-tenure" aria-labelledby="tu-tenure-head">
-      <Head id="tu-tenure-head" eyebrow="Choose tenure" title="Which tenure gives the best balance?" />
+      <SectionHead
+        id="tu-tenure-head"
+        n={5}
+        eyebrow="Choose tenure"
+        title="Which tenure gives the best balance?"
+        takeaway={tenureTakeaway(r)}
+        icon="target"
+        tone="good"
+      />
 
       <div className="card tu-rec">
         <div className="tu-rec-main">
@@ -312,22 +397,23 @@ function TenureSection({
           <div>
             <p className="tu-rec-label">{rec.basis === 'none-fit' ? t('Closest balance') : t('Recommended tenure')}</p>
             <p className="tu-rec-value num">
-              {mo(rec.months)} <span>· EMI {money(rec.row.emi)}</span>
+              {yrs(rec.months)} <span>· EMI {money(rec.row.emi)}</span>
             </p>
             <p className="tu-rec-text">{t(recommendationText(r, input))}</p>
             {rec.months !== o.months && (
-              <button type="button" className="btn outline sm" onClick={() => onChooseTenure(rec.months)}>
-                {t('Use')} {mo(rec.months)}
+              <button type="button" className="btn primary sm no-print" onClick={() => onChooseTenure(rec.months)}>
+                {t('Use')} {yrs(rec.months)}
+                <Icon name="chevronRight" size={15} />
               </button>
             )}
           </div>
         </div>
-        <div className="tu-rec-field">
+        <div className="tu-rec-field no-print">
           <Num
             path="tenure.comfortableEmi"
             label="Comfortable EMI"
             type="currency"
-            value={comfortable}
+            value={input.topup.comfortableEmi}
             onChange={onComfortable}
             help="The most you can pay every month without strain. The recommendation is the shortest tenure within it."
           />
@@ -368,40 +454,46 @@ function TenureSection({
               </tr>
             </thead>
             <tbody>
-              {r.tenures.map((row) => (
-                <tr key={row.months} className={row.tags.includes('selected') ? 'is-selected' : row.tags.includes('best-balance') ? 'is-best' : ''}>
-                  <th scope="row">
-                    <span className="tu-tenure-cell">
-                      <span className="num">{mo(row.months)}</span>
-                      {row.tags
-                        .filter((tag) => tag !== 'selected')
-                        .map((tag) => (
-                          <span key={tag} className={`tu-badge ${tag}`}>
-                            {t(TAG_LABEL[tag])}
-                          </span>
-                        ))}
-                    </span>
-                  </th>
-                  <td className="num">
-                    {money(row.emi)}
-                    {row.affordable === false && <span className="tu-over">{t('above comfort')}</span>}
-                  </td>
-                  <td className="num">{lakh(row.totalPayment)}</td>
-                  <td className="num">{lakh(row.interest)}</td>
-                  <td className="num">{formatSignedINR(row.additionalInterest)}</td>
-                  <td className="num">{when(row.completion)}</td>
-                  <td className="no-print">
-                    <button
-                      type="button"
-                      className="btn subtle sm tu-choose"
-                      aria-pressed={row.tags.includes('selected')}
-                      onClick={() => onChooseTenure(row.months)}
-                    >
-                      {row.tags.includes('selected') ? t('Chosen') : t('Choose')}
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {r.tenures.map((row) => {
+                const selected = row.tags.includes('selected');
+                const best = row.tags.includes('best-balance');
+                return (
+                  <tr key={row.months} className={`${selected ? 'is-selected' : ''}${best ? ' is-best' : ''}`}>
+                    <th scope="row">
+                      <span className="tu-tenure-cell">
+                        <span className="num">{yrs(row.months)}</span>
+                        {row.tags
+                          .filter((tag) => tag !== 'selected')
+                          .map((tag) => (
+                            <span key={tag} className={`tu-badge ${tag}`}>
+                              {t(TAG_LABEL[tag])}
+                            </span>
+                          ))}
+                      </span>
+                    </th>
+                    <td className="num">
+                      {money(row.emi)}
+                      {row.affordable === false && <span className="tu-over">{t('above comfort')}</span>}
+                    </td>
+                    <td className="num">{lakh(row.totalPayment)}</td>
+                    <td className="num">{lakh(row.interest)}</td>
+                    <td className="num">{formatSignedINR(row.additionalInterest)}</td>
+                    <td className="num">{when(row.completion)}</td>
+                    <td className="no-print">
+                      <button type="button" className="btn subtle sm tu-choose" aria-pressed={selected} onClick={() => onChooseTenure(row.months)}>
+                        {selected ? (
+                          <>
+                            <Icon name="check" size={14} strokeWidth={2.4} />
+                            {t('Chosen')}
+                          </>
+                        ) : (
+                          t('Choose')
+                        )}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -410,55 +502,45 @@ function TenureSection({
         </p>
       </div>
 
-      {r.longTenure && <LongTenureWarning r={r} />}
-      {r.lesson && <Lesson r={r} />}
+      {r.lesson && <LowerEmiCard r={r} />}
 
       {r.matrix.length > 0 && (
         <div className="card tu-table-card">
           <div className="card-head">
             <h3>{t('Flexibility vs interest')}</h3>
           </div>
-          <div className="table-scroll">
-            <table className="data">
-              <thead>
-                <tr>
-                  <th scope="col">{t('Option')}</th>
-                  <th scope="col" className="num">
-                    {t('Tenure')}
-                  </th>
-                  <th scope="col" className="num">
-                    {t('EMI')}
-                  </th>
-                  <th scope="col" className="num">
-                    {t('Interest')}
-                  </th>
-                  <th scope="col" className="txt">
-                    {t('Flexibility')}
-                  </th>
-                  <th scope="col" className="txt">
-                    {t('Recommendation')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {r.matrix.map((m) => (
-                  <tr key={m.band}>
-                    <th scope="row">{t(m.band === 'long' ? 'Long tenure' : m.band === 'medium' ? 'Medium tenure' : 'Short tenure')}</th>
-                    <td className="num">{mo(m.row.months)}</td>
-                    <td className="num">{money(m.row.emi)}</td>
-                    <td className="num">{lakh(m.row.interest)}</td>
-                    <td className="txt">
-                      <span className={`tu-flex ${m.flexibility.toLowerCase()}`}>{t(m.flexibility)}</span>
-                    </td>
-                    <td className="txt">{t(matrixAdvice(m.band, m.row))}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="tu-matrix">
+            {r.matrix.map((m) => (
+              <div key={m.band} className={`tu-matrix-item ${m.band}${m.row.months === rec.months ? ' is-best' : ''}`}>
+                <span className="tu-matrix-band">{t(m.band === 'long' ? 'Long tenure' : m.band === 'medium' ? 'Medium tenure' : 'Short tenure')}</span>
+                <strong className="tu-matrix-years num">{yrs(m.row.months)}</strong>
+                <dl>
+                  <div>
+                    <dt>{t('EMI')}</dt>
+                    <dd className="num">{money(m.row.emi)}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('Interest')}</dt>
+                    <dd className="num">{lakh(m.row.interest)}</dd>
+                  </div>
+                  <div>
+                    <dt>{t('Flexibility')}</dt>
+                    <dd>
+                      <span className={`tu-flex ${m.flexibility.toLowerCase()}`}>
+                        <span className="tu-flex-bars" aria-hidden="true">
+                          <i />
+                          <i />
+                          <i />
+                        </span>
+                        {t(m.flexibility)}
+                      </span>
+                    </dd>
+                  </div>
+                </dl>
+                <p className="tu-matrix-advice">{t(matrixAdvice(m.band, m.row))}</p>
+              </div>
+            ))}
           </div>
-          <p className="small muted tu-table-note">
-            {t('A longer tenure leaves more room in the monthly budget; a shorter one costs less in total. Most loans also allow part prepayment, which can shorten a long tenure later.')}
-          </p>
         </div>
       )}
 
@@ -474,84 +556,83 @@ function TenureSection({
   );
 }
 
-function LongTenureWarning({ r }: { r: TopUpResult }) {
+/**
+ * Lower EMI ≠ cheaper loan: the borrower's tenure (or the longest)
+ * against the recommendation, principal and interest to scale, with the
+ * long-tenure warning on top when the tenure is 7 years or more.
+ */
+function LowerEmiCard({ r }: { r: TopUpResult }) {
   const t = useT();
-  const p = r.longTenure!;
-  return (
-    <div className="card tu-warning" role="note">
-      <div className="tu-warning-head">
-        <Icon name="alert" size={18} />
-        <h3>{t('Lower EMI doesn’t necessarily mean lower cost')}</h3>
+  const l = r.lesson!;
+  const warn = r.longTenure;
+  const loan = r.option.loan;
+  const max = Math.max(l.long.totalPayment, l.short.totalPayment, 1);
+  const row = (x: TenureRow, tag: string) => (
+    <div className="tu-lesson-row" key={x.months}>
+      <div className="tu-lesson-sum">
+        <span className="tu-lesson-tag">{tag}</span>
+        <span className="num">
+          {money(x.emi)} × {x.months} {t('EMIs')} = <strong>{lakh(x.totalPayment)}</strong>
+        </span>
       </div>
-      <p>
-        {mo(p.long.months)} {t('compared with')} {mo(p.short.months)}:
-      </p>
-      <div className="tu-warning-stats">
+      <div className="tu-lesson-bar" role="img" aria-label={`${yrs(x.months)}: ${t('principal')} ${lakh(loan)}, ${t('interest')} ${lakh(x.interest)}`}>
+        <span className="p" style={{ width: `${(loan / max) * 100}%` }} />
+        <span className="i" style={{ width: `${(x.interest / max) * 100}%` }}>
+          <em className="num">{lakh(x.interest)}</em>
+        </span>
+      </div>
+    </div>
+  );
+  return (
+    <div className={`card tu-lesson${warn ? ' warn' : ''}`} role={warn ? 'note' : undefined}>
+      <div className="tu-lesson-head">
+        {warn && <Icon name="alert" size={18} className="tu-lesson-i" />}
+        <div>
+          <h3>{warn ? t('Lower EMI doesn’t necessarily mean lower cost') : t('Lower EMI ≠ cheaper loan')}</h3>
+          <p className="small muted">
+            {t('The same')} {lakh(loan)} {t('over')} {yrs(l.long.months)} {t('and')} {yrs(l.short.months)}.
+          </p>
+        </div>
+      </div>
+
+      <div className="tu-lesson-stats">
         <div>
           <span>{t('EMI difference')}</span>
-          <strong className="num">+{money(p.emiIncrease)}</strong>
-          <small>{t('per month')}</small>
+          <strong className="num">+{money(l.emiIncrease)}</strong>
+          <small>
+            {t('a month for')} {yrs(l.short.months)}
+          </small>
         </div>
         <div className="good">
           <span>{t('Interest saved')}</span>
-          <strong className="num">≈ {lakh(p.interestSaved)}</strong>
+          <strong className="num">≈ {lakh(l.interestSaved)}</strong>
           <small>
-            {t('with')} {mo(p.short.months)}
+            {t('with')} {yrs(l.short.months)}
           </small>
         </div>
         <div className="good">
           <span>{t('Finishes earlier')}</span>
-          <strong className="num">{mo(p.monthsSooner)}</strong>
+          <strong className="num">{yrs(l.monthsSooner)}</strong>
           <small>
-            {when(p.short.completion)} {t('vs')} {when(p.long.completion)}
+            {when(l.short.completion)} {t('vs')} {when(l.long.completion)}
           </small>
         </div>
       </div>
-    </div>
-  );
-}
 
-/** "Lower EMI ≠ cheaper loan": the same loan over a long and a shorter tenure, principal and interest to scale. */
-function Lesson({ r }: { r: TopUpResult }) {
-  const t = useT();
-  const l = r.lesson!;
-  const loan = r.option.loan;
-  const max = Math.max(l.long.totalPayment, l.short.totalPayment, 1);
-  const row = (x: TenureRow) => (
-    <div className="tu-lesson-row" key={x.months}>
-      <p className="tu-lesson-sum num">
-        {money(x.emi)} × {x.months} = <strong>{lakh(x.totalPayment)}</strong>
-      </p>
-      <div className="tu-lesson-bar" role="img" aria-label={`${mo(x.months)}: ${t('principal')} ${lakh(loan)}, ${t('interest')} ${lakh(x.interest)}`}>
-        <span className="p" style={{ width: `${(loan / max) * 100}%` }} />
-        <span className="i" style={{ width: `${(x.interest / max) * 100}%` }} />
+      <div className="tu-lesson-bars">
+        {row(l.long, yrs(l.long.months))}
+        {row(l.short, yrs(l.short.months))}
+        <ul className="tu-lesson-key small muted">
+          <li>
+            <span className="sw p" aria-hidden="true" />
+            {t('Principal')}
+          </li>
+          <li>
+            <span className="sw i" aria-hidden="true" />
+            {t('Interest')}
+          </li>
+        </ul>
       </div>
-    </div>
-  );
-  return (
-    <div className="card tu-lesson">
-      <div className="tu-lesson-head">
-        <h3>{t('Lower EMI ≠ cheaper loan')}</h3>
-        <p className="small muted">
-          {t('The same')} {lakh(loan)} {t('over two tenures. A lower EMI usually means paying for longer — and more interest overall.')}
-        </p>
-      </div>
-      {row(l.long)}
-      {row(l.short)}
-      <ul className="tu-lesson-key small muted">
-        <li>
-          <span className="sw p" aria-hidden="true" />
-          {t('Principal')}
-        </li>
-        <li>
-          <span className="sw i" aria-hidden="true" />
-          {t('Interest')}
-        </li>
-      </ul>
-      <p className="tu-lesson-out">
-        {t('The')} {moAdj(l.long.months)} {t('option costs')} <strong className="num">{lakh(l.interestSaved)}</strong> {t('more for an EMI that is')}{' '}
-        <strong className="num">{money(l.emiIncrease)}</strong> {t('lower.')}
-      </p>
     </div>
   );
 }
@@ -596,11 +677,11 @@ function AmountSection({
 
   return (
     <section className="calc-block" id="tu-amounts" aria-labelledby="tu-amounts-head">
-      <Head id="tu-amounts-head" eyebrow="Borrowing amount" title="How much top-up should you take?">
+      <SectionHead id="tu-amounts-head" n={6} eyebrow="Borrowing amount" title="How much top-up should you take?" takeaway={amountTakeaway(r)} icon="coins">
         <p className="muted tu-block-lede">
-          {t('Every amount below uses')} {ratePct(r.option.ratePct)} {t('over')} {mo(r.option.months)}. {t('Edit any amount to compare.')}
+          {t('Every amount below uses')} {ratePct(r.option.ratePct)} {t('over')} {yrs(r.option.months)}. {t('Edit any amount to compare.')}
         </p>
-      </Head>
+      </SectionHead>
 
       <div className="tu-scenarios">
         {SCENARIO_META.map((m) => {
@@ -620,28 +701,30 @@ function AmountSection({
                 onChange={(v) => (m.key === 'recommended' ? onRequired(v) : onScenarios({ [m.key]: v }))}
               />
               {row ? (
-                <dl className="tu-scenario-dl">
-                  <div>
-                    <dt>{t('New loan')}</dt>
-                    <dd className="num">{lakh(row.option.loan)}</dd>
+                <>
+                  <div className="tu-scenario-hero">
+                    <span>{t('Additional interest')}</span>
+                    <strong className="num">{formatSignedINR(row.option.additionalInterest)}</strong>
                   </div>
-                  <div>
-                    <dt>{t('Cash in hand')}</dt>
-                    <dd className="num">{money(row.option.charges.net)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t('EMI')}</dt>
-                    <dd className="num">{money(row.option.emi)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t('Additional interest')}</dt>
-                    <dd className="num">{formatSignedINR(row.option.additionalInterest)}</dd>
-                  </div>
-                  <div>
-                    <dt>{t('Per ₹1 received')}</dt>
-                    <dd className="num">{formatINR(row.option.interestPerRupee, 2)}</dd>
-                  </div>
-                </dl>
+                  <dl className="tu-scenario-dl">
+                    <div>
+                      <dt>{t('Cash in hand')}</dt>
+                      <dd className="num">{money(row.option.charges.net)}</dd>
+                    </div>
+                    <div>
+                      <dt>{t('EMI')}</dt>
+                      <dd className="num">{money(row.option.emi)}</dd>
+                    </div>
+                    <div>
+                      <dt>{t('New loan')}</dt>
+                      <dd className="num">{lakh(row.option.loan)}</dd>
+                    </div>
+                    <div>
+                      <dt>{t('Per ₹1 received')}</dt>
+                      <dd className="num">{formatINR(row.option.interestPerRupee, 2)}</dd>
+                    </div>
+                  </dl>
+                </>
               ) : (
                 <p className="small muted">{t('Enter an amount to compare.')}</p>
               )}
@@ -694,15 +777,15 @@ function AmountSection({
               <tbody>
                 {(
                   [
-                    ['Cash received', l.base.charges.net, l.larger.charges.net],
-                    ['EMI', l.base.emi, l.larger.emi],
-                    ['Total payment', l.base.totalPayments, l.larger.totalPayments],
-                    ['Total interest', l.base.futureInterest, l.larger.futureInterest],
-                    ['Additional interest vs today', l.base.additionalInterest, l.larger.additionalInterest],
-                    ['Monthly burden vs today’s EMI', l.base.emiChange, l.larger.emiChange],
-                  ] as [string, number, number][]
-                ).map(([label, a, b]) => (
-                  <tr key={label}>
+                    ['Cash received', l.base.charges.net, l.larger.charges.net, false],
+                    ['EMI', l.base.emi, l.larger.emi, false],
+                    ['Total payment', l.base.totalPayments, l.larger.totalPayments, false],
+                    ['Total interest', l.base.futureInterest, l.larger.futureInterest, true],
+                    ['Additional interest vs today', l.base.additionalInterest, l.larger.additionalInterest, false],
+                    ['Monthly burden vs today’s EMI', l.base.emiChange, l.larger.emiChange, false],
+                  ] as [string, number, number, boolean][]
+                ).map(([label, a, b, key]) => (
+                  <tr key={label} className={key ? 'is-key' : undefined}>
                     <th scope="row">{t(label)}</th>
                     <td className="num">{label.startsWith('Monthly') ? formatSignedINR(a) : money(a)}</td>
                     <td className="num">{label.startsWith('Monthly') ? formatSignedINR(b) : money(b)}</td>
@@ -756,9 +839,17 @@ function PrepaySection({
 
   return (
     <section className="calc-block" id="tu-prepay" aria-labelledby="tu-prepay-head">
-      <Head id="tu-prepay-head" eyebrow="Part prepayment" title="Close the top-up loan sooner">
+      <SectionHead
+        id="tu-prepay-head"
+        n={7}
+        eyebrow="Part prepayment"
+        title="Close the top-up loan sooner"
+        takeaway={prepayTakeaway(r)}
+        icon="trendingDown"
+        tone="good"
+      >
         <p className="muted tu-block-lede">{t('Extra payments go straight to principal; the EMI stays the same and the loan ends earlier.')}</p>
-      </Head>
+      </SectionHead>
       <div className="card tu-prepay">
         <div className="fields tu-prepay-fields">
           <Num path="prepay.initial" label="Part Payment" type="currency" value={plan.initial} error={err('prepay.initial')} onChange={(v) => onPrepay({ initial: v })} />
@@ -790,13 +881,34 @@ function PrepaySection({
         </div>
 
         {p.active ? (
-          <div className="stat-grid tu-prepay-stats">
-            <Stat label={t('New completion date')} value={when(p.completion)} />
-            <Stat label={t('Interest saved')} value={money(p.interestSaved)} tone="positive" />
-            <Stat label={t('Months saved')} value={mo(p.monthsSaved)} tone="positive" />
-            <Stat label={t('New effective tenure')} value={mo(p.months)} />
-            <Stat label={t('Total interest')} value={money(p.interest)} />
-            <Stat label={t('Extra paid in')} value={money(p.prepaid)} />
+          <div className="tu-prepay-results">
+            <div className="tu-prepay-hero">
+              <span>{t('Interest saved')}</span>
+              <strong className="num">
+                <TweenedText value={money(p.interestSaved)} />
+              </strong>
+              <small>
+                {t('Loan closes')} {yrs(p.monthsSaved)} {t('early, in')} {when(p.completion)}
+              </small>
+            </div>
+            <dl className="tu-prepay-dl">
+              <div>
+                <dt>{t('New effective tenure')}</dt>
+                <dd className="num">{yrs(p.months)}</dd>
+              </div>
+              <div>
+                <dt>{t('Time saved')}</dt>
+                <dd className="num">{yrs(p.monthsSaved)}</dd>
+              </div>
+              <div>
+                <dt>{t('Total interest')}</dt>
+                <dd className="num">{money(p.interest)}</dd>
+              </div>
+              <div>
+                <dt>{t('Extra paid in')}</dt>
+                <dd className="num">{money(p.prepaid)}</dd>
+              </div>
+            </dl>
           </div>
         ) : (
           <p className="small muted">{t('Enter a part payment, an extra monthly amount or a yearly lump sum to see the effect.')}</p>
@@ -811,15 +923,6 @@ function PrepaySection({
         {t('Floating-rate loans to individuals usually carry no prepayment charge; fixed-rate and some other loans may. Check your loan agreement.')}
       </p>
     </section>
-  );
-}
-
-function Stat({ label, value, tone }: { label: string; value: string; tone?: 'positive' }) {
-  return (
-    <div className={`stat${tone ? ` ${tone}` : ''}`}>
-      <div className="s-label">{label}</div>
-      <div className="s-value num">{value}</div>
-    </div>
   );
 }
 
@@ -844,14 +947,32 @@ function DecisionSection({
   const level = r.verdict.level;
   return (
     <section className="calc-block" id="tu-decision" aria-labelledby="tu-decision-head">
-      <Head id="tu-decision-head" eyebrow="Final decision" title="Your personalised recommendation" />
+      <SectionHead id="tu-decision-head" n={8} eyebrow="Final decision" title="Your personalised recommendation" />
       <div className={`card tu-final ${level}`}>
         <p className="tu-final-title">
           <span className="tu-dot" aria-hidden="true" />
           {t(verdictTitle(r))}
         </p>
-        <p className="tu-final-text">{t(personalRecommendation(r, input))}</p>
-        <p className="small muted">{t('This is an estimate from the numbers you entered, not personal financial advice.')}</p>
+        <p className="tu-final-need">
+          {t('You need')} <strong className="num">{lakh(input.topup.required)}</strong>. {t('Here is what the numbers say:')}
+        </p>
+        <ul className="tu-points">
+          {personalPoints(r, input).map((pt, i) => (
+            <li key={i} className={pt.tone}>
+              <span className="tu-point-mark" aria-hidden="true">
+                <Icon name={pt.tone === 'good' ? 'check' : pt.tone === 'warn' ? 'alert' : 'info'} size={13} strokeWidth={2.4} />
+              </span>
+              <span>
+                <Rich text={pt.text} />
+              </span>
+            </li>
+          ))}
+        </ul>
+        <p className="tu-bottom-line">
+          <span className="tu-bottom-label">{t('Bottom line')}</span>
+          {t(bottomLine(r))}
+        </p>
+        <p className="small muted tu-final-note">{t('This is an estimate from the numbers you entered, not personal financial advice.')}</p>
       </div>
 
       <div className="card tu-table-card tu-saved">
@@ -891,7 +1012,7 @@ function DecisionSection({
                     <th scope="row">
                       <span className="tu-saved-name">
                         <span className={`tu-dot ${p.level}`} aria-hidden="true" />
-                        {lakh(p.loan)} · {ratePct(p.ratePct)} · {mo(p.months)}
+                        {lakh(p.loan)} · {ratePct(p.ratePct)} · {yrs(p.months)}
                       </span>
                     </th>
                     <td className="num">{money(p.emi)}</td>
@@ -919,7 +1040,7 @@ function DecisionSection({
 }
 
 /* ================================================================== */
-/* 9 · Schedule                                                        */
+/* Schedule                                                            */
 /* ================================================================== */
 
 function ScheduleSection({ r, view, onSchedule }: { r: TopUpResult; view: 'monthly' | 'yearly'; onSchedule: (v: 'monthly' | 'yearly') => void }) {
@@ -930,7 +1051,7 @@ function ScheduleSection({ r, view, onSchedule }: { r: TopUpResult; view: 'month
         <summary>
           <span id="tu-schedule-head">{t('Amortization schedule')}</span>
           <span className="tu-acc-value num">
-            {r.option.months} × {money(r.option.emi)}
+            {yrs(r.option.months)} · {r.option.months} × {money(r.option.emi)}
           </span>
         </summary>
         <div className="acc-body">
@@ -945,7 +1066,7 @@ function ScheduleSection({ r, view, onSchedule }: { r: TopUpResult; view: 'month
               onChange={(v) => onSchedule(v as 'monthly' | 'yearly')}
             />
             <span className="small muted">
-              {lakh(r.option.loan)} · {ratePct(r.option.ratePct)} · {emiChangeWords(r.option.emiChange)}
+              {lakh(r.option.loan)} · {ratePct(r.option.ratePct)} · {yrAdj(r.option.months)} {t('tenure')}
             </span>
           </div>
           <DataTable spec={scheduleTable(r, view)} />

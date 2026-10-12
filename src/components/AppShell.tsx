@@ -4,6 +4,7 @@ import { CALCULATORS, CATEGORIES, byCategory, displayName } from '@/data/catalog
 import { GUIDES } from '@/content/guides';
 import { SITE } from '@/data/site';
 import { Link, useRouter } from '@/lib/router';
+import { useReveal } from '@/lib/reveal';
 import { useMediaQuery } from '@/hooks/usePreferences';
 import { useAppearance, useFavorites, useT } from '@/hooks/PreferencesContext';
 import { Icon } from './Icon';
@@ -62,6 +63,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const t = useT();
   const megaRef = useRef<HTMLDivElement>(null);
   const megaBtnRef = useRef<HTMLButtonElement>(null);
+  useReveal(path);
 
   // Every navigation closes whatever menu led to it.
   useEffect(() => {

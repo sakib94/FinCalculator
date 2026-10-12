@@ -5,18 +5,33 @@ import { formatINR, formatINRCompact, formatMonthYear, formatNumber, formatPerce
 
 /**
  * Words for the top-up decision: the verdict, the reasons behind it, the
- * personal recommendation, and the plain-text, CSV and schedule versions
- * used by copy and export. Pure — the screen and the tests share it.
+ * personal recommendation, the one-line takeaway for each section, and
+ * the plain-text, CSV and schedule versions used by copy and export.
+ * Pure — the screen and the tests share it.
+ *
+ * Tenures are spoken in years ("7 years"); only counts of EMIs are in
+ * months. Takeaways mark the figure to emphasise with **…**.
  */
 
 export const money = (v: number): string => formatINR(v);
 /** ₹3.00 L for headline amounts; small amounts in full. */
 export const lakh = (v: number): string => (Math.abs(v) >= 1e5 ? formatINRCompact(v) : formatINR(v));
-export const mo = (m: number): string => `${formatNumber(m)} months`;
-/** "60-month", as in a 60-month tenure. */
-export const moAdj = (m: number): string => `${formatNumber(m)}-month`;
+/** A count of EMIs: "56 months". */
+export const mo = (m: number): string => `${formatNumber(m)} ${Math.round(m) === 1 ? 'month' : 'months'}`;
+/** A tenure or a span of time, in years: "7 years", "4.5 years", or "2 yrs 4 mo" when it is not a whole half-year. */
+export function yrs(m: number): string {
+  const months = Math.max(0, Math.round(m));
+  const y = months / 12;
+  if (months % 6 === 0) return `${formatNumber(y, 1)} ${y === 1 ? 'year' : 'years'}`;
+  const whole = Math.floor(y);
+  const rest = months - whole * 12;
+  return whole ? `${whole} ${whole === 1 ? 'yr' : 'yrs'} ${rest} mo` : `${rest} ${rest === 1 ? 'month' : 'months'}`;
+}
+/** "5-year", as in a 5-year tenure. */
+export const yrAdj = (m: number): string => (Math.round(m) % 6 === 0 ? `${formatNumber(m / 12, 1)}-year` : `${formatNumber(m)}-month`);
 export const when = (d: Date): string => formatMonthYear(d);
 export const ratePct = (v: number): string => `${formatNumber(v, 2)}%`;
+const b = (text: string) => `**${text}**`;
 
 /* ------------------------------------------------------------------ */
 /* The verdict                                                         */
@@ -41,7 +56,7 @@ export function verdictLead(r: TopUpResult): string {
   if (v.level === 'red')
     return `Based on the numbers entered, this top-up does not appear financially attractive as it stands. ${redAdvice(r)}`;
   if (v.checks.some(isTenureCost) && r.recommendation.months < o.months)
-    return `Based on the numbers entered, the top-up appears workable, but ${mo(o.months)} adds about ${lakh(o.additionalInterest)} of interest. A ${moAdj(r.recommendation.months)} tenure would cost about ${lakh(r.recommendation.interestSaved)} less.`;
+    return `Based on the numbers entered, the top-up appears workable, but ${yrs(o.months)} adds about ${lakh(o.additionalInterest)} of interest. A ${yrAdj(r.recommendation.months)} tenure would cost about ${lakh(r.recommendation.interestSaved)} less.`;
   return 'Based on the numbers entered, the top-up appears workable, but a few points deserve a second look.';
 }
 
@@ -66,11 +81,11 @@ export function checkText(c: Check, r: TopUpResult, input: TopUpInput): string {
     case 'emi-unknown':
       return `The EMI would be ${money(o.emi)}, ${emiChangeWords(o.emiChange)}. Add a comfortable EMI to check affordability.`;
     case 'tenure': {
-      if (c.tone === 'bad') return `${mo(o.months)} is a very long tenure — interest keeps building for ${formatNumber(o.months / 12, 1)} years.`;
+      if (c.tone === 'bad') return `${yrs(o.months)} is a very long tenure — interest keeps building all that time.`;
       if (o.extensionMonths > 0)
-        return `The loan would end in ${when(o.completion)}, ${mo(o.extensionMonths)} later than today’s ${when(e.completion)}.`;
+        return `The loan would end in ${when(o.completion)}, ${yrs(o.extensionMonths)} later than today’s ${when(e.completion)}.`;
       return o.extensionMonths < 0
-        ? `The loan would end in ${when(o.completion)}, ${mo(-o.extensionMonths)} sooner than today’s ${when(e.completion)}.`
+        ? `The loan would end in ${when(o.completion)}, ${yrs(-o.extensionMonths)} sooner than today’s ${when(e.completion)}.`
         : `The loan would end in ${when(o.completion)}, the same month as today’s loan.`;
     }
     case 'interest':
@@ -101,77 +116,138 @@ export function emiChangeWords(change: number): string {
 /* The recommendation                                                  */
 /* ------------------------------------------------------------------ */
 
-/** "Recommended tenure: 60 months" and why, in two sentences. */
+/** "Recommended tenure: 5 years" and why, in two sentences. */
 export function recommendationText(r: TopUpResult, input: TopUpInput): string {
   const rec = r.recommendation;
   const comfortable = input.topup.comfortableEmi;
   const vs = rec.against
-    ? ` while saving approximately ${lakh(rec.interestSaved)} in interest compared with the ${moAdj(rec.against.months)} option`
+    ? ` while saving approximately ${lakh(rec.interestSaved)} in interest compared with the ${yrAdj(rec.against.months)} option`
     : '';
   if (rec.basis === 'comfortable')
     return `This keeps your EMI at ${money(rec.row.emi)}, within your comfortable ${money(comfortable)},${vs}.`;
   if (rec.basis === 'none-fit')
-    return `No tenure up to ${mo(r.tenures[r.tenures.length - 1].months)} keeps the EMI within ${money(comfortable)} — the lowest is ${money(
+    return `No tenure up to ${yrs(r.tenures[r.tenures.length - 1].months)} keeps the EMI within ${money(comfortable)} — the lowest is ${money(
       r.tenures[r.tenures.length - 1].emi,
-    )}. ${mo(rec.months)} is the closest balance of EMI and interest; consider a smaller top-up.`;
+    )}. ${yrs(rec.months)} is the closest balance of EMI and interest; consider a smaller top-up.`;
   return `It sits closest to both the lowest EMI and the lowest interest${vs}. Add a comfortable EMI to tailor this.`;
 }
 
-/** The personal paragraph under the decision, built from the borrower’s own numbers. */
-export function personalRecommendation(r: TopUpResult, input: TopUpInput): string {
+export interface Point {
+  tone: 'info' | 'good' | 'warn';
+  text: string;
+}
+
+/** The personal recommendation as short points, built from the borrower’s own numbers. */
+export function personalPoints(r: TopUpResult, input: TopUpInput): Point[] {
   const o = r.option;
   const e = r.existing;
   const t = input.topup;
   const rec = r.recommendation;
-  const s: string[] = [];
+  const p: Point[] = [];
 
   const charges = o.charges.total > 0 ? ` after ${money(o.charges.total)} of charges` : '';
-  s.push(
-    `You need ${lakh(t.required)}. A top-up at ${ratePct(o.ratePct)} over ${mo(o.months)} puts ${lakh(o.charges.net)} in your hands${charges} and moves your EMI from ${money(
-      e.emi,
-    )} to ${money(o.emi)} (${emiChangeWords(o.emiChange)}).`,
-  );
+  p.push({
+    tone: 'info',
+    text: `A top-up at ${ratePct(o.ratePct)} over ${yrs(o.months)} puts ${b(lakh(o.charges.net))} in your hands${charges} and moves your EMI from ${money(e.emi)} to ${b(
+      money(o.emi),
+    )} (${emiChangeWords(o.emiChange)}).`,
+  });
 
   if (o.extensionMonths > 0)
-    s.push(`Your loan would run until ${when(o.completion)} instead of ${when(e.completion)} — ${mo(o.extensionMonths)} longer.`);
-  else if (o.extensionMonths < 0) s.push(`Your loan would still finish by ${when(o.completion)}, ahead of today’s ${when(e.completion)}.`);
+    p.push({ tone: 'warn', text: `Your loan would run until ${when(o.completion)} instead of ${when(e.completion)} — ${b(`${yrs(o.extensionMonths)} longer`)}.` });
+  else if (o.extensionMonths < 0)
+    p.push({ tone: 'good', text: `Your loan would still finish by ${when(o.completion)}, ${b(`${yrs(-o.extensionMonths)} ahead`)} of today’s ${when(e.completion)}.` });
 
-  s.push(
+  p.push(
     o.additionalInterest > 0
-      ? `Compared with simply continuing today’s loan, you would pay about ${lakh(o.additionalInterest)} more in interest from today.`
-      : `Compared with continuing today’s loan, you would pay about ${lakh(-o.additionalInterest)} less in interest, because the new rate is lower.`,
+      ? {
+          tone: o.interestPerRupee > THRESHOLDS.interestPerRupee.warn ? 'warn' : 'info',
+          text: `Compared with simply continuing today’s loan, you would pay about ${b(`${lakh(o.additionalInterest)} more in interest`)} from today.`,
+        }
+      : { tone: 'good', text: `Compared with continuing today’s loan, you would pay about ${b(`${lakh(-o.additionalInterest)} less in interest`)}, because the new terms are cheaper.` },
   );
 
   if (rec.months < o.months) {
     const fits = rec.basis === 'comfortable' ? `, within your ${money(t.comfortableEmi)} comfort level,` : '';
-    s.push(
-      `A ${moAdj(rec.months)} tenure would raise the EMI to ${money(rec.row.emi)}${fits} but cut the interest by about ${lakh(
+    p.push({
+      tone: 'good',
+      text: `A ${yrAdj(rec.months)} tenure would raise the EMI to ${money(rec.row.emi)}${fits} but ${b(`cut the interest by about ${lakh(
         o.futureInterest - rec.row.interest,
-      )} and finish ${mo(o.months - rec.months)} sooner.`,
-    );
+      )}`)} and finish ${yrs(o.months - rec.months)} sooner.`,
+    });
   } else if (rec.months > o.months && t.comfortableEmi > 0 && o.emi > t.comfortableEmi) {
-    s.push(`At ${money(o.emi)} the EMI is above your comfort level; ${mo(rec.months)} brings it to ${money(rec.row.emi)} for about ${lakh(rec.row.interest - o.futureInterest)} more interest.`);
+    p.push({
+      tone: 'warn',
+      text: `At ${money(o.emi)} the EMI is above your comfort level; ${b(yrs(rec.months))} brings it to ${money(rec.row.emi)} for about ${lakh(
+        rec.row.interest - o.futureInterest,
+      )} more interest.`,
+    });
   }
 
   if (r.larger?.source === 'sanctioned')
-    s.push(`You would be borrowing ${lakh(r.larger.extraTopUp)} more than you need, which alone adds about ${lakh(r.larger.extraInterest)} of interest.`);
+    p.push({ tone: 'warn', text: `You would be borrowing ${b(`${lakh(r.larger.extraTopUp)} more`)} than you need, which alone adds about ${lakh(r.larger.extraInterest)} of interest.` });
   if (r.topUpForFullCash != null)
-    s.push(`To have the full ${lakh(t.required)} in hand after charges, the top-up would need to be about ${lakh(r.topUpForFullCash)}.`);
+    p.push({ tone: 'warn', text: `To have the full ${lakh(t.required)} in hand after charges, the top-up would need to be about ${b(lakh(r.topUpForFullCash))}.` });
   if (r.prepayment.active && r.prepayment.interestSaved > 0)
-    s.push(
-      `Prepaying as planned would save a further ${lakh(r.prepayment.interestSaved)} and close the loan ${mo(r.prepayment.monthsSaved)} early.`,
-    );
+    p.push({
+      tone: 'good',
+      text: `Prepaying as planned would save a further ${b(lakh(r.prepayment.interestSaved))} and close the loan ${yrs(r.prepayment.monthsSaved)} early.`,
+    });
+  return p;
+}
 
-  if (r.verdict.level === 'green') s.push('If the EMI fits comfortably in your budget, the top-up looks like a reasonable way to raise the money.');
-  else if (r.verdict.level === 'amber')
-    s.push(
-      rec.months < o.months
-        ? 'If you can manage the higher EMI, the shorter tenure is the stronger choice.'
-        : 'Check the points above with your lender before you decide.',
-    );
-  else s.push(redAdvice(r));
+/** The one sentence to act on. */
+export function bottomLine(r: TopUpResult): string {
+  const rec = r.recommendation;
+  if (r.verdict.level === 'green') return 'If the EMI fits comfortably in your budget, the top-up looks like a reasonable way to raise the money.';
+  if (r.verdict.level === 'amber')
+    return rec.months < r.option.months
+      ? `If you can manage the higher EMI, the ${yrAdj(rec.months)} tenure is the stronger choice.`
+      : 'Check the points above with your lender before you decide.';
+  return redAdvice(r);
+}
 
-  return s.join(' ');
+/** The whole recommendation as one paragraph, for copy and share. */
+export function personalRecommendation(r: TopUpResult, input: TopUpInput): string {
+  return [`You need ${lakh(input.topup.required)}.`, ...personalPoints(r, input).map((x) => x.text), bottomLine(r)].join(' ').replace(/\*\*/g, '');
+}
+
+/* ------------------------------------------------------------------ */
+/* Takeaways: one line under each section heading                     */
+/* ------------------------------------------------------------------ */
+
+export function compareTakeaway(r: TopUpResult): string {
+  const o = r.option;
+  return o.additionalInterest >= 0
+    ? `The top-up puts ${b(lakh(o.charges.net))} in your hands and costs ${b(`${lakh(o.additionalInterest)} more in interest`)} than keeping today’s loan.`
+    : `The top-up puts ${b(lakh(o.charges.net))} in your hands and still costs ${b(`${lakh(-o.additionalInterest)} less in interest`)} than today’s loan.`;
+}
+
+export function tenureTakeaway(r: TopUpResult): string {
+  const rec = r.recommendation;
+  if (!rec.against) return `${b(yrs(rec.months))} is the best balance of EMI and interest here, at ${money(rec.row.emi)} a month.`;
+  return `${b(yrs(rec.months))} is the sweet spot: ${money(rec.emiIncrease)} more a month than ${yrs(rec.against.months)}, but ${b(
+    `${lakh(rec.interestSaved)} less interest`,
+  )}.`;
+}
+
+/** What each extra lakh of borrowing adds, from the scenarios. */
+export function amountTakeaway(r: TopUpResult): string | null {
+  const rows = r.scenarios;
+  if (rows.length < 2) return null;
+  const lo = rows.reduce((a, x) => (x.amount < a.amount ? x : a));
+  const hi = rows.reduce((a, x) => (x.amount > a.amount ? x : a));
+  const span = hi.amount - lo.amount;
+  if (span <= 0) return null;
+  const perLakh = ((hi.option.futureInterest - lo.option.futureInterest) / span) * 1e5;
+  const emiPerLakh = ((hi.option.emi - lo.option.emi) / span) * 1e5;
+  return `Every extra ${b('₹1 L')} you borrow adds about ${b(`${money(perLakh)} of interest`)} and ${money(emiPerLakh)} to the EMI — borrow what you need.`;
+}
+
+export function prepayTakeaway(r: TopUpResult): string | null {
+  const p = r.prepayment;
+  if (!p.active || p.interestSaved <= 0) return null;
+  return `Prepaying as planned saves ${b(lakh(p.interestSaved))} and closes the loan ${b(`${yrs(p.monthsSaved)} early`)}, in ${when(p.completion)}.`;
 }
 
 /** Advice for each band of the flexibility-versus-interest matrix. */
@@ -192,23 +268,23 @@ export function summaryText(r: TopUpResult, input: TopUpInput): string {
   return [
     `${verdictTitle(r)}`,
     '',
-    `WITHOUT TOP-UP: ${money(e.outstanding)} outstanding, EMI ${money(e.emi)} for ${mo(e.remainingMonths)}; remaining payments ${money(
+    `WITHOUT TOP-UP: ${money(e.outstanding)} outstanding, EMI ${money(e.emi)} for ${mo(e.remainingMonths)} (${yrs(e.remainingMonths)}); remaining payments ${money(
       e.remainingPayments,
     )}, of which interest ${money(e.futureInterest)}. Ends ${when(e.completion)}.`,
-    `WITH TOP-UP: ${money(o.loan)} at ${ratePct(o.ratePct)} for ${mo(o.months)}; EMI ${money(o.emi)}; cash received ${money(
+    `WITH TOP-UP: ${money(o.loan)} at ${ratePct(o.ratePct)} for ${yrs(o.months)}; EMI ${money(o.emi)}; cash received ${money(
       o.charges.net,
     )}; future payments ${money(o.totalPayments)}, of which interest ${money(o.futureInterest)}. Ends ${when(o.completion)}.`,
     '',
     `Additional future payments: ${money(o.additionalPayments)} (includes the borrowed principal)`,
     `Additional interest: ${money(o.additionalInterest)}`,
-    `Recommended tenure: ${mo(r.recommendation.months)} — EMI ${money(r.recommendation.row.emi)}`,
+    `Recommended tenure: ${yrs(r.recommendation.months)} — EMI ${money(r.recommendation.row.emi)}`,
     '',
     personalRecommendation(r, input),
   ].join('\n');
 }
 
 export const TENURE_CSV_COLUMNS = [
-  { key: 'months', label: 'Tenure (months)' },
+  { key: 'years', label: 'Tenure (years)' },
   { key: 'emi', label: 'EMI' },
   { key: 'total', label: 'Total payment' },
   { key: 'interest', label: 'Interest' },
@@ -218,7 +294,7 @@ export const TENURE_CSV_COLUMNS = [
 
 export function tenureCsvRows(r: TopUpResult) {
   return r.tenures.map((x) => ({
-    months: x.months,
+    years: Math.round((x.months / 12) * 100) / 100,
     emi: Math.round(x.emi),
     total: Math.round(x.totalPayment),
     interest: Math.round(x.interest),
@@ -286,5 +362,3 @@ export function scheduleTable(r: TopUpResult, view: 'monthly' | 'yearly'): Table
   };
 }
 
-/** The tenure warning threshold, for the copy that quotes it. */
-export const LONG_TENURE = THRESHOLDS.longTenureMonths;

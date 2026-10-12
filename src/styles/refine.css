@@ -97,11 +97,14 @@ body::before {
   color: var(--color-text-muted);
 }
 
-/* ---------- Motion: sections settle into place as they scroll in ---------- */
+/* ---------- Motion: sections settle into place as they scroll in ----------
+   Played once, by src/lib/reveal.ts, which takes both classes off again
+   as soon as the animation ends — a section never keeps an animation (or
+   a compositor layer, which softens text on Windows) after it lands. */
 @keyframes settle {
   from {
     opacity: 0;
-    transform: translateY(18px);
+    transform: translateY(16px);
   }
   to {
     opacity: 1;
@@ -109,18 +112,15 @@ body::before {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .calc-block,
-    .home-section,
-    .page-section,
-    .prose-section {
-      animation: settle linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 60%;
-    }
+  .rv-wait {
+    opacity: 0;
+  }
+  .rv-wait.rv-in {
+    animation: settle 0.6s cubic-bezier(0.22, 0.7, 0.2, 1) both;
   }
 }
 @media print {
+  .rv-wait,
   .calc-block,
   .home-section,
   .page-section,

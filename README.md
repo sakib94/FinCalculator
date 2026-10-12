@@ -171,7 +171,9 @@ The Loan Top-Up Calculator is the other workspace. It is a decision tool rather 
 calculator: it compares continuing the existing loan with taking the top-up *from today*,
 keeps interest already paid (a sunk cost) out of the comparison, and reads green, amber or red
 from five checks — need vs borrowing, EMI vs a comfortable EMI, tenure stretch, extra interest
-per rupee received, and charges. Its maths — the comparison, net cash after fees and GST, the
+per rupee received, and charges. Tenures are entered and shown in years (the engine works in
+months); results are numbered on from the three input steps, and each section opens with a
+one-line takeaway. Its maths — the comparison, net cash after fees and GST, the
 tenure table and recommendation, amount scenarios, part prepayment and validation, with the
 decision thresholds in `THRESHOLDS` — is in `src/engines/topup.ts`; the example and saved
 state in `src/calculators/loans/topUpModel.ts`; the wording of the verdict and recommendation
@@ -363,7 +365,11 @@ nothing to the bundle.
 The current section is marked in the header with an underline; the mega-menu closes on Escape,
 an outside click, or when focus moves past it. Motion is handled by a few shared utilities in
 `base.css` (`.anim-rise`, `.anim-zoom`, `.stagger`) plus short transitions on the menu, jump
-bar and result dock, and all of it is switched off under `prefers-reduced-motion`.
+bar and result dock, and all of it is switched off under `prefers-reduced-motion`. Sections
+below the fold rise into place once as they first scroll into view (`src/lib/reveal.ts`), and
+the classes come off again as soon as the animation ends: a section that kept an animation
+would stay on its own compositor layer, and Chrome on Windows draws text on such a layer
+without ClearType, so it looks soft.
 
 Responsive behaviour: the header collapses to a drawer below 1024px, the calculator's inputs
 and result stack below 900px, the article index folds above the text below 1100px, input grids

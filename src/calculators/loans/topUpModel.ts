@@ -1,5 +1,5 @@
 import type { TopUpInput } from '@/engines/topup';
-import { NEW_TENURE_MONTHS, ORIGINAL_TENURE_YEARS } from '@/engines/topup';
+import { NEW_TENURE_YEARS, ORIGINAL_TENURE_YEARS } from '@/engines/topup';
 
 /**
  * The top-up calculator's inputs: the example the page opens with, a
@@ -88,7 +88,7 @@ export const defaultState = (): TopUpState => ({
 
 /** Whether a tenure in months is one of the one-tap choices. */
 export const isOriginalChoice = (m: number): boolean => (ORIGINAL_TENURE_YEARS as readonly number[]).some((y) => y * 12 === m);
-export const isTenureChoice = (m: number): boolean => (NEW_TENURE_MONTHS as readonly number[]).includes(m);
+export const isTenureChoice = (m: number): boolean => (NEW_TENURE_YEARS as readonly number[]).some((y) => y * 12 === m);
 
 /* ------------------------------------------------------------------ */
 /* Restoring saved state                                               */

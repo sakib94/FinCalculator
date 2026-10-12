@@ -10,7 +10,7 @@ import {
   type TopUpInput,
 } from '@/engines/topup';
 import { blankInput, defaultInput, defaultState, restoreState } from '@/calculators/loans/topUpModel';
-import { lakh, mo, money, personalRecommendation, recommendationText, scheduleTable, summaryText, verdictTitle } from '@/calculators/loans/topUpReport';
+import { amountTakeaway, compareTakeaway, lakh, money, personalRecommendation, prepayTakeaway, tenureTakeaway, yrs, recommendationText, scheduleTable, summaryText, verdictTitle } from '@/calculators/loans/topUpReport';
 
 /** A fixed "today", so completion dates are the same on every run. */
 const TODAY = new Date(2026, 9, 12);
@@ -59,7 +59,7 @@ describe('the existing loan, from today', () => {
   });
 });
 
-describe('the top-up, at the example’s 84 months', () => {
+describe('the top-up, at the example’s 7 years', () => {
   const r = run();
   const o = r.option;
 
@@ -87,7 +87,7 @@ describe('the top-up, at the example’s 84 months', () => {
     expect(o.interestSplit.existingBalance + o.interestSplit.newMoney).toBeCloseTo(o.additionalInterest, 6);
   });
 
-  it('lowers the EMI by ₹1,185 but runs 28 months longer', () => {
+  it('lowers the EMI by ₹1,185 but runs 2 years 4 months longer', () => {
     expect(rupees(o.emiChange)).toBe(-1185);
     expect(o.extensionMonths).toBe(28);
     expect(o.completion).toEqual(new Date(2033, 9, 1));
@@ -97,18 +97,19 @@ describe('the top-up, at the example’s 84 months', () => {
 describe('tenures', () => {
   const r = run();
 
-  it('matches the published EMI for every tenure in the table', () => {
+  it('compares 3 to 7 years, with the published EMI for each', () => {
     expect(r.tenures.map((x) => x.months)).toEqual([...COMPARE_TENURES]);
-    expect(r.tenures.map((x) => rupees(x.emi))).toEqual([33284, 30311, 27942, 26013, 24413, 21919]);
-    expect(r.tenures.map((x) => Math.round(x.interest / 1000))).toEqual([298, 337, 377, 417, 458, 541]);
+    expect(r.tenures.map((x) => x.months / 12)).toEqual([3, 4, 5, 6, 7]);
+    expect(r.tenures.map((x) => rupees(x.emi))).toEqual([42253, 33284, 27942, 24413, 21919]);
+    expect(r.tenures.map((x) => Math.round(x.interest / 1000))).toEqual([221, 298, 377, 458, 541]);
   });
 
   it('marks the lowest interest, the lowest EMI and the chosen tenure', () => {
     expect(r.tenures[0].tags).toContain('lowest-interest');
-    expect(r.tenures[5].tags).toEqual(expect.arrayContaining(['lowest-emi', 'selected']));
+    expect(r.tenures[4].tags).toEqual(expect.arrayContaining(['lowest-emi', 'selected']));
   });
 
-  it('recommends the shortest tenure within the comfortable EMI: 60 months, ₹1.64 L less interest than 84', () => {
+  it('recommends the shortest tenure within the comfortable EMI: 5 years, ₹1.65 L less interest than 7', () => {
     const rec = r.recommendation;
     expect(rec.basis).toBe('comfortable');
     expect(rec.months).toBe(60);
@@ -119,16 +120,16 @@ describe('tenures', () => {
     expect(r.tenures.find((x) => x.months === 60)?.tags).toContain('best-balance');
   });
 
-  it('warns that 84 months is long, against the 60-month option', () => {
+  it('warns that 7 years is long, against the 5-year option', () => {
     expect(r.longTenure).toMatchObject({ long: { months: 84 }, short: { months: 60 }, monthsSooner: 24 });
     expect(rupees(r.longTenure!.emiIncrease)).toBe(6023);
     expect(rupees(r.lesson!.long.totalPayment)).toBe(1841186);
     expect(rupees(r.lesson!.short.totalPayment)).toBe(1676524);
   });
 
-  it('adds the chosen tenure to the table when it is not one of the six', () => {
+  it('adds the chosen tenure to the table when it is not one of the five', () => {
     const r = run(scenario((i) => (i.topup.tenureMonths = 120)));
-    expect(r.tenures.map((x) => x.months)).toEqual([48, 54, 60, 66, 72, 84, 120]);
+    expect(r.tenures.map((x) => x.months)).toEqual([36, 48, 60, 72, 84, 120]);
     expect(rupees(r.option.emi)).toBe(17542);
     expect(r.longTenure?.short.months).toBe(60);
   });
@@ -136,7 +137,7 @@ describe('tenures', () => {
   it('falls back to the best balance without a comfortable EMI, and says when nothing fits', () => {
     const balanced = run(scenario((i) => (i.topup.comfortableEmi = 0))).recommendation;
     expect(balanced.basis).toBe('balance');
-    expect([60, 66]).toContain(balanced.months);
+    expect(balanced.months).toBe(60);
     const tight = run(scenario((i) => (i.topup.comfortableEmi = 15000))).recommendation;
     expect(tight.basis).toBe('none-fit');
   });
@@ -145,7 +146,7 @@ describe('tenures', () => {
     expect(r.matrix.map((m) => [m.band, m.row.months, m.flexibility])).toEqual([
       ['long', 84, 'High'],
       ['medium', 60, 'Medium'],
-      ['short', 48, 'Low'],
+      ['short', 36, 'Low'],
     ]);
   });
 });
@@ -157,7 +158,7 @@ describe('the decision', () => {
     expect(verdictTitle(r)).toBe('Top-Up Is Possible, But Consider a Shorter Tenure');
   });
 
-  it('reads green at 60 months', () => {
+  it('reads green at 5 years', () => {
     const r = run(scenario((i) => (i.topup.tenureMonths = 60)));
     expect(r.verdict.level).toBe('green');
     expect(verdictTitle(r)).toBe('Top-Up May Be Reasonable');
@@ -360,12 +361,25 @@ describe('words', () => {
 
   it('explains the recommendation with the borrower’s own figures', () => {
     expect(recommendationText(r, input)).toBe(
-      'This keeps your EMI at ₹27,942, within your comfortable ₹28,000, while saving approximately ₹1.65 L in interest compared with the 84-month option.',
+      'This keeps your EMI at ₹27,942, within your comfortable ₹28,000, while saving approximately ₹1.65 L in interest compared with the 7-year option.',
     );
     const text = personalRecommendation(r, input);
     expect(text).toContain('moves your EMI from ₹23,104 to ₹21,919');
     expect(text).toContain('about ₹2.47 L more in interest');
-    expect(text).toContain('A 60-month tenure would raise the EMI to ₹27,942');
+    expect(text).toContain('A 5-year tenure would raise the EMI to ₹27,942');
+    expect(text).toContain('finish 2 years sooner');
+    expect(text).not.toContain('**');
+  });
+
+  it('speaks of tenures in years', () => {
+    expect([yrs(84), yrs(12), yrs(54), yrs(28), yrs(56), yrs(5)]).toEqual(['7 years', '1 year', '4.5 years', '2 yrs 4 mo', '4 yrs 8 mo', '5 months']);
+  });
+
+  it('sums each section up in one line, with the figure to stress marked', () => {
+    expect(compareTakeaway(r)).toBe('The top-up puts **₹3.00 L** in your hands and costs **₹2.47 L more in interest** than keeping today’s loan.');
+    expect(tenureTakeaway(r)).toBe('**5 years** is the sweet spot: ₹6,023 more a month than 7 years, but **₹1.65 L less interest**.');
+    expect(amountTakeaway(r)).toBe('Every extra **₹1 L** you borrow adds about **₹41,630 of interest** and ₹1,686 to the EMI — borrow what you need.');
+    expect(prepayTakeaway(r)).toBe('Prepaying as planned saves **₹1.99 L** and closes the loan **2 yrs 4 mo early**, in Jun 2031.');
   });
 
   it('copies a plain-text summary and builds both schedules', () => {
@@ -414,10 +428,10 @@ describe('the page', () => {
     ])
       expect(content, String(v)).toContain(inr(v));
     for (const x of r.tenures) {
-      const row = [mo(x.months), money(x.emi), lakh(x.totalPayment), lakh(x.interest)];
+      const row = [yrs(x.months), money(x.emi), lakh(x.totalPayment), lakh(x.interest)];
       expect(content, x.months.toString()).toContain(JSON.stringify(row));
     }
-    expect(content).toContain(`in ${mo(r.prepayment.months)}`);
-    expect(content).toContain(`runs ${mo(o.extensionMonths)} longer`);
+    expect(content).toContain(`in ${yrs(r.prepayment.months)}`);
+    expect(content).toContain(`runs ${yrs(o.extensionMonths)} longer`);
   });
 });

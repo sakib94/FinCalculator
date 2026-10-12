@@ -175,7 +175,7 @@
 }
 .tu-chips {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(58px, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 6px;
 }
 .tu-chip {
@@ -199,6 +199,12 @@
   background: var(--color-primary);
   border-color: var(--color-primary);
   color: var(--color-on-primary);
+}
+.tu-chip small {
+  margin-left: 2px;
+  font-size: 0.68rem;
+  font-weight: var(--weight-medium);
+  opacity: 0.75;
 }
 .tu-chip:focus-visible {
   outline: none;
@@ -354,40 +360,80 @@
   color: var(--color-text-secondary);
 }
 
-.tu-quick {
+.tu-answers {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
-  margin: 0;
 }
-.tu-quick > div {
+.tu-answer {
+  --tone: var(--color-border-strong);
+  display: grid;
+  gap: 1px;
   min-width: 0;
-  padding: 9px 10px;
+  padding: 10px 12px 10px 14px;
   border: 1px solid var(--color-border);
   border-radius: var(--r-md);
   background: var(--color-surface);
+  box-shadow: inset 3px 0 0 var(--tone);
 }
-.tu-quick dt {
+.tu-answer.good {
+  --tone: var(--color-success);
+}
+.tu-answer.warn {
+  --tone: var(--color-warning);
+}
+.tu-answer-label {
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   color: var(--color-text-muted);
 }
-.tu-quick dd {
-  margin: 0;
-}
-.tu-quick dd.num {
-  margin-top: 2px;
-  font-size: 0.96rem;
+.tu-answer-value {
+  font-size: 1.08rem;
   font-weight: var(--weight-bold);
+  letter-spacing: -0.015em;
   color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.tu-sub {
+.tu-answer-sub {
   font-size: 0.72rem;
   line-height: 1.35;
   color: var(--color-text-muted);
+}
+.tu-try {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px 10px 14px;
+  border: 1px dashed color-mix(in srgb, var(--color-success) 45%, var(--color-border));
+  border-radius: var(--r-md);
+  background: var(--color-success-bg);
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--dur) var(--ease), transform var(--dur) var(--ease);
+}
+.tu-try:hover {
+  border-style: solid;
+  border-color: var(--color-success);
+}
+.tu-try:focus-visible {
+  outline: none;
+  box-shadow: var(--ring);
+}
+.tu-try-gain {
+  margin-left: auto;
+  font-weight: var(--weight-semibold);
+  color: var(--color-success);
+  white-space: nowrap;
+}
+.tu-try svg {
+  flex: none;
+  color: var(--color-success);
 }
 
 .tu-checks {
@@ -437,10 +483,65 @@
 
 /* ---------------- Sections ---------------- */
 .tu-block-head {
-  margin-bottom: 14px;
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 .tu-block-head h2 {
   margin: 0;
+}
+.tu-block-head .eyebrow {
+  margin-bottom: 2px;
+}
+.tu-sec-title {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.tu-sec-title .tu-step-n {
+  width: 38px;
+  height: 38px;
+  font-size: 1rem;
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--color-primary) 28%, transparent);
+}
+
+/* The takeaway: the one line to read if you read nothing else. */
+.tu-takeaway {
+  --tone: var(--color-primary);
+  --tone-bg: var(--color-primary-soft);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin: 0;
+  padding: 13px 16px;
+  border-radius: var(--r-md);
+  background: linear-gradient(100deg, var(--tone-bg), color-mix(in srgb, var(--tone-bg) 30%, var(--color-surface)));
+  border: 1px solid color-mix(in srgb, var(--tone) 22%, var(--color-border));
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--color-text);
+}
+.tu-takeaway.good {
+  --tone: var(--color-success);
+  --tone-bg: var(--color-success-bg);
+}
+.tu-takeaway.warn {
+  --tone: var(--color-warning);
+  --tone-bg: var(--color-warning-bg);
+}
+.tu-takeaway-i {
+  flex: none;
+  margin-top: 3px;
+  color: var(--tone);
+}
+.tu-takeaway strong {
+  font-weight: var(--weight-bold);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+  background: linear-gradient(transparent 62%, color-mix(in srgb, var(--tone) 22%, transparent) 62%);
+  padding: 0 1px;
 }
 .tu-block-lede {
   margin: 6px 0 0;
@@ -456,7 +557,7 @@
 .calc-block > .card + .card,
 .calc-block > .card + .chart-grid,
 .calc-block > .chart-grid + .card,
-.calc-block > .tu-options + .tu-metrics,
+.calc-block > .tu-cmp + .tu-metrics,
 .calc-block > .tu-metrics + .chart-grid,
 .calc-block > .tu-scenarios + .card,
 .calc-block > .card + .tu-fine {
@@ -466,63 +567,101 @@
   margin: 10px 0 0;
 }
 
-/* Option A | Option B */
-.tu-options {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-.tu-option {
+/* Without | With | Change — one table, the key row lifted. */
+.tu-cmp {
   overflow: hidden;
+  padding: 4px 0;
 }
-.tu-option-head {
+.tu-cmp-row {
   display: grid;
-  gap: 2px;
-  padding: 14px var(--pad-card) 12px;
+  grid-template-columns: minmax(150px, 1.35fr) repeat(3, minmax(0, 1fr));
+  align-items: center;
+  gap: 8px;
+  padding: 11px var(--pad-card);
   border-bottom: 1px solid var(--color-divider);
+  transition: background-color var(--dur) var(--ease);
 }
-.tu-option.b .tu-option-head {
-  background: var(--color-primary-soft);
-  border-bottom-color: var(--color-primary-border);
+.tu-cmp-row:last-child {
+  border-bottom: 0;
 }
-.tu-option-tag {
-  font-size: 0.7rem;
+.tu-cmp-row:not(.tu-cmp-head):hover {
+  background: var(--color-table-hover, var(--color-surface-sunken));
+}
+.tu-cmp-row > span:not(.tu-cmp-label) {
+  text-align: right;
+}
+.tu-cmp-head {
+  padding-top: 8px;
+  padding-bottom: 8px;
+  font-size: var(--text-xs);
   font-weight: var(--weight-bold);
   letter-spacing: var(--tracking-caps);
   text-transform: uppercase;
   color: var(--color-text-muted);
 }
-.tu-option.b .tu-option-tag {
+.tu-cmp-head .b {
   color: var(--color-primary);
 }
-.tu-option h3 {
-  margin: 0;
-  font-size: 1.05rem;
-  font-weight: var(--weight-bold);
+.tu-cmp-short {
+  display: none;
 }
-.tu-option dl {
-  margin: 0;
-  padding: 4px var(--pad-card) 10px;
+.tu-cmp-tag {
+  display: inline-grid;
+  place-items: center;
+  width: 17px;
+  height: 17px;
+  margin-right: 6px;
+  border-radius: 5px;
+  background: var(--color-surface-sunken);
+  border: 1px solid var(--color-border);
+  font-size: 0.64rem;
+  letter-spacing: 0;
+  vertical-align: 1px;
 }
-.tu-option dl > div {
+.tu-cmp-head .b .tu-cmp-tag {
+  background: var(--color-primary-soft);
+  border-color: var(--color-primary-border);
+}
+.tu-cmp-label {
   display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--color-divider);
-  font-size: 0.88rem;
-}
-.tu-option dl > div:last-child {
-  border-bottom: 0;
-}
-.tu-option dt {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 8px;
+  font-size: 0.9rem;
   color: var(--color-text-secondary);
 }
-.tu-option dd {
-  margin: 0;
+.tu-cmp-row .num {
+  font-size: 0.95rem;
   font-weight: var(--weight-semibold);
   color: var(--color-text);
   white-space: nowrap;
+}
+.tu-cmp-row .num.b {
+  font-weight: var(--weight-bold);
+}
+.tu-change.good {
+  color: var(--color-success) !important;
+}
+.tu-change.warn {
+  color: var(--color-warning) !important;
+}
+.tu-cmp-row.key {
+  margin: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--color-warning) 30%, var(--color-border));
+  border-radius: var(--r-md);
+  background: linear-gradient(100deg, var(--color-warning-bg), var(--color-surface) 85%);
+  padding-inline: calc(var(--pad-card) - 8px);
+}
+.tu-cmp-row.key + .tu-cmp-row {
+  border-top: 0;
+}
+.tu-cmp-row.key .tu-cmp-label {
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+}
+.tu-cmp-row.key .num {
+  font-size: 1.05rem;
+  font-weight: var(--weight-bold);
 }
 
 /* The two key metrics. */
@@ -587,10 +726,35 @@
 .tu-metric p strong {
   color: var(--color-text);
 }
-.tu-formula {
-  font-size: 0.8rem !important;
-  color: var(--color-text-muted) !important;
+.tu-sunk {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  margin-top: 16px;
+  padding: 16px var(--pad-card);
+  border-radius: var(--r-lg);
+  border: 1px dashed var(--color-border-strong);
 }
+.tu-sunk-i {
+  flex: none;
+  margin-top: 2px;
+  color: var(--color-text-muted);
+}
+.tu-sunk h3 {
+  margin: 0 0 4px;
+  font-size: 0.98rem;
+  font-weight: var(--weight-bold);
+}
+.tu-sunk p {
+  margin: 0;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+}
+.tu-sunk strong {
+  color: var(--color-text);
+}
+
 .tu-split {
   display: grid;
   gap: 4px;
@@ -654,34 +818,26 @@
 .tu-tl-fill.b {
   background: var(--series-2);
 }
-.tu-tl-fill.extra {
-  background: repeating-linear-gradient(135deg, var(--color-warning) 0 6px, color-mix(in srgb, var(--color-warning) 55%, var(--color-surface)) 6px 12px);
-}
-
-/* Sunk cost. */
-.tu-sunk {
-  padding: 16px var(--pad-card);
-  display: grid;
-  gap: 8px;
-  background: var(--color-surface-sunken);
-}
-.tu-sunk-head {
+.tu-tl-note {
   display: flex;
   align-items: center;
-  gap: 9px;
-  color: var(--color-text-muted);
-}
-.tu-sunk h3 {
+  gap: 8px;
   margin: 0;
-  font-size: 1rem;
-  font-weight: var(--weight-bold);
+  font-size: 0.86rem;
+  color: var(--color-text-secondary);
+}
+.tu-tl-note strong {
   color: var(--color-text);
 }
-.tu-sunk p {
-  margin: 0;
-  font-size: 0.88rem;
-  line-height: 1.6;
-  color: var(--color-text-secondary);
+.tu-tl-swatch {
+  flex: none;
+  width: 18px;
+  height: 10px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(135deg, var(--color-warning) 0 6px, color-mix(in srgb, var(--color-warning) 55%, var(--color-surface)) 6px 12px);
+}
+.tu-tl-fill.extra {
+  background: repeating-linear-gradient(135deg, var(--color-warning) 0 6px, color-mix(in srgb, var(--color-warning) 55%, var(--color-surface)) 6px 12px);
 }
 
 /* ---------------- Tenure ---------------- */
@@ -778,12 +934,15 @@
   color: var(--color-success);
 }
 .tu-badge.best-balance {
-  background: var(--color-primary-soft);
-  border-color: var(--color-primary-border);
-  color: var(--color-primary);
+  background: var(--color-success);
+  border-color: var(--color-success);
+  color: var(--color-on-success);
 }
 .tu-tenure-table tr.is-best > * {
-  background: color-mix(in srgb, var(--color-primary-soft) 55%, transparent);
+  background: color-mix(in srgb, var(--color-success-bg) 80%, var(--color-surface));
+}
+.tu-tenure-table tr.is-best > :first-child {
+  box-shadow: inset 3px 0 0 var(--color-success);
 }
 .tu-tenure-table tr.is-selected > * {
   background: var(--color-table-selected, var(--color-primary-soft));
@@ -803,37 +962,41 @@
   border-color: var(--color-primary-border);
 }
 
-/* Lower EMI doesn't mean lower cost. */
-.tu-warning {
-  padding: 16px var(--pad-card);
+
+/* Lower EMI ≠ cheaper loan (with the long-tenure warning on top). */
+.tu-lesson {
   display: grid;
-  gap: 10px;
-  background: linear-gradient(160deg, var(--color-warning-bg), var(--color-surface) 80%);
+  gap: 14px;
+  padding: 18px var(--pad-card);
+}
+.tu-lesson.warn {
+  background: linear-gradient(165deg, var(--color-warning-bg), var(--color-surface) 55%);
   border-color: color-mix(in srgb, var(--color-warning) 30%, var(--color-border));
 }
-.tu-warning-head {
+.tu-lesson-head {
   display: flex;
-  align-items: center;
-  gap: 9px;
+  gap: 10px;
+  align-items: flex-start;
+}
+.tu-lesson-i {
+  flex: none;
+  margin-top: 2px;
   color: var(--color-warning);
 }
-.tu-warning h3 {
-  margin: 0;
-  font-size: 1.02rem;
+.tu-lesson-head h3 {
+  margin: 0 0 2px;
+  font-size: 1.05rem;
   font-weight: var(--weight-bold);
-  color: var(--color-text);
 }
-.tu-warning > p {
+.tu-lesson-head p {
   margin: 0;
-  font-size: 0.88rem;
-  color: var(--color-text-secondary);
 }
-.tu-warning-stats {
+.tu-lesson-stats {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
 }
-.tu-warning-stats > div {
+.tu-lesson-stats > div {
   display: grid;
   gap: 2px;
   padding: 10px 12px;
@@ -841,60 +1004,72 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
 }
-.tu-warning-stats span {
+.tu-lesson-stats span {
   font-size: var(--text-xs);
   font-weight: var(--weight-semibold);
   color: var(--color-text-muted);
 }
-.tu-warning-stats strong {
-  font-size: 1.1rem;
+.tu-lesson-stats strong {
+  font-size: 1.15rem;
   font-weight: var(--weight-bold);
   color: var(--color-text);
 }
-.tu-warning-stats .good strong {
+.tu-lesson-stats .good strong {
   color: var(--color-success);
 }
-.tu-warning-stats small {
+.tu-lesson-stats small {
   font-size: 0.74rem;
   color: var(--color-text-muted);
 }
-
-/* Lower EMI ≠ cheaper loan. */
-.tu-lesson {
-  padding: 16px var(--pad-card);
+.tu-lesson-bars {
   display: grid;
   gap: 12px;
-}
-.tu-lesson-head h3 {
-  margin: 0 0 2px;
-  font-size: 1.02rem;
-  font-weight: var(--weight-bold);
-}
-.tu-lesson-head p {
-  margin: 0;
 }
 .tu-lesson-row {
   display: grid;
   gap: 6px;
 }
 .tu-lesson-sum {
-  margin: 0;
-  font-size: 0.92rem;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 10px;
+  font-size: 0.9rem;
   color: var(--color-text-secondary);
 }
 .tu-lesson-sum strong {
   color: var(--color-text);
 }
+.tu-lesson-tag {
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+  min-width: 64px;
+}
 .tu-lesson-bar {
   display: flex;
-  height: 16px;
-  border-radius: 6px;
+  height: 22px;
+  border-radius: 7px;
   overflow: hidden;
   background: var(--color-surface-sunken);
 }
 .tu-lesson-bar span {
   height: 100%;
-  transition: width var(--dur-slow, 0.4s) var(--ease);
+  transition: width 0.45s var(--ease);
+}
+.tu-lesson-bar .i {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  min-width: 0;
+  overflow: hidden;
+}
+.tu-lesson-bar em {
+  padding: 0 7px;
+  font-style: normal;
+  font-size: 0.7rem;
+  font-weight: var(--weight-bold);
+  color: var(--color-on-primary);
+  white-space: nowrap;
 }
 .tu-lesson-bar .p,
 .tu-lesson-key .p {
@@ -921,24 +1096,92 @@
   height: 10px;
   border-radius: 3px;
 }
-.tu-lesson-out {
-  margin: 0;
-  padding-top: 10px;
-  border-top: 1px solid var(--color-divider);
-  font-size: 0.9rem;
-  color: var(--color-text-secondary);
+
+/* Flexibility vs interest: three cards, long → short. */
+.tu-matrix {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 0 var(--pad-card) var(--pad-card);
 }
-.tu-lesson-out strong {
+.tu-matrix-item {
+  display: grid;
+  align-content: start;
+  gap: 4px;
+  padding: 14px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-md);
+  background: var(--color-surface);
+}
+.tu-matrix-item.is-best {
+  border-color: color-mix(in srgb, var(--color-success) 45%, var(--color-border));
+  box-shadow: inset 0 3px 0 var(--color-success);
+}
+.tu-matrix-band {
+  font-size: 0.7rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.tu-matrix-years {
+  font-size: 1.25rem;
+  font-weight: var(--weight-bold);
   color: var(--color-text);
 }
-
-table.data th.txt,
-table.data td.txt {
-  text-align: left;
+.tu-matrix-item dl {
+  margin: 4px 0 0;
+}
+.tu-matrix-item dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 0;
+  border-bottom: 1px dashed var(--color-divider);
+  font-size: 0.84rem;
+}
+.tu-matrix-item dt {
+  color: var(--color-text-secondary);
+}
+.tu-matrix-item dd {
+  margin: 0;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
 }
 .tu-flex {
-  font-size: 0.8rem;
-  font-weight: var(--weight-semibold);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tu-flex-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 11px;
+}
+.tu-flex-bars i {
+  width: 3px;
+  border-radius: 1px;
+  background: var(--color-border-strong);
+}
+.tu-flex-bars i:nth-child(1) {
+  height: 5px;
+}
+.tu-flex-bars i:nth-child(2) {
+  height: 8px;
+}
+.tu-flex-bars i:nth-child(3) {
+  height: 11px;
+}
+.tu-flex.low i:nth-child(1),
+.tu-flex.medium i:nth-child(-n + 2),
+.tu-flex.high i {
+  background: var(--color-primary);
+}
+.tu-matrix-advice {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  line-height: 1.45;
   color: var(--color-text-secondary);
 }
 
@@ -972,6 +1215,26 @@ table.data td.txt {
 .tu-scenario.rec .tu-scenario-label {
   color: var(--color-primary);
 }
+.tu-scenario-hero {
+  display: grid;
+  gap: 1px;
+  padding: 8px 10px;
+  border-radius: var(--r-sm);
+  background: var(--color-surface-sunken);
+}
+.tu-scenario-hero span {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-muted);
+}
+.tu-scenario-hero strong {
+  font-size: 1.12rem;
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
+}
+.tu-scenario.rec .tu-scenario-hero {
+  background: var(--color-primary-soft);
+}
 .tu-scenario-dl {
   margin: 0;
 }
@@ -1001,6 +1264,10 @@ table.data td.txt {
 .tu-larger-note {
   margin: 0 18px 12px;
 }
+table.data tr.is-key > * {
+  font-weight: var(--weight-bold);
+  background: color-mix(in srgb, var(--color-warning-bg) 70%, var(--color-surface));
+}
 .tu-th-sub {
   display: block;
   font-size: 0.7rem;
@@ -1018,6 +1285,62 @@ table.data td.txt {
 }
 .tu-prepay-fields {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr));
+}
+.tu-prepay-results {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 14px;
+  align-items: stretch;
+}
+.tu-prepay-hero {
+  display: grid;
+  align-content: center;
+  gap: 2px;
+  padding: 16px 18px;
+  border-radius: var(--r-md);
+  background: linear-gradient(150deg, var(--color-success-bg), var(--color-surface) 90%);
+  border: 1px solid color-mix(in srgb, var(--color-success) 28%, var(--color-border));
+}
+.tu-prepay-hero span {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.tu-prepay-hero strong {
+  font-size: clamp(1.5rem, 1.2rem + 1vw, 1.9rem);
+  font-weight: var(--weight-bold);
+  letter-spacing: -0.03em;
+  color: var(--color-success);
+}
+.tu-prepay-hero small {
+  font-size: 0.84rem;
+  color: var(--color-text-secondary);
+}
+.tu-prepay-dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.tu-prepay-dl > div {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--r-md);
+}
+.tu-prepay-dl dt {
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  color: var(--color-text-muted);
+}
+.tu-prepay-dl dd {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: var(--weight-bold);
+  color: var(--color-text);
 }
 
 /* ---------------- Final decision ---------------- */
@@ -1046,13 +1369,73 @@ table.data td.txt {
   font-weight: var(--weight-bold);
   color: var(--color-text);
 }
-.tu-final-text {
+.tu-final-need {
   margin: 0;
   font-size: 0.95rem;
-  line-height: 1.7;
   color: var(--color-text-secondary);
 }
-.tu-final p.small {
+.tu-final-need strong {
+  color: var(--color-text);
+}
+.tu-points {
+  display: grid;
+  gap: 9px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.tu-points li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 0.93rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.tu-points strong {
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.tu-point-mark {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 21px;
+  height: 21px;
+  margin-top: 1px;
+  border-radius: 50%;
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+.tu-points .good .tu-point-mark {
+  background: var(--color-success-bg);
+  color: var(--color-success);
+}
+.tu-points .warn .tu-point-mark {
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+}
+.tu-bottom-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  margin: 6px 0 0;
+  padding: 12px 14px;
+  border-radius: var(--r-md);
+  background: color-mix(in srgb, var(--tone-bg) 70%, var(--color-surface));
+  font-size: 0.98rem;
+  font-weight: var(--weight-semibold);
+  color: var(--color-text);
+}
+.tu-bottom-label {
+  font-size: 0.7rem;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+.tu-final-note {
   margin: 0;
 }
 .tu-saved-name {
@@ -1094,34 +1477,62 @@ table.data td.txt {
 
 /* ---------------- Phones ---------------- */
 @media (max-width: 720px) {
-  .tu-options,
   .tu-metrics,
-  .tu-rec {
+  .tu-rec,
+  .tu-matrix,
+  .tu-prepay-results {
     grid-template-columns: 1fr;
   }
-  .tu-warning-stats {
+  .tu-lesson-stats {
     grid-template-columns: 1fr;
   }
-  .tu-warning-stats > div {
+  .tu-lesson-stats > div {
     grid-template-columns: 1fr auto;
     align-items: baseline;
   }
-  .tu-warning-stats small {
+  .tu-lesson-stats small {
     grid-column: 1 / -1;
+  }
+  /* The comparison: the label on its own line, the three figures beneath. */
+  .tu-cmp-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 2px 8px;
+    padding: 10px 14px;
+  }
+  .tu-cmp-row .tu-cmp-label {
+    grid-column: 1 / -1;
+    font-size: 0.8rem;
+  }
+  .tu-cmp-head .tu-cmp-label,
+  .tu-cmp-long {
+    display: none;
+  }
+  .tu-cmp-short {
+    display: inline;
+  }
+  .tu-cmp-row .num {
+    font-size: 0.88rem;
+  }
+  .tu-cmp-row.key {
+    margin: 4px 6px;
+    padding-inline: 10px;
+  }
+  .tu-cmp-row.key .num {
+    font-size: 0.95rem;
+  }
+  .tu-takeaway {
+    font-size: 0.94rem;
+    padding: 12px 14px;
+  }
+  .tu-sec-title .tu-step-n {
+    width: 32px;
+    height: 32px;
+    font-size: 0.9rem;
   }
 }
 @media (max-width: 420px) {
   .tu-ctas {
     grid-template-columns: 1fr;
-  }
-  .tu-quick {
-    grid-template-columns: 1fr 1fr;
-  }
-  .tu-quick > div:last-child {
-    grid-column: 1 / -1;
-  }
-  .tu-chips {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
   .tu-tenure-custom .tu-tenure-pair {
     grid-template-columns: 1fr;
@@ -1141,11 +1552,11 @@ table.data td.txt {
   .tu-schedule:not([open]) {
     display: none;
   }
-  .tu-option,
+  .tu-cmp,
   .tu-metric,
   .tu-rec,
-  .tu-warning,
   .tu-lesson,
+  .tu-matrix-item,
   .tu-scenario,
   .tu-final {
     break-inside: avoid;

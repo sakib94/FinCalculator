@@ -2,7 +2,7 @@ import { useEffect, useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { WorkspaceProps } from '@/calculators/types';
 import {
-  NEW_TENURE_MONTHS,
+  NEW_TENURE_YEARS,
   ORIGINAL_TENURE_YEARS,
   calculateTopUp,
   isCoreIssue,
@@ -13,8 +13,8 @@ import {
   type TopUpResult,
   type TopUpTerms,
 } from '@/engines/topup';
-import { MAX_PINNED, blankInput, defaultState, isOriginalChoice, restoreState, type TopUpState } from '@/calculators/loans/topUpModel';
-import { checkText, emiChangeWords, lakh, mo, money, summaryText, verdictLead, verdictTitle, when } from '@/calculators/loans/topUpReport';
+import { MAX_PINNED, blankInput, defaultState, isOriginalChoice, isTenureChoice, restoreState, type TopUpState } from '@/calculators/loans/topUpModel';
+import { checkText, emiChangeWords, lakh, money, summaryText, verdictLead, verdictTitle, when, yrs } from '@/calculators/loans/topUpReport';
 import { copyText, printPage } from '@/lib/export';
 import { readLocal, writeLocal } from '@/lib/storage';
 import { scrollToSection } from '@/lib/scroll';
@@ -70,6 +70,7 @@ export function TopUpWorkspace({ heroRef, onHero }: WorkspaceProps) {
   const today = useMemo(() => new Date(), []);
   const r = useMemo(() => calculateTopUp(input, today), [input, today]);
   const o = r.option;
+  const rec = r.recommendation;
 
   useEffect(() => {
     if (!valid) return onHero(null);
@@ -77,7 +78,7 @@ export function TopUpWorkspace({ heroRef, onHero }: WorkspaceProps) {
     onHero({
       label: saving ? 'Interest saved' : 'Additional interest',
       value: money(Math.abs(o.additionalInterest)),
-      caption: `${lakh(o.charges.net)} in hand · ${mo(o.months)}`,
+      caption: `${lakh(o.charges.net)} in hand · ${yrs(o.months)}`,
     });
   }, [valid, o.additionalInterest, o.charges.net, o.months, onHero]);
 
@@ -114,7 +115,7 @@ export function TopUpWorkspace({ heroRef, onHero }: WorkspaceProps) {
   const chooseTenure = (m: number) =>
     setState((s) => ({
       ...s,
-      tenureCustom: !(NEW_TENURE_MONTHS as readonly number[]).includes(m),
+      tenureCustom: !isTenureChoice(m),
       input: { ...s.input, topup: { ...s.input.topup, tenureMonths: m } },
     }));
 
@@ -210,17 +211,19 @@ export function TopUpWorkspace({ heroRef, onHero }: WorkspaceProps) {
               </div>
               {e.remainingMode === 'auto' ? (
                 <p className="tu-derived">
-                  <strong className="num">{mo(calculatedRemaining)}</strong>
+                  <strong className="num">
+                    {calculatedRemaining} {t('EMIs left')}
+                  </strong>
                   <span className="muted">
-                    {Math.round(e.originalTenureMonths || 0)} − {Math.round(e.emisPaid || 0)} {t('EMIs paid')}
+                    {yrs(calculatedRemaining)} · {Math.round(e.originalTenureMonths || 0)} {t('EMIs')} − {Math.round(e.emisPaid || 0)} {t('paid')}
                   </span>
                 </p>
               ) : (
                 <div className="fields">
                   <Num
                     path="existing.remainingMonths"
-                    label="Months Left on Your Statement"
-                    unit="months"
+                    label="EMIs Left on Your Statement"
+                    unit="EMIs"
                     value={e.remainingMonths}
                     error={err('existing.remainingMonths')}
                     onChange={(v) => setExisting({ remainingMonths: v })}
@@ -238,12 +241,12 @@ export function TopUpWorkspace({ heroRef, onHero }: WorkspaceProps) {
                     {r.mismatches.map((m) =>
                       m.field === 'remaining' ? (
                         <li key="remaining">
-                          {t('Remaining tenure')}: {t('you entered')} {mo(m.entered)}; {t('original tenure − EMIs paid gives')} {mo(m.calculated)}.{' '}
+                          {t('Remaining tenure')}: {t('you entered')} {m.entered} {t('EMIs')}; {t('original tenure − EMIs paid gives')} {m.calculated}.{' '}
                           {t('Your figure is used.')}
                         </li>
                       ) : (
                         <li key="emi">
-                          {t('Current EMI')}: {t('you entered')} {money(m.entered)}; {money(m.calculated)} {t('would clear the outstanding in the months left at this rate. Your figure is used.')}
+                          {t('Current EMI')}: {t('you entered')} {money(m.entered)}; {money(m.calculated)} {t('would clear the outstanding in the EMIs left at this rate. Your figure is used.')}
                         </li>
                       ),
                     )}
@@ -449,25 +452,28 @@ export function TopUpWorkspace({ heroRef, onHero }: WorkspaceProps) {
                     </div>
                   </div>
 
-                  <dl className="tu-quick">
-                    <div>
-                      <dt>{t('New EMI')}</dt>
-                      <dd className="num">{money(o.emi)}</dd>
-                      <dd className="tu-sub">{t(emiChangeWords(o.emiChange))}</dd>
-                    </div>
-                    <div>
-                      <dt>{t('Tenure')}</dt>
-                      <dd className="num">{mo(o.months)}</dd>
-                      <dd className="tu-sub">
-                        {t('ends')} {when(o.completion)}
-                      </dd>
-                    </div>
-                    <div>
-                      <dt>{t('Recommended')}</dt>
-                      <dd className="num">{mo(r.recommendation.months)}</dd>
-                      <dd className="tu-sub">EMI {money(r.recommendation.row.emi)}</dd>
-                    </div>
-                  </dl>
+                  <div className="tu-answers">
+                    <Answer label={t('You receive')} value={money(o.charges.net)} sub={o.charges.total > 0 ? `${t('after charges of')} ${money(o.charges.total)}` : t('no charges deducted')} />
+                    <Answer label={t('New EMI')} value={money(o.emi)} sub={t(emiChangeWords(o.emiChange))} tone={o.emiChange <= 0 ? 'good' : undefined} />
+                    <Answer label={t('Best tenure')} value={yrs(rec.months)} sub={`EMI ${money(rec.row.emi)}`} tone="good" />
+                    <Answer
+                      label={t('Loan ends')}
+                      value={when(o.completion)}
+                      sub={o.extensionMonths > 0 ? `${yrs(o.extensionMonths)} ${t('later than today')}` : o.extensionMonths < 0 ? `${yrs(-o.extensionMonths)} ${t('sooner than today')}` : t('same as today')}
+                      tone={o.extensionMonths > 24 ? 'warn' : undefined}
+                    />
+                  </div>
+                  {rec.months !== o.months && (
+                    <button type="button" className="tu-try no-print" onClick={() => chooseTenure(rec.months)}>
+                      <span>
+                        {t('Try')} <strong>{yrs(rec.months)}</strong>
+                      </span>
+                      <span className="tu-try-gain num">
+                        {rec.months < o.months ? `${lakh(o.futureInterest - rec.row.interest)} ${t('less interest')}` : `EMI ${money(rec.row.emi)}`}
+                      </span>
+                      <Icon name="chevronRight" size={16} />
+                    </button>
+                  )}
 
                   <ul className="tu-checks">
                     {r.verdict.checks.map((c) => (
@@ -583,7 +589,7 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint: st
   );
 }
 
-/** Original tenure: 1–10 years, or a custom number of months. */
+/** Original tenure: 1–10 years, or a custom number of years. */
 function OriginalTenure({
   months,
   custom,
@@ -613,14 +619,21 @@ function OriginalTenure({
           >
             {ORIGINAL_TENURE_YEARS.map((y) => (
               <option key={y} value={y * 12}>
-                {y} {y === 1 ? t('year') : t('years')} ({y * 12} {t('mo')})
+                {y} {y === 1 ? t('year') : t('years')}
               </option>
             ))}
             <option value="custom">{t('Custom')}</option>
           </select>
         </div>
         {isCustom && (
-          <Num path="existing.originalTenureMonths" label="Custom tenure" unit="months" value={months} error={error} onChange={(v) => onPick(v, true)} />
+          <Num
+            path="existing.originalTenureMonths"
+            label="Custom tenure"
+            unit="years"
+            value={toYears(months)}
+            error={error}
+            onChange={(v) => onPick(Math.round(v * 12), true)}
+          />
         )}
       </div>
       {!isCustom && error && (
@@ -633,7 +646,7 @@ function OriginalTenure({
   );
 }
 
-/** New tenure: one-tap choices from 12 to 120 months, or custom. */
+/** New tenure: one-tap choices from 1 to 10 years, or custom. */
 function TenurePicker({
   months,
   custom,
@@ -647,18 +660,18 @@ function TenurePicker({
 }) {
   const t = useT();
   const id = useId();
-  const isCustom = custom || !(NEW_TENURE_MONTHS as readonly number[]).includes(months);
+  const isCustom = custom || !isTenureChoice(months);
   return (
     <div className="tu-tenure" role="group" aria-labelledby={id}>
       <span className="field-label" id={id}>
         {t('New Tenure')}
-        <span className="tu-tenure-years muted">{months > 0 ? `· ${formatYears(months)}` : ''}</span>
+        <span className="tu-tenure-years muted">{months > 0 ? `· ${yrs(months)}` : ''}</span>
       </span>
       <div className="tu-chips">
-        {NEW_TENURE_MONTHS.map((m) => (
-          <button key={m} type="button" className="tu-chip" aria-pressed={!isCustom && months === m} onClick={() => onPick(m, false)}>
-            {m}
-            <span className="sr-only"> {t('months')}</span>
+        {NEW_TENURE_YEARS.map((y) => (
+          <button key={y} type="button" className="tu-chip" aria-pressed={!isCustom && months === y * 12} onClick={() => onPick(y * 12, false)}>
+            {y}
+            <small>{y === 1 ? t('yr') : t('yrs')}</small>
           </button>
         ))}
         <button type="button" className="tu-chip" aria-pressed={isCustom} onClick={() => onPick(months, true)}>
@@ -667,7 +680,15 @@ function TenurePicker({
       </div>
       {isCustom ? (
         <div className="fields">
-          <Num path="topup.tenureMonths" label="Custom tenure" unit="months" value={months} error={error} onChange={(v) => onPick(v, true)} />
+          <Num
+            path="topup.tenureMonths"
+            label="Custom tenure"
+            unit="years"
+            value={toYears(months)}
+            error={error}
+            onChange={(v) => onPick(Math.round(v * 12), true)}
+            help="In years — 4.5 for four and a half years."
+          />
         </div>
       ) : (
         error && (
@@ -681,10 +702,20 @@ function TenurePicker({
   );
 }
 
-const formatYears = (m: number) => {
-  const y = m / 12;
-  return Number.isInteger(y) ? `${y} ${y === 1 ? 'year' : 'years'}` : `${Math.round(y * 10) / 10} years`;
-};
+/** Months as years for a years field: 66 → 5.5. */
+const toYears = (m: number) => Math.round((m / 12) * 100) / 100;
+
+/** One of the four answers in the decision panel. */
+function Answer({ label, value, sub, tone }: { label: string; value: string; sub: string; tone?: 'good' | 'warn' }) {
+  return (
+    <div className={`tu-answer${tone ? ` ${tone}` : ''}`}>
+      <span className="tu-answer-label">{label}</span>
+      {/* Amounts glide to their new value; dates and tenures simply change. */}
+      <strong className="tu-answer-value num">{value.includes('₹') ? <TweenedText value={value} /> : value}</strong>
+      <span className="tu-answer-sub">{sub}</span>
+    </div>
+  );
+}
 
 /** Top-up → − fee − GST − other − insurance → cash in hand. */
 function CashLadder({ r }: { r: TopUpResult }) {
