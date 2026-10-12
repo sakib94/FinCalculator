@@ -13,16 +13,28 @@ export interface NumProps {
   error?: string;
   wide?: boolean;
   placeholder?: string;
+  /** A range slider under the box, from min to max. */
+  slider?: { min: number; max: number; step?: number };
 }
 
 /**
  * A numeric field for workspaces that keep their own state. Empty reads
  * as zero, so it shows as a blank box rather than "0".
  */
-export function Num({ path, label, value, onChange, type = 'number', unit, help, error, wide, placeholder = '0' }: NumProps) {
+export function Num({ path, label, value, onChange, type = 'number', unit, help, error, wide, placeholder = '0', slider }: NumProps) {
   const field = useMemo<Field>(
-    () => ({ name: path, label, type, default: 0, unit, help, wide, placeholder }),
-    [path, label, type, unit, help, wide, placeholder],
+    () => ({
+      name: path,
+      label,
+      type,
+      default: 0,
+      unit,
+      help,
+      wide,
+      placeholder,
+      ...(slider ? { slider: true, min: slider.min, max: slider.max, step: slider.step ?? 1 } : {}),
+    }),
+    [path, label, type, unit, help, wide, placeholder, slider?.min, slider?.max, slider?.step],
   );
   return (
     <FieldControl

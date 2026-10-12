@@ -28,12 +28,6 @@ import { FEE_GST_PCT } from './loanTypes';
  * insurance and any other deductions.
  * ------------------------------------------------------------------ */
 
-/** Original tenures offered as one-tap choices, in years; anything else is entered as a custom tenure. */
-export const ORIGINAL_TENURE_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 10] as const;
-
-/** New tenures offered as one-tap choices, in years; anything else is entered as a custom tenure. */
-export const NEW_TENURE_YEARS = [1, 2, 3, 4, 5, 6, 7, 8, 10] as const;
-
 /**
  * The tenures every comparison is drawn across, in months: 3 to 7 years.
  * The chosen tenure is added when it is not one of them. Tenures are

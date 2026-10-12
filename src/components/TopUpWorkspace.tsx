@@ -2,8 +2,6 @@ import { useEffect, useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { WorkspaceProps } from '@/calculators/types';
 import {
-  NEW_TENURE_YEARS,
-  ORIGINAL_TENURE_YEARS,
   calculateTopUp,
   isCoreIssue,
   validateTopUp,
@@ -13,7 +11,7 @@ import {
   type TopUpResult,
   type TopUpTerms,
 } from '@/engines/topup';
-import { MAX_PINNED, blankInput, defaultState, isOriginalChoice, isTenureChoice, restoreState, type TopUpState } from '@/calculators/loans/topUpModel';
+import { MAX_PINNED, blankInput, defaultState, restoreState, type TopUpState } from '@/calculators/loans/topUpModel';
 import { checkText, emiChangeWords, lakh, money, summaryText, verdictLead, verdictTitle, when, yrs } from '@/calculators/loans/topUpReport';
 import { copyText, printPage } from '@/lib/export';
 import { readLocal, writeLocal } from '@/lib/storage';
@@ -112,12 +110,7 @@ export function TopUpWorkspace({ heroRef, onHero }: WorkspaceProps) {
     notify(t('Option saved — change the inputs to compare'));
   };
   const unpin = (id: string) => setState((s) => ({ ...s, pinned: s.pinned.filter((p) => p.id !== id) }));
-  const chooseTenure = (m: number) =>
-    setState((s) => ({
-      ...s,
-      tenureCustom: !isTenureChoice(m),
-      input: { ...s.input, topup: { ...s.input.topup, tenureMonths: m } },
-    }));
+  const chooseTenure = (m: number) => setTopup({ tenureMonths: m });
 
   /* ---------------- Step helpers ---------------- */
 
@@ -154,17 +147,15 @@ export function TopUpWorkspace({ heroRef, onHero }: WorkspaceProps) {
                 onChange={(v) => setExisting({ originalRatePct: v })}
                 help="If the rate has changed since, enter today’s rate."
               />
-              <OriginalTenure
-                months={e.originalTenureMonths}
-                custom={state.originalCustom}
+              <Num
+                path="existing.originalTenureMonths"
+                label="Original Tenure"
+                unit="yrs"
+                value={toYears(e.originalTenureMonths)}
                 error={err('existing.originalTenureMonths')}
-                onPick={(months, custom) =>
-                  setState((s) => ({
-                    ...s,
-                    originalCustom: custom,
-                    input: { ...s.input, existing: { ...s.input.existing, originalTenureMonths: months } },
-                  }))
-                }
+                onChange={(v) => setExisting({ originalTenureMonths: Math.round(v * 12) })}
+                slider={{ min: 1, max: 30 }}
+                help="The tenure on your sanction letter, in years. Use a decimal for part of a year — 5.5 for five and a half."
               />
               <Num
                 path="existing.emisPaid"
@@ -385,6 +376,16 @@ export function TopUpWorkspace({ heroRef, onHero }: WorkspaceProps) {
                 onChange={(v) => setTopup({ newRatePct: v })}
               />
               <Num
+                path="topup.tenureMonths"
+                label="New Tenure"
+                unit="yrs"
+                value={toYears(tu.tenureMonths)}
+                error={err('topup.tenureMonths')}
+                onChange={(v) => setTopup({ tenureMonths: Math.round(v * 12) })}
+                slider={{ min: 1, max: 30 }}
+                help="The tenure on offer for the new, combined loan, in years. Use a decimal for part of a year — 4.5 for four and a half."
+              />
+              <Num
                 path="topup.comfortableEmi"
                 label="Comfortable EMI (optional)"
                 type="currency"
@@ -394,15 +395,6 @@ export function TopUpWorkspace({ heroRef, onHero }: WorkspaceProps) {
                 help="The most you can pay every month without strain. Used to recommend the best tenure."
               />
             </div>
-            <TenurePicker
-              months={tu.tenureMonths}
-              custom={state.tenureCustom}
-              error={err('topup.tenureMonths')}
-              onPick={(months, custom) =>
-                setState((s) => ({ ...s, tenureCustom: custom, input: { ...s.input, topup: { ...s.input.topup, tenureMonths: months } } }))
-              }
-            />
-
             <div className="tu-ctas">
               <button type="button" className="btn primary" onClick={() => scrollToSection('tu-compare')} disabled={!valid}>
                 {t('Compare My Loan Options')}
@@ -586,119 +578,6 @@ function Step({ n, title, hint, children }: { n: number; title: string; hint: st
       </div>
       <div className="tu-step-body">{children}</div>
     </section>
-  );
-}
-
-/** Original tenure: 1–10 years, or a custom number of years. */
-function OriginalTenure({
-  months,
-  custom,
-  error,
-  onPick,
-}: {
-  months: number;
-  custom: boolean;
-  error?: string;
-  onPick: (months: number, custom: boolean) => void;
-}) {
-  const t = useT();
-  const id = useId();
-  const isCustom = custom || !isOriginalChoice(months);
-  return (
-    <div className={`field${isCustom ? ' tu-tenure-custom' : ''}`}>
-      <label className="field-label" htmlFor={id}>
-        {t('Original Tenure')}
-      </label>
-      <div className="tu-tenure-pair">
-        <div className="input-wrap select-wrap">
-          <select
-            id={id}
-            className="input"
-            value={isCustom ? 'custom' : String(months)}
-            onChange={(ev) => (ev.target.value === 'custom' ? onPick(months, true) : onPick(Number(ev.target.value), false))}
-          >
-            {ORIGINAL_TENURE_YEARS.map((y) => (
-              <option key={y} value={y * 12}>
-                {y} {y === 1 ? t('year') : t('years')}
-              </option>
-            ))}
-            <option value="custom">{t('Custom')}</option>
-          </select>
-        </div>
-        {isCustom && (
-          <Num
-            path="existing.originalTenureMonths"
-            label="Custom tenure"
-            unit="years"
-            value={toYears(months)}
-            error={error}
-            onChange={(v) => onPick(Math.round(v * 12), true)}
-          />
-        )}
-      </div>
-      {!isCustom && error && (
-        <div className="error" role="alert">
-          <Icon name="alert" size={13} strokeWidth={2} />
-          {error}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/** New tenure: one-tap choices from 1 to 10 years, or custom. */
-function TenurePicker({
-  months,
-  custom,
-  error,
-  onPick,
-}: {
-  months: number;
-  custom: boolean;
-  error?: string;
-  onPick: (months: number, custom: boolean) => void;
-}) {
-  const t = useT();
-  const id = useId();
-  const isCustom = custom || !isTenureChoice(months);
-  return (
-    <div className="tu-tenure" role="group" aria-labelledby={id}>
-      <span className="field-label" id={id}>
-        {t('New Tenure')}
-        <span className="tu-tenure-years muted">{months > 0 ? `· ${yrs(months)}` : ''}</span>
-      </span>
-      <div className="tu-chips">
-        {NEW_TENURE_YEARS.map((y) => (
-          <button key={y} type="button" className="tu-chip" aria-pressed={!isCustom && months === y * 12} onClick={() => onPick(y * 12, false)}>
-            {y}
-            <small>{y === 1 ? t('yr') : t('yrs')}</small>
-          </button>
-        ))}
-        <button type="button" className="tu-chip" aria-pressed={isCustom} onClick={() => onPick(months, true)}>
-          {t('Custom')}
-        </button>
-      </div>
-      {isCustom ? (
-        <div className="fields">
-          <Num
-            path="topup.tenureMonths"
-            label="Custom tenure"
-            unit="years"
-            value={toYears(months)}
-            error={error}
-            onChange={(v) => onPick(Math.round(v * 12), true)}
-            help="In years — 4.5 for four and a half years."
-          />
-        </div>
-      ) : (
-        error && (
-          <div className="error" role="alert">
-            <Icon name="alert" size={13} strokeWidth={2} />
-            {error}
-          </div>
-        )
-      )}
-    </div>
   );
 }
 

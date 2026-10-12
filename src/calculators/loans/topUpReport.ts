@@ -10,7 +10,9 @@ import { formatINR, formatINRCompact, formatMonthYear, formatNumber, formatPerce
  * Pure — the screen and the tests share it.
  *
  * Tenures are spoken in years ("7 years"); only counts of EMIs are in
- * months. Takeaways mark the figure to emphasise with **…**.
+ * months. Takeaways and points mark the figures to stress, by what they
+ * mean: ++…++ money you get or save, ~~…~~ extra cost, **…** a key
+ * fact. The screen colours them; copy and share strip the marks.
  */
 
 export const money = (v: number): string => formatINR(v);
@@ -32,6 +34,10 @@ export const yrAdj = (m: number): string => (Math.round(m) % 6 === 0 ? `${format
 export const when = (d: Date): string => formatMonthYear(d);
 export const ratePct = (v: number): string => `${formatNumber(v, 2)}%`;
 const b = (text: string) => `**${text}**`;
+const up = (text: string) => `++${text}++`;
+const down = (text: string) => `~~${text}~~`;
+/** Removes the emphasis marks, for plain text. */
+export const plain = (text: string): string => text.replace(/\*\*|\+\+|~~/g, '');
 
 /* ------------------------------------------------------------------ */
 /* The verdict                                                         */
@@ -148,32 +154,30 @@ export function personalPoints(r: TopUpResult, input: TopUpInput): Point[] {
   const charges = o.charges.total > 0 ? ` after ${money(o.charges.total)} of charges` : '';
   p.push({
     tone: 'info',
-    text: `A top-up at ${ratePct(o.ratePct)} over ${yrs(o.months)} puts ${b(lakh(o.charges.net))} in your hands${charges} and moves your EMI from ${money(e.emi)} to ${b(
+    text: `A top-up at ${ratePct(o.ratePct)} over ${yrs(o.months)} puts ${up(lakh(o.charges.net))} in your hands${charges} and moves your EMI from ${money(e.emi)} to ${b(
       money(o.emi),
     )} (${emiChangeWords(o.emiChange)}).`,
   });
 
   if (o.extensionMonths > 0)
-    p.push({ tone: 'warn', text: `Your loan would run until ${when(o.completion)} instead of ${when(e.completion)} — ${b(`${yrs(o.extensionMonths)} longer`)}.` });
+    p.push({ tone: 'warn', text: `Your loan would run until ${when(o.completion)} instead of ${when(e.completion)} — ${down(yrs(o.extensionMonths))} longer.` });
   else if (o.extensionMonths < 0)
-    p.push({ tone: 'good', text: `Your loan would still finish by ${when(o.completion)}, ${b(`${yrs(-o.extensionMonths)} ahead`)} of today’s ${when(e.completion)}.` });
+    p.push({ tone: 'good', text: `Your loan would still finish by ${when(o.completion)}, ${up(yrs(-o.extensionMonths))} ahead of today’s ${when(e.completion)}.` });
 
   p.push(
     o.additionalInterest > 0
       ? {
           tone: o.interestPerRupee > THRESHOLDS.interestPerRupee.warn ? 'warn' : 'info',
-          text: `Compared with simply continuing today’s loan, you would pay about ${b(`${lakh(o.additionalInterest)} more in interest`)} from today.`,
+          text: `Compared with simply continuing today’s loan, you would pay about ${down(`${lakh(o.additionalInterest)} more in interest`)} from today.`,
         }
-      : { tone: 'good', text: `Compared with continuing today’s loan, you would pay about ${b(`${lakh(-o.additionalInterest)} less in interest`)}, because the new terms are cheaper.` },
+      : { tone: 'good', text: `Compared with continuing today’s loan, you would pay about ${up(`${lakh(-o.additionalInterest)} less in interest`)}, because the new terms are cheaper.` },
   );
 
   if (rec.months < o.months) {
     const fits = rec.basis === 'comfortable' ? `, within your ${money(t.comfortableEmi)} comfort level,` : '';
     p.push({
       tone: 'good',
-      text: `A ${yrAdj(rec.months)} tenure would raise the EMI to ${money(rec.row.emi)}${fits} but ${b(`cut the interest by about ${lakh(
-        o.futureInterest - rec.row.interest,
-      )}`)} and finish ${yrs(o.months - rec.months)} sooner.`,
+      text: `A ${yrAdj(rec.months)} tenure would raise the EMI to ${money(rec.row.emi)}${fits} but cut the interest by about ${up(lakh(o.futureInterest - rec.row.interest))} and finish ${yrs(o.months - rec.months)} sooner.`,
     });
   } else if (rec.months > o.months && t.comfortableEmi > 0 && o.emi > t.comfortableEmi) {
     p.push({
@@ -185,13 +189,13 @@ export function personalPoints(r: TopUpResult, input: TopUpInput): Point[] {
   }
 
   if (r.larger?.source === 'sanctioned')
-    p.push({ tone: 'warn', text: `You would be borrowing ${b(`${lakh(r.larger.extraTopUp)} more`)} than you need, which alone adds about ${lakh(r.larger.extraInterest)} of interest.` });
+    p.push({ tone: 'warn', text: `You would be borrowing ${down(lakh(r.larger.extraTopUp))} more than you need, which alone adds about ${lakh(r.larger.extraInterest)} of interest.` });
   if (r.topUpForFullCash != null)
     p.push({ tone: 'warn', text: `To have the full ${lakh(t.required)} in hand after charges, the top-up would need to be about ${b(lakh(r.topUpForFullCash))}.` });
   if (r.prepayment.active && r.prepayment.interestSaved > 0)
     p.push({
       tone: 'good',
-      text: `Prepaying as planned would save a further ${b(lakh(r.prepayment.interestSaved))} and close the loan ${yrs(r.prepayment.monthsSaved)} early.`,
+      text: `Prepaying as planned would save a further ${up(lakh(r.prepayment.interestSaved))} and close the loan ${yrs(r.prepayment.monthsSaved)} early.`,
     });
   return p;
 }
@@ -209,7 +213,7 @@ export function bottomLine(r: TopUpResult): string {
 
 /** The whole recommendation as one paragraph, for copy and share. */
 export function personalRecommendation(r: TopUpResult, input: TopUpInput): string {
-  return [`You need ${lakh(input.topup.required)}.`, ...personalPoints(r, input).map((x) => x.text), bottomLine(r)].join(' ').replace(/\*\*/g, '');
+  return plain([`You need ${lakh(input.topup.required)}.`, ...personalPoints(r, input).map((x) => x.text), bottomLine(r)].join(' '));
 }
 
 /* ------------------------------------------------------------------ */
@@ -219,14 +223,14 @@ export function personalRecommendation(r: TopUpResult, input: TopUpInput): strin
 export function compareTakeaway(r: TopUpResult): string {
   const o = r.option;
   return o.additionalInterest >= 0
-    ? `The top-up puts ${b(lakh(o.charges.net))} in your hands and costs ${b(`${lakh(o.additionalInterest)} more in interest`)} than keeping today’s loan.`
-    : `The top-up puts ${b(lakh(o.charges.net))} in your hands and still costs ${b(`${lakh(-o.additionalInterest)} less in interest`)} than today’s loan.`;
+    ? `The top-up puts ${up(lakh(o.charges.net))} in your hands and costs ${down(`${lakh(o.additionalInterest)} more in interest`)} than keeping today’s loan.`
+    : `The top-up puts ${up(lakh(o.charges.net))} in your hands and still costs ${up(`${lakh(-o.additionalInterest)} less in interest`)} than today’s loan.`;
 }
 
 export function tenureTakeaway(r: TopUpResult): string {
   const rec = r.recommendation;
   if (!rec.against) return `${b(yrs(rec.months))} is the best balance of EMI and interest here, at ${money(rec.row.emi)} a month.`;
-  return `${b(yrs(rec.months))} is the sweet spot: ${money(rec.emiIncrease)} more a month than ${yrs(rec.against.months)}, but ${b(
+  return `${b(yrs(rec.months))} is the sweet spot: ${money(rec.emiIncrease)} more a month than ${yrs(rec.against.months)}, but ${up(
     `${lakh(rec.interestSaved)} less interest`,
   )}.`;
 }
@@ -241,13 +245,13 @@ export function amountTakeaway(r: TopUpResult): string | null {
   if (span <= 0) return null;
   const perLakh = ((hi.option.futureInterest - lo.option.futureInterest) / span) * 1e5;
   const emiPerLakh = ((hi.option.emi - lo.option.emi) / span) * 1e5;
-  return `Every extra ${b('₹1 L')} you borrow adds about ${b(`${money(perLakh)} of interest`)} and ${money(emiPerLakh)} to the EMI — borrow what you need.`;
+  return `Every extra ${b('₹1 L')} you borrow adds about ${down(`${money(perLakh)} of interest`)} and ${money(emiPerLakh)} to the EMI — borrow what you need.`;
 }
 
 export function prepayTakeaway(r: TopUpResult): string | null {
   const p = r.prepayment;
   if (!p.active || p.interestSaved <= 0) return null;
-  return `Prepaying as planned saves ${b(lakh(p.interestSaved))} and closes the loan ${b(`${yrs(p.monthsSaved)} early`)}, in ${when(p.completion)}.`;
+  return `Prepaying as planned saves ${up(lakh(p.interestSaved))} and closes the loan ${up(`${yrs(p.monthsSaved)} early`)}, in ${when(p.completion)}.`;
 }
 
 /** Advice for each band of the flexibility-versus-interest matrix. */

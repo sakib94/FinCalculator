@@ -1,5 +1,4 @@
 import type { TopUpInput } from '@/engines/topup';
-import { NEW_TENURE_YEARS, ORIGINAL_TENURE_YEARS } from '@/engines/topup';
 
 /**
  * The top-up calculator's inputs: the example the page opens with, a
@@ -22,10 +21,6 @@ export interface PinnedOption {
 
 export interface TopUpState {
   input: TopUpInput;
-  /** The original tenure is typed in months rather than picked from the list. */
-  originalCustom: boolean;
-  /** The new tenure is typed in months rather than picked from the list. */
-  tenureCustom: boolean;
   schedule: 'monthly' | 'yearly';
   pinned: PinnedOption[];
 }
@@ -80,15 +75,10 @@ export function blankInput(): TopUpInput {
 
 export const defaultState = (): TopUpState => ({
   input: defaultInput(),
-  originalCustom: false,
-  tenureCustom: false,
   schedule: 'yearly',
   pinned: [],
 });
 
-/** Whether a tenure in months is one of the one-tap choices. */
-export const isOriginalChoice = (m: number): boolean => (ORIGINAL_TENURE_YEARS as readonly number[]).some((y) => y * 12 === m);
-export const isTenureChoice = (m: number): boolean => (NEW_TENURE_YEARS as readonly number[]).some((y) => y * 12 === m);
 
 /* ------------------------------------------------------------------ */
 /* Restoring saved state                                               */
@@ -152,8 +142,6 @@ export function restoreState(raw: unknown): TopUpState {
       scenarios: numbers(v.scenarios, di.scenarios),
       prepay: numbers(v.prepay, di.prepay),
     },
-    originalCustom: raw.originalCustom === true || !isOriginalChoice(existing.originalTenureMonths),
-    tenureCustom: raw.tenureCustom === true || !isTenureChoice(topup.tenureMonths),
     schedule: oneOf(raw.schedule, ['monthly', 'yearly'] as const, 'yearly'),
     pinned: pinnedFrom(raw.pinned),
   };

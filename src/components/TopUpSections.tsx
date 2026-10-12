@@ -70,11 +70,24 @@ export function TopUpSections(p: Props) {
 /* Shared pieces                                                       */
 /* ================================================================== */
 
-/** Text with **…** marking the figure to stress. */
+/**
+ * Text with its figures marked by meaning — ++gain++, ~~cost~~,
+ * **key fact** — drawn as coloured, bold highlights.
+ */
 export function Rich({ text }: { text: string }) {
   return (
     <>
-      {text.split('**').map((part, i) => (i % 2 ? <strong key={i}>{part}</strong> : part))}
+      {text.split(/(\*\*.+?\*\*|\+\+.+?\+\+|~~.+?~~)/).map((part, i) => {
+        const mark = part.slice(0, 2);
+        const tone = mark === '++' ? 'good' : mark === '~~' ? 'cost' : mark === '**' ? 'key' : null;
+        return tone && part.length > 4 ? (
+          <strong key={i} className={`tu-hl ${tone}`}>
+            {part.slice(2, -2)}
+          </strong>
+        ) : (
+          part
+        );
+      })}
     </>
   );
 }

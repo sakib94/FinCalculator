@@ -345,12 +345,12 @@ describe('saved state', () => {
     expect(restoreState(JSON.parse(JSON.stringify(saved)))).toEqual(saved);
   });
 
-  it('ignores malformed fields and opens custom tenures as custom', () => {
+  it('ignores malformed fields and keeps any tenure', () => {
     const s = restoreState({ input: { existing: { outstanding: 'lots', remainingMode: 'guess' }, topup: { tenureMonths: 90, feeOn: 'x' } }, pinned: [{ id: 1 }] });
     expect(s.input.existing.outstanding).toBe(1000000);
     expect(s.input.existing.remainingMode).toBe('auto');
     expect(s.input.topup.feeOn).toBe('topup');
-    expect(s.tenureCustom).toBe(true);
+    expect(s.input.topup.tenureMonths).toBe(90);
     expect(s.pinned).toEqual([]);
   });
 });
@@ -368,18 +368,18 @@ describe('words', () => {
     expect(text).toContain('about ₹2.47 L more in interest');
     expect(text).toContain('A 5-year tenure would raise the EMI to ₹27,942');
     expect(text).toContain('finish 2 years sooner');
-    expect(text).not.toContain('**');
+    expect(text).not.toMatch(/\*\*|\+\+|~~/);
   });
 
   it('speaks of tenures in years', () => {
     expect([yrs(84), yrs(12), yrs(54), yrs(28), yrs(56), yrs(5)]).toEqual(['7 years', '1 year', '4.5 years', '2 yrs 4 mo', '4 yrs 8 mo', '5 months']);
   });
 
-  it('sums each section up in one line, with the figure to stress marked', () => {
-    expect(compareTakeaway(r)).toBe('The top-up puts **₹3.00 L** in your hands and costs **₹2.47 L more in interest** than keeping today’s loan.');
-    expect(tenureTakeaway(r)).toBe('**5 years** is the sweet spot: ₹6,023 more a month than 7 years, but **₹1.65 L less interest**.');
-    expect(amountTakeaway(r)).toBe('Every extra **₹1 L** you borrow adds about **₹41,630 of interest** and ₹1,686 to the EMI — borrow what you need.');
-    expect(prepayTakeaway(r)).toBe('Prepaying as planned saves **₹1.99 L** and closes the loan **2 yrs 4 mo early**, in Jun 2031.');
+  it('sums each section up in one line, marking gains, costs and key facts', () => {
+    expect(compareTakeaway(r)).toBe('The top-up puts ++₹3.00 L++ in your hands and costs ~~₹2.47 L more in interest~~ than keeping today’s loan.');
+    expect(tenureTakeaway(r)).toBe('**5 years** is the sweet spot: ₹6,023 more a month than 7 years, but ++₹1.65 L less interest++.');
+    expect(amountTakeaway(r)).toBe('Every extra **₹1 L** you borrow adds about ~~₹41,630 of interest~~ and ₹1,686 to the EMI — borrow what you need.');
+    expect(prepayTakeaway(r)).toBe('Prepaying as planned saves ++₹1.99 L++ and closes the loan ++2 yrs 4 mo early++, in Jun 2031.');
   });
 
   it('copies a plain-text summary and builds both schedules', () => {
